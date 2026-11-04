@@ -3,28 +3,66 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  addOneOffOccasion,
+  chooseCover,
   createMemory,
+  createYearlyOccasion,
   deleteMedia,
   deleteMemory,
+  deleteOneOffOccasion,
+  deleteYearlyOccasion,
   GalleryError,
   getGallery,
+  saveLayout,
   updateMemory,
+  updateYearlyOccasion,
+  type MediaCell,
   type MemoryInput,
+  type YearlyOccasionInput,
 } from "@/gallery";
 import { t } from "@/strings";
 import { requireSession } from "../require-session";
-import {
-  addOneOffOccasion,
-  createYearlyOccasion,
-  deleteOneOffOccasion,
-  deleteYearlyOccasion,
-  updateYearlyOccasion,
-  type YearlyOccasionInput,
-} from "@/gallery";
-import { chooseCover, saveLayout, type MediaCell } from "@/gallery";
 
-/** What the Memory form shows after saving: an Italian error, or that it was saved. */
-export type MemoryFormState = { error?: string; saved?: boolean };
+/** What an Admin form or editor shows after saving: an Italian error, or that it was saved. */
+export type FormState = { error?: string; saved?: boolean };
+
+/**
+ * Turns an error into a message for the form. A broken gallery rule shows
+ * its own Italian message; anything else is logged and shown as an
+ * unexpected error, never rethrown.
+ */
+function failure(error: unknown): FormState {
+  if (error instanceof GalleryError) return { error: error.message };
+  console.error(error);
+  return { error: t.admin.unexpectedError };
+}
+
+/**
+ * The shape of every saving action: checks the session, runs `change`, and
+ * on success refreshes every page and reports it saved; a failure becomes
+ * the form's error (see `failure`).
+ */
+async function save(change: () => Promise<unknown>): Promise<FormState> {
+  await requireSession();
+  try {
+    await change();
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+/** The shape of every deleting action: checks the session, deletes, refreshes every page. Errors are passed on. */
+async function remove(change: () => Promise<unknown>): Promise<void> {
+  await requireSession();
+  await change();
+  revalidatePath("/", "layout");
+}
+
+const storage = () => getGallery().storage;
+
+// Memories
 
 function readMemoryForm(form: FormData): MemoryInput {
   return {
@@ -36,60 +74,29 @@ function readMemoryForm(form: FormData): MemoryInput {
   };
 }
 
-/** Turns a broken gallery rule into a message for the form; anything else is rethrown. */
-function failure(error: unknown): MemoryFormState {
-  if (error instanceof GalleryError) return { error: error.message };
-  console.error(error);
-  return { error: t.admin.unexpectedError };
-}
-
-export async function createMemoryAction(
-  _state: MemoryFormState,
-  form: FormData,
-): Promise<MemoryFormState> {
-  await requireSession();
-  let id: string;
-  try {
-    id = (await createMemory(getGallery().storage, readMemoryForm(form))).id;
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath("/", "layout");
+export async function createMemoryAction(_state: FormState, form: FormData): Promise<FormState> {
+  let id = "";
+  const state = await save(async () => {
+    id = (await createMemory(storage(), readMemoryForm(form))).id;
+  });
+  if (!state.saved) return state;
   redirect(`/admin/memories/${id}?salvato=1`);
 }
 
-export async function updateMemoryAction(
-  id: string,
-  _state: MemoryFormState,
-  form: FormData,
-): Promise<MemoryFormState> {
-  await requireSession();
-  try {
-    await updateMemory(getGallery().storage, id, readMemoryForm(form));
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath("/", "layout");
-  return { saved: true };
+export async function updateMemoryAction(id: string, _state: FormState, form: FormData): Promise<FormState> {
+  return save(() => updateMemory(storage(), id, readMemoryForm(form)));
 }
 
 export async function deleteMemoryAction(id: string): Promise<void> {
-  await requireSession();
-  await deleteMemory(getGallery().storage, id);
-  revalidatePath("/", "layout");
+  await remove(() => deleteMemory(storage(), id));
   redirect("/admin");
 }
 
 export async function deleteMediaAction(memoryId: string, mediaId: string): Promise<void> {
-  await requireSession();
-  await deleteMedia(getGallery().storage, memoryId, mediaId);
-  revalidatePath("/", "layout");
+  await remove(() => deleteMedia(storage(), memoryId, mediaId));
 }
 
 // Yearly occasions
-
-/** What a Yearly occasion form shows after saving: an Italian error, or that it was saved. */
-export type YearlyOccasionFormState = { error?: string; saved?: boolean };
 
 function readYearlyOccasionForm(form: FormData): YearlyOccasionInput {
   const firstYear = String(form.get("firstYear") ?? "").trim();
@@ -101,91 +108,40 @@ function readYearlyOccasionForm(form: FormData): YearlyOccasionInput {
   };
 }
 
-export async function createYearlyOccasionAction(
-  _state: YearlyOccasionFormState,
-  form: FormData,
-): Promise<YearlyOccasionFormState> {
-  await requireSession();
-  try {
-    await createYearlyOccasion(getGallery().storage, readYearlyOccasionForm(form));
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath("/", "layout");
-  return { saved: true };
+export async function createYearlyOccasionAction(_state: FormState, form: FormData): Promise<FormState> {
+  return save(() => createYearlyOccasion(storage(), readYearlyOccasionForm(form)));
 }
 
-export async function updateYearlyOccasionAction(
-  id: string,
-  _state: YearlyOccasionFormState,
-  form: FormData,
-): Promise<YearlyOccasionFormState> {
-  await requireSession();
-  try {
-    await updateYearlyOccasion(getGallery().storage, id, readYearlyOccasionForm(form));
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath("/", "layout");
-  return { saved: true };
+export async function updateYearlyOccasionAction(id: string, _state: FormState, form: FormData): Promise<FormState> {
+  return save(() => updateYearlyOccasion(storage(), id, readYearlyOccasionForm(form)));
 }
 
 export async function deleteYearlyOccasionAction(id: string): Promise<void> {
-  await requireSession();
-  await deleteYearlyOccasion(getGallery().storage, id);
-  revalidatePath("/", "layout");
+  await remove(() => deleteYearlyOccasion(storage(), id));
 }
 
 // One-off occasions
 
-export async function addOneOffOccasionAction(
-  memoryId: string,
-  _state: YearlyOccasionFormState,
-  form: FormData,
-): Promise<YearlyOccasionFormState> {
-  await requireSession();
-  try {
-    await addOneOffOccasion(getGallery().storage, memoryId, {
+export async function addOneOffOccasionAction(memoryId: string, _state: FormState, form: FormData): Promise<FormState> {
+  return save(() =>
+    addOneOffOccasion(storage(), memoryId, {
       name: String(form.get("name") ?? ""),
       day: String(form.get("day") ?? ""),
-    });
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath("/", "layout");
-  return { saved: true };
+    }),
+  );
 }
 
 export async function deleteOneOffOccasionAction(memoryId: string, occasionId: string): Promise<void> {
-  await requireSession();
-  await deleteOneOffOccasion(getGallery().storage, memoryId, occasionId);
-  revalidatePath("/", "layout");
+  await remove(() => deleteOneOffOccasion(storage(), memoryId, occasionId));
 }
 
 // Layout and cover
 
-/** What the Layout editor shows after saving: an Italian error, or that it was saved. */
-export type LayoutState = { error?: string; saved?: boolean };
-
-export async function saveLayoutAction(memoryId: string, cells: Record<string, MediaCell>): Promise<LayoutState> {
-  await requireSession();
-  try {
-    await saveLayout(getGallery().storage, memoryId, cells);
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath("/", "layout");
-  return { saved: true };
+export async function saveLayoutAction(memoryId: string, cells: Record<string, MediaCell>): Promise<FormState> {
+  return save(() => saveLayout(storage(), memoryId, cells));
 }
 
 /** Chooses the cover, or with no Media id goes back to the default cover. */
-export async function chooseCoverAction(memoryId: string, mediaId: string | undefined): Promise<LayoutState> {
-  await requireSession();
-  try {
-    await chooseCover(getGallery().storage, memoryId, mediaId);
-  } catch (error) {
-    return failure(error);
-  }
-  revalidatePath("/", "layout");
-  return { saved: true };
+export async function chooseCoverAction(memoryId: string, mediaId: string | undefined): Promise<FormState> {
+  return save(() => chooseCover(storage(), memoryId, mediaId));
 }

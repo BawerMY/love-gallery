@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import type { MemoryFormState } from "@/app/admin/actions";
+import type { FormState } from "@/app/admin/actions";
 import type { Memory } from "@/gallery";
 import { t } from "@/strings";
 import { CityList } from "./CityList";
@@ -9,7 +9,7 @@ import { CityList } from "./CityList";
 type Props = {
   /** The Memory being edited, or nothing when creating one. */
   memory?: Memory;
-  action: (state: MemoryFormState, form: FormData) => Promise<MemoryFormState>;
+  action: (state: FormState, form: FormData) => Promise<FormState>;
   citySuggestions: string[];
   /** Show "saved" straight away, e.g. right after creating the Memory. */
   saved?: boolean;

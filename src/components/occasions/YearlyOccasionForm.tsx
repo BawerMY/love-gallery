@@ -4,7 +4,7 @@ import { useActionState, useId, useState } from "react";
 import {
   createYearlyOccasionAction,
   updateYearlyOccasionAction,
-  type YearlyOccasionFormState,
+  type FormState,
 } from "@/app/admin/actions";
 import type { YearlyOccasion } from "@/gallery";
 import { t } from "@/strings";
@@ -27,7 +27,7 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
   const [edited, setEdited] = useState(false);
 
   const [state, formAction, pending] = useActionState(
-    async (previous: YearlyOccasionFormState, form: FormData) => {
+    async (previous: FormState, form: FormData) => {
       const result = occasion
         ? await updateYearlyOccasionAction(occasion.id, previous, form)
         : await createYearlyOccasionAction(previous, form);

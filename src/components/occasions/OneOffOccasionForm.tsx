@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
-import { addOneOffOccasionAction, type YearlyOccasionFormState } from "@/app/admin/actions";
+import { addOneOffOccasionAction, type FormState } from "@/app/admin/actions";
 import type { Memory } from "@/gallery";
 import { t } from "@/strings";
 import styles from "./occasions.module.css";
@@ -14,7 +14,7 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
   const [edited, setEdited] = useState(false);
 
   const [state, formAction, pending] = useActionState(
-    async (previous: YearlyOccasionFormState, form: FormData) => {
+    async (previous: FormState, form: FormData) => {
       const result = await addOneOffOccasionAction(memory.id, previous, form);
       if (result.saved) setName("");
       return result;

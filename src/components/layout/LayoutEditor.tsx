@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition, type CSSProperties } from "react";
-import { chooseCoverAction, saveLayoutAction, type LayoutState } from "@/app/admin/actions";
+import { chooseCoverAction, saveLayoutAction, type FormState } from "@/app/admin/actions";
 import { layoutBottom, layoutProblem } from "@/gallery/layout";
 import type { MediaCell } from "@/gallery/types";
 import { t } from "@/strings";
@@ -41,7 +41,7 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
   const gridRef = useRef<HTMLDivElement>(null);
   const [cells, setCells] = useState(() => Object.fromEntries(items.map((item) => [item.id, item.cell])));
   const [dirty, setDirty] = useState(false);
-  const [state, setState] = useState<LayoutState>({});
+  const [state, setState] = useState<FormState>({});
   const [pending, startTransition] = useTransition();
 
   const place = (id: string, cell: MediaCell) => {

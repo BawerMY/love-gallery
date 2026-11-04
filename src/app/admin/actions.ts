@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   createMemory,
+  deleteMedia,
   deleteMemory,
   GalleryError,
   getGallery,
@@ -68,4 +69,10 @@ export async function deleteMemoryAction(id: string): Promise<void> {
   await deleteMemory(getGallery().storage, id);
   revalidatePath("/", "layout");
   redirect("/admin");
+}
+
+export async function deleteMediaAction(memoryId: string, mediaId: string): Promise<void> {
+  await requireSession();
+  await deleteMedia(getGallery().storage, memoryId, mediaId);
+  revalidatePath("/", "layout");
 }

@@ -22,5 +22,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Next.js build assets are not secret; everything else goes through the proxy.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Uploads are left out too: the proxy would buffer the whole body in memory,
+  // so the upload route checks the session itself (see `uploadPath`).
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/upload/).*)"],
 };

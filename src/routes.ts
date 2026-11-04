@@ -23,3 +23,13 @@ export function safeNextPath(next: string | null | undefined): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/";
   return next;
 }
+
+/** Where the Admin page uploads a Memory's Media. Not behind the proxy: the route checks the session. */
+export function uploadPath(memoryId: string): string {
+  return `/api/upload/${encodeURIComponent(memoryId)}`;
+}
+
+/** The URL of one processed Media file. */
+export function mediaPath(memoryId: string, fileName: string): string {
+  return `/api/media/${encodeURIComponent(memoryId)}/${encodeURIComponent(fileName)}`;
+}

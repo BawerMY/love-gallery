@@ -13,10 +13,12 @@ type Props = {
   citySuggestions: string[];
   /** Show "saved" straight away, e.g. right after creating the Memory. */
   saved?: boolean;
+  /** A Date range suggested from the Media's capture days, offered when it differs. */
+  suggestedRange?: { startDay: string; endDay: string };
 };
 
 /** The title, Cities, Date range and note of a Memory, for creating or editing it. */
-export function MemoryForm({ memory, action, citySuggestions, saved = false }: Props) {
+export function MemoryForm({ memory, action, citySuggestions, saved = false, suggestedRange }: Props) {
   const [state, formAction, pending] = useActionState(action, { saved });
   const [title, setTitle] = useState(memory?.title ?? "");
   const [cities, setCities] = useState(memory?.cities ?? [""]);
@@ -82,6 +84,23 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false }: P
           />
         </div>
       </div>
+
+      {suggestedRange &&
+      (suggestedRange.startDay !== startDay || suggestedRange.endDay !== endDay) ? (
+        <p className="date-suggestion">
+          <span>{t.media.suggestedDateRange(suggestedRange.startDay, suggestedRange.endDay)}</span>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => {
+              change(setStartDay)(suggestedRange.startDay);
+              setEndDay(suggestedRange.endDay);
+            }}
+          >
+            {t.media.useSuggestedDateRange}
+          </button>
+        </p>
+      ) : null}
 
       <label htmlFor="memory-note">
         {t.admin.noteLabel} <small>({t.admin.titleHint})</small>

@@ -12,6 +12,12 @@ import {
 } from "@/gallery";
 import { t } from "@/strings";
 import { requireSession } from "../require-session";
+import {
+  createYearlyOccasion,
+  deleteYearlyOccasion,
+  updateYearlyOccasion,
+  type YearlyOccasionInput,
+} from "@/gallery";
 
 /** What the Memory form shows after saving: an Italian error, or that it was saved. */
 export type MemoryFormState = { error?: string; saved?: boolean };
@@ -68,4 +74,54 @@ export async function deleteMemoryAction(id: string): Promise<void> {
   await deleteMemory(getGallery().storage, id);
   revalidatePath("/", "layout");
   redirect("/admin");
+}
+
+// Yearly occasions
+
+/** What a Yearly occasion form shows after saving: an Italian error, or that it was saved. */
+export type YearlyOccasionFormState = { error?: string; saved?: boolean };
+
+function readYearlyOccasionForm(form: FormData): YearlyOccasionInput {
+  const firstYear = String(form.get("firstYear") ?? "").trim();
+  return {
+    name: String(form.get("name") ?? ""),
+    month: Number(form.get("month")),
+    day: Number(form.get("day")),
+    ...(firstYear && { firstYear: Number(firstYear) }),
+  };
+}
+
+export async function createYearlyOccasionAction(
+  _state: YearlyOccasionFormState,
+  form: FormData,
+): Promise<YearlyOccasionFormState> {
+  await requireSession();
+  try {
+    await createYearlyOccasion(getGallery().storage, readYearlyOccasionForm(form));
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function updateYearlyOccasionAction(
+  id: string,
+  _state: YearlyOccasionFormState,
+  form: FormData,
+): Promise<YearlyOccasionFormState> {
+  await requireSession();
+  try {
+    await updateYearlyOccasion(getGallery().storage, id, readYearlyOccasionForm(form));
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function deleteYearlyOccasionAction(id: string): Promise<void> {
+  await requireSession();
+  await deleteYearlyOccasion(getGallery().storage, id);
+  revalidatePath("/", "layout");
 }

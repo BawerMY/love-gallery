@@ -10,3 +10,4 @@ export * from "./storage";
 export * from "./session";
 export * from "./config";
 export * from "./memories";
+export * from "./occasions";

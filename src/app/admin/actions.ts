@@ -21,6 +21,7 @@ import {
   updateYearlyOccasion,
   type YearlyOccasionInput,
 } from "@/gallery";
+import { chooseCover, saveLayout, type MediaCell } from "@/gallery";
 
 /** What the Memory form shows after saving: an Italian error, or that it was saved. */
 export type MemoryFormState = { error?: string; saved?: boolean };
@@ -159,4 +160,32 @@ export async function deleteOneOffOccasionAction(memoryId: string, occasionId: s
   await requireSession();
   await deleteOneOffOccasion(getGallery().storage, memoryId, occasionId);
   revalidatePath("/", "layout");
+}
+
+// Layout and cover
+
+/** What the Layout editor shows after saving: an Italian error, or that it was saved. */
+export type LayoutState = { error?: string; saved?: boolean };
+
+export async function saveLayoutAction(memoryId: string, cells: Record<string, MediaCell>): Promise<LayoutState> {
+  await requireSession();
+  try {
+    await saveLayout(getGallery().storage, memoryId, cells);
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+/** Chooses the cover, or with no Media id goes back to the default cover. */
+export async function chooseCoverAction(memoryId: string, mediaId: string | undefined): Promise<LayoutState> {
+  await requireSession();
+  try {
+    await chooseCover(getGallery().storage, memoryId, mediaId);
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
 }

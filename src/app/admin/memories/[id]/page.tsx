@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminMediaList } from "@/components/admin/AdminMediaList";
 import { DeleteMemoryButton } from "@/components/admin/DeleteMemoryButton";
+import { LayoutSection } from "@/components/layout/LayoutSection";
 import { MediaUpload } from "@/components/admin/MediaUpload";
 import { MemoryForm } from "@/components/admin/MemoryForm";
 import { OneOffOccasionsSection } from "@/components/occasions/OneOffOccasionsSection";
@@ -12,8 +13,8 @@ import { updateMemoryAction } from "../../actions";
 export const dynamic = "force-dynamic";
 
 /**
- * The Admin page for one Memory. Its details come first, then its Media;
- * Layout and One-off occasions get their own sections below in later tickets.
+ * The Admin page for one Memory. Its details come first, then its Media,
+ * then its Layout (with the cover) and its One-off occasions.
  */
 export default async function EditMemoryPage({
   params,
@@ -52,6 +53,7 @@ export default async function EditMemoryPage({
         </div>
         <AdminMediaList memory={memory} />
       </section>
+      <LayoutSection memory={memory} />
       <OneOffOccasionsSection memory={memory} />
       <section className="danger-zone">
         <DeleteMemoryButton memoryId={memory.id} />

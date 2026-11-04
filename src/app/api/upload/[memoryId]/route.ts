@@ -1,5 +1,5 @@
 import { revalidatePath } from "next/cache";
-import { addMedia, GalleryError, getGallery, receiveUploads } from "@/gallery";
+import { addMedia, findMemory, GalleryError, getGallery, receiveUploads } from "@/gallery";
 import { t } from "@/strings";
 import { hasSession, unauthorized } from "../../../require-session";
 
@@ -9,6 +9,7 @@ import { hasSession, unauthorized } from "../../../require-session";
  *
  * This path is left out of the proxy (see `src/proxy.ts`), because the proxy
  * would buffer the whole body in memory; the session is checked here instead.
+ * An unknown Memory is refused with 404 before any of the body is read.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ memoryId: string }> }) {
   if (!(await hasSession())) return unauthorized();
@@ -19,6 +20,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ mem
   }
 
   const { storage } = getGallery();
+  try {
+    findMemory(await storage.read(), memoryId);
+  } catch (error) {
+    if (error instanceof GalleryError) return Response.json({ error: error.message }, { status: 404 });
+    throw error;
+  }
   try {
     const uploads = await receiveUploads(storage, request.body, contentType);
     const media = await addMedia(storage, memoryId, uploads);

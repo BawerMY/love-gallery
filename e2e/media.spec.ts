@@ -61,3 +61,11 @@ test("Media is served only with a session, and answers Range requests", async ({
   expect(upload.status()).toBe(401);
   await anonymous.dispose();
 });
+
+test("an upload to a Memory that doesn't exist is refused with 404", async ({ pageWithSession: page }) => {
+  const response = await page.request.post("/api/upload/nessuno", {
+    multipart: { files: { name: "a.jpg", mimeType: "image/jpeg", buffer: Buffer.from("x") } },
+  });
+  expect(response.status()).toBe(404);
+  expect(await response.json()).toEqual({ error: "Questo ricordo non esiste più." });
+});

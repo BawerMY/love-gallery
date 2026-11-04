@@ -26,7 +26,7 @@ function video(status: "processing" | "ready") {
 }
 
 test("the Curator uploads a video, which plays on the Memory page with its poster once converted", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMedia([]);
   await page.goto("/admin/memories/milano");
@@ -53,7 +53,7 @@ test("the Curator uploads a video, which plays on the Memory page with its poste
 });
 
 test("a video still processing shows only on the Admin page, which refreshes until it is ready", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMedia([video("processing")]);
 
@@ -70,7 +70,7 @@ test("a video still processing shows only on the Admin page, which refreshes unt
   await expect(page.getByRole("img", { name: "Video 1" })).toBeVisible();
 });
 
-test("a video that can't be converted shows as failed and can be deleted", async ({ loggedInPage: page }) => {
+test("a video that can't be converted shows as failed and can be deleted", async ({ pageWithSession: page }) => {
   await seedMedia([]);
   await page.goto("/admin/memories/milano");
 

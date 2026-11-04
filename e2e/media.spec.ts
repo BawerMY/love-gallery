@@ -11,7 +11,7 @@ async function expectLoadedImage(image: Locator) {
 }
 
 test("the Curator uploads a photo, sees it on the Memory page and as the Timeline cover, then deletes it", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   // The photo was taken on 14 March, a day before this Memory's Date range.
   await seedMemories([
@@ -43,7 +43,7 @@ test("the Curator uploads a photo, sees it on the Memory page and as the Timelin
   expect(await readdir(path.join(dataDir, "media", "milano"))).toEqual([]);
 });
 
-test("Media is served only with a session, and answers Range requests", async ({ loggedInPage: page, playwright, baseURL }) => {
+test("Media is served only with a session, and answers Range requests", async ({ pageWithSession: page, playwright, baseURL }) => {
   await seedMemories([{ id: "roma", cities: ["Roma"], startDay: "2025-03-14", endDay: "2025-03-14" }]);
   await page.goto("/admin/memories/roma");
   await page.getByLabel("Aggiungi foto").setInputFiles([PHOTO]);

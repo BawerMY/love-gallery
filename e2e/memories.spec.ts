@@ -3,7 +3,7 @@ import path from "node:path";
 import { dataDir, expect, seedMemories, test } from "./fixtures";
 
 test("the Curator creates a Memory in the Admin page and finds it on the Timeline", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMemories([
     { id: "vecchio", cities: ["Bergamo"], startDay: "2025-01-04", endDay: "2025-01-06" },
@@ -36,7 +36,7 @@ test("the Curator creates a Memory in the Admin page and finds it on the Timelin
 });
 
 test("refuses, in Italian, a Date range that overlaps another Memory", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMemories([
     { id: "natale", title: "Natale", cities: ["Roma"], startDay: "2025-12-23", endDay: "2025-12-27" },
@@ -53,7 +53,7 @@ test("refuses, in Italian, a Date range that overlaps another Memory", async ({
 });
 
 test("the Curator edits a Memory, then deletes it after confirming, with its media folder", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMemories([
     { id: "pasqua", title: "Pasqua", cities: ["Roma"], startDay: "2025-04-18", endDay: "2025-04-21" },
@@ -78,7 +78,7 @@ test("the Curator edits a Memory, then deletes it after confirming, with its med
 });
 
 test("the Timeline opens scrolled to the newest Memory at the bottom", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMemories(
     Array.from({ length: 12 }, (_, i) => {

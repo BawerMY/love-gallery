@@ -31,7 +31,7 @@ main {
   padding: 16px;
 }
 
-.login {
+.password-screen {
   max-width: 360px;
   min-height: 100dvh;
   display: flex;
@@ -40,29 +40,29 @@ main {
   text-align: center;
 }
 
-.login form {
+.password-screen form {
   display: flex;
   flex-direction: column;
   gap: 12px;
   text-align: left;
 }
 
-.login input,
-.login button {
+.password-screen input,
+.password-screen button {
   font: inherit;
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #d8c8cd;
 }
 
-.login button {
+.password-screen button {
   background: var(--accent);
   border-color: var(--accent);
   color: white;
   cursor: pointer;
 }
 
-.login .error {
+.password-screen .error {
   color: var(--error);
   margin: 0;
 }

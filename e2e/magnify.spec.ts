@@ -75,7 +75,7 @@ const state = (video: Locator) =>
   video.evaluate((v: HTMLVideoElement) => ({ paused: v.paused, muted: v.muted, time: v.currentTime }));
 
 test("a quick tap opens nothing; a long press or a mouse click magnifies; Esc, the backdrop and ✕ close it", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedPhotoAndVideo();
   await page.goto("/memories/milano");
@@ -113,7 +113,7 @@ test("a quick tap opens nothing; a long press or a mouse click magnifies; Esc, t
 });
 
 test("a magnified video goes on from the grid's moment with its mute state, seeks by its progress bar and hands back its position", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedPhotoAndVideo();
   await page.goto("/memories/milano");
@@ -153,7 +153,7 @@ test("a magnified video goes on from the grid's moment with its mute state, seek
   expect(back.muted).toBe(false);
 });
 
-test("a swipe down closes the modal", async ({ loggedInPage: page }) => {
+test("a swipe down closes the modal", async ({ pageWithSession: page }) => {
   await seedPhotoAndVideo();
   await page.goto("/memories/milano");
   await longPress(page, page.getByRole("img", { name: "Foto 1", exact: true }));

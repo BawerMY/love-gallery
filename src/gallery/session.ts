@@ -1,12 +1,13 @@
 /**
- * Logging in with the Gallery password and checking sessions.
+ * Entering the Gallery password and checking sessions.
  *
  * A session token is `<issued-at ms>.<signature>`, where the signature is an
  * HMAC (keyed with `SESSION_SECRET`) over the issue time and a fingerprint of
  * the current Gallery password. Changing `GALLERY_PASSWORD` changes the
  * fingerprint, so every existing session stops working.
  *
- * Uses only Web Crypto, so it also runs in the Next.js proxy.
+ * Uses only Web APIs (Web Crypto, `TextEncoder`, `btoa`), no Node.js ones,
+ * so it runs in the Next.js proxy whatever its runtime.
  */
 
 export type SessionConfig = {
@@ -28,7 +29,14 @@ async function hmac(secret: string, message: string): Promise<string> {
     ["sign"],
   );
   const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
-  return Buffer.from(signature).toString("base64url");
+  return base64url(new Uint8Array(signature));
+}
+
+/** Base64url without padding, as Node's `Buffer#toString("base64url")` writes it. */
+function base64url(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 /** Compares two strings in time that does not depend on where they differ. */
@@ -51,7 +59,7 @@ async function sign(config: SessionConfig, issuedAt: number): Promise<string> {
  * Returns a new session token when `password` is the Gallery password, or
  * `null` when it isn't.
  */
-export async function logIn(
+export async function enterGalleryPassword(
   config: SessionConfig,
   password: string,
   now: Date = new Date(),
@@ -80,7 +88,7 @@ export async function checkSession(
   return sameString(match[2], await sign(config, issuedAt));
 }
 
-/** The session cookie to set after logging in. `Secure` only in production. */
+/** The session cookie to set once the Gallery password was entered. `Secure` only in production. */
 export function sessionCookie(token: string, nodeEnv: string | undefined = process.env.NODE_ENV) {
   return {
     name: SESSION_COOKIE,

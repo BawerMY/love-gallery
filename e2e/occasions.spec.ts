@@ -1,7 +1,7 @@
 import { expect, seedMemories, test } from "./fixtures";
 
 test("the Curator adds a Yearly occasion in the Admin page and its badge shows on an existing Memory", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMemories([
     { id: "estate", title: "Estate al mare", cities: ["Rimini"], startDay: "2025-06-12", endDay: "2025-06-16" },
@@ -48,7 +48,7 @@ test("the Curator adds a Yearly occasion in the Admin page and its badge shows o
 });
 
 test("the Curator adds and removes One-off occasions on a Memory, shown by day with the Yearly ones", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMemories([
     { id: "estate", title: "Estate al mare", cities: ["Rimini"], startDay: "2025-06-12", endDay: "2025-06-16" },

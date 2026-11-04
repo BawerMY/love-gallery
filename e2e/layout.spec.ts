@@ -39,7 +39,7 @@ async function savedCells() {
 }
 
 test("the Curator moves a photo by touch, resizes one with the mouse, saves, and the Memory page shows that Layout", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   await seedMemories([
     { id: "milano", title: "Milano", cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-14" },

@@ -30,7 +30,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `pnpm build && pnpm start --port ${PORT}`,
-    url: `http://localhost:${PORT}/login`,
+    url: `http://localhost:${PORT}/accesso`,
     reuseExistingServer: false,
     timeout: 240_000,
     env: {

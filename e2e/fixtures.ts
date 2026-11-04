@@ -7,7 +7,7 @@ export const galleryPassword = process.env.E2E_GALLERY_PASSWORD!;
 
 type Fixtures = {
   /** A page that has already entered the Gallery password. */
-  loggedInPage: Page;
+  pageWithSession: Page;
 };
 
 /**
@@ -27,14 +27,14 @@ export const test = base.extend<Fixtures & { emptyGallery: void }>({
     },
     { auto: true },
   ],
-  loggedInPage: async ({ page }, use) => {
-    await logIn(page);
+  pageWithSession: async ({ page }, use) => {
+    await enterGalleryPassword(page);
     await use(page);
   },
 });
 
-export async function logIn(page: Page, next = "/") {
-  await page.goto(`/login?next=${encodeURIComponent(next)}`);
+export async function enterGalleryPassword(page: Page, next = "/") {
+  await page.goto(`/accesso?next=${encodeURIComponent(next)}`);
   await page.getByLabel("Password").fill(galleryPassword);
   await page.getByRole("button", { name: "Entra" }).click();
   await page.waitForURL((url) => url.pathname === next);

@@ -1,7 +1,7 @@
 import { safeNextPath } from "@/routes";
 import { t } from "@/strings";
 
-export default async function LoginPage({
+export default async function PasswordScreenPage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string; errore?: string }>;
@@ -9,12 +9,12 @@ export default async function LoginPage({
   const { next, errore } = await searchParams;
 
   return (
-    <main className="login">
-      <h1>{t.login.title}</h1>
-      <p>{t.login.intro}</p>
+    <main className="password-screen">
+      <h1>{t.passwordScreen.title}</h1>
+      <p>{t.passwordScreen.intro}</p>
       <form method="post" action="/api/session">
         <input type="hidden" name="next" value={safeNextPath(next)} />
-        <label htmlFor="password">{t.login.passwordLabel}</label>
+        <label htmlFor="password">{t.passwordScreen.passwordLabel}</label>
         <input
           id="password"
           name="password"
@@ -25,10 +25,10 @@ export default async function LoginPage({
         />
         {errore ? (
           <p role="alert" className="error">
-            {t.login.wrongPassword}
+            {t.passwordScreen.wrongPassword}
           </p>
         ) : null}
-        <button type="submit">{t.login.submit}</button>
+        <button type="submit">{t.passwordScreen.submit}</button>
       </form>
     </main>
   );

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getGallery, logIn, sessionCookie } from "@/gallery";
-import { LOGIN_PATH, safeNextPath } from "@/routes";
+import { getGallery, enterGalleryPassword, sessionCookie } from "@/gallery";
+import { PASSWORD_PATH, safeNextPath } from "@/routes";
 
 /** The password screen's form posts here. */
 export async function POST(request: Request) {
@@ -8,11 +8,11 @@ export async function POST(request: Request) {
   const password = String(form.get("password") ?? "");
   const next = safeNextPath(String(form.get("next") ?? ""));
 
-  const token = await logIn(getGallery().config, password);
+  const token = await enterGalleryPassword(getGallery().config, password);
   if (!token) {
     const params = new URLSearchParams({ errore: "1" });
     if (next !== "/") params.set("next", next);
-    return seeOther(`${LOGIN_PATH}?${params}`);
+    return seeOther(`${PASSWORD_PATH}?${params}`);
   }
 
   const response = seeOther(next);

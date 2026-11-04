@@ -1,11 +1,11 @@
-import { expect, galleryPassword, logIn, test } from "./fixtures";
+import { expect, galleryPassword, enterGalleryPassword, test } from "./fixtures";
 
-test("redirects to the password screen and shows the empty Timeline after logging in", async ({
+test("redirects to the password screen and shows the empty Timeline after entering the Gallery password", async ({
   page,
 }) => {
   await page.goto("/");
 
-  await expect(page).toHaveURL(/\/login/);
+  await expect(page).toHaveURL(/\/accesso/);
   await expect(page.getByRole("heading", { name: "La nostra galleria" })).toBeVisible();
 
   await page.getByLabel("Password").fill(galleryPassword);
@@ -16,17 +16,17 @@ test("redirects to the password screen and shows the empty Timeline after loggin
 });
 
 test("shows an Italian error for a wrong Gallery password", async ({ page }) => {
-  await page.goto("/login");
+  await page.goto("/accesso");
   await page.getByLabel("Password").fill("sbagliata");
   await page.getByRole("button", { name: "Entra" }).click();
 
   await expect(page.getByText("Password sbagliata. Riprova.")).toBeVisible();
-  await expect(page).toHaveURL(/\/login/);
+  await expect(page).toHaveURL(/\/accesso/);
 });
 
-test("returns to the page that was asked for after logging in", async ({ page }) => {
+test("returns to the page that was asked for after entering the Gallery password", async ({ page }) => {
   await page.goto("/admin");
-  await expect(page).toHaveURL(/\/login\?next=%2Fadmin/);
+  await expect(page).toHaveURL(/\/accesso\?next=%2Fadmin/);
 
   await page.getByLabel("Password").fill(galleryPassword);
   await page.getByRole("button", { name: "Entra" }).click();
@@ -35,7 +35,7 @@ test("returns to the page that was asked for after logging in", async ({ page })
 });
 
 test("remembers the session for a year with a secure cookie", async ({ page, context }) => {
-  await logIn(page);
+  await enterGalleryPassword(page);
 
   const [cookie] = (await context.cookies()).filter((c) => c.name === "galleria_sessione");
   expect(cookie).toMatchObject({ httpOnly: true, secure: true, sameSite: "Lax" });
@@ -53,7 +53,7 @@ test("answers API requests without a session with 401", async ({ request }) => {
 });
 
 test("tells search engines not to index any response", async ({ request, page }) => {
-  const pages = await request.get("/login");
+  const pages = await request.get("/accesso");
   expect(pages.headers()["x-robots-tag"]).toBe("noindex");
 
   const redirect = await request.get("/", { maxRedirects: 0 });
@@ -63,7 +63,7 @@ test("tells search engines not to index any response", async ({ request, page })
   const api = await request.get("/api/memories");
   expect(api.headers()["x-robots-tag"]).toBe("noindex");
 
-  await logIn(page);
+  await enterGalleryPassword(page);
   const timeline = await page.goto("/");
   expect(timeline!.headers()["x-robots-tag"]).toBe("noindex");
 });

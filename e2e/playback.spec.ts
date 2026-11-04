@@ -38,7 +38,7 @@ const state = (video: Locator) =>
   video.evaluate((v: HTMLVideoElement) => ({ paused: v.paused, muted: v.muted, time: v.currentTime }));
 
 test("a video plays while in view, pauses off screen and resumes muted from where it stopped", async ({
-  loggedInPage: page,
+  pageWithSession: page,
 }) => {
   // The second video is far down the page, so the first can be scrolled away.
   await seedVideos([
@@ -79,7 +79,7 @@ test("a video plays while in view, pauses off screen and resumes muted from wher
   await expect(page.getByRole("button", { name: "Attiva l'audio del video 1" })).toBeVisible();
 });
 
-test("unmuting one video mutes the one that was playing with sound", async ({ loggedInPage: page }) => {
+test("unmuting one video mutes the one that was playing with sound", async ({ pageWithSession: page }) => {
   await seedVideos([
     { id: "a", column: 0, row: 0 },
     { id: "b", column: 1, row: 0 },

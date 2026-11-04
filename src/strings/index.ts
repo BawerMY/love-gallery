@@ -5,6 +5,7 @@
  */
 import { admin } from "./admin";
 import { common } from "./common";
+import { layout } from "./layout";
 import { login } from "./login";
 import { media } from "./media";
 import { memory } from "./memory";
@@ -15,6 +16,7 @@ import { timeline } from "./timeline";
 export const t = {
   admin,
   common,
+  layout,
   login,
   media,
   memory,

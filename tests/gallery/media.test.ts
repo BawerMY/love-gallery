@@ -13,6 +13,10 @@ import {
   GalleryError,
   memoryMediaDir,
   openStorage,
+  whenMediaProcessed,
+  parseDay,
+  byCaptureTime,
+  captureDay,
   type MediaItem,
   type Memory,
   type Storage,
@@ -152,7 +156,7 @@ function photo(id: string, cell: [column: number, row: number], extra: Partial<M
 }
 
 function memoryWith(media: MediaItem[], extra: Partial<Memory> = {}): Memory {
-  return { id: "m", cities: ["Roma"], startDay: "2025-03-14", endDay: "2025-03-16", oneOffOccasions: [], media, ...extra };
+  return { id: "m", cities: ["Roma"], startDay: parseDay("2025-03-14"), endDay: parseDay("2025-03-16"), oneOffOccasions: [], media, ...extra };
 }
 
 describe("the cover", () => {
@@ -202,5 +206,50 @@ describe("the out-of-range warning", () => {
     expect(at("2025-03-16T23:59:59")).toBe(false);
     expect(at("2025-03-17T00:10:00+02:00")).toBe(true);
     expect(at(undefined)).toBe(false);
+  });
+});
+
+describe("capture days and capture times", () => {
+  it("are the wall-clock day where the item was taken, when the camera recorded its UTC offset", () => {
+    expect(captureDay({ capturedAt: "2025-03-14T23:30:00-05:00" })).toBe("2025-03-14");
+    expect(captureDay({ capturedAt: "2025-03-15T00:30:00+09:00" })).toBe("2025-03-15");
+  });
+
+  it("are the day in Italy for a UTC time, daylight saving included", () => {
+    expect(captureDay({ capturedAt: "2025-03-14T23:30:00Z" })).toBe("2025-03-15");
+    expect(captureDay({ capturedAt: "2025-07-31T22:15:00.000Z" })).toBe("2025-08-01");
+    expect(captureDay({ capturedAt: "2025-07-31T21:59:59Z" })).toBe("2025-07-31");
+  });
+
+  it("are the written day for a wall-clock time with no offset", () => {
+    expect(captureDay({ capturedAt: "2025-03-14T23:30:00" })).toBe("2025-03-14");
+  });
+
+  it("stores a video's UTC creation time as the time in Italy, so it lands on the right day", async () => {
+    const storage = openStorage(await makeDataDir());
+    const memory = await createMemory(storage, { cities: ["Roma"], startDay: "2025-03-15", endDay: "2025-03-15" });
+    const [video] = await addMedia(storage, memory.id, [await upload(storage, "utc-near-midnight.mov")]);
+    expect(video.capturedAt).toBe("2025-03-15T00:30:00+01:00");
+    expect(captureDay(video)).toBe("2025-03-15");
+    expect(isOutsideDateRange(memory, video)).toBe(false);
+    await whenMediaProcessed(storage);
+  });
+
+  it("are sorted on the moment they happened, whatever the server's time zone", () => {
+    const zone = process.env.TZ;
+    process.env.TZ = "America/New_York";
+    try {
+      const items = [
+        { id: "video", capturedAt: "2025-03-14T09:30:00Z" },
+        // 10:00 in Italy is 09:00 UTC: half an hour before the video.
+        { id: "photo", capturedAt: "2025-03-14T10:00:00" },
+        { id: "tokyo", capturedAt: "2025-03-14T17:45:00+09:00" },
+        { id: "undated" },
+      ];
+      expect(byCaptureTime(items).map((item) => item.id)).toEqual(["tokyo", "photo", "video", "undated"]);
+    } finally {
+      process.env.TZ = zone;
+      if (zone === undefined) delete process.env.TZ;
+    }
   });
 });

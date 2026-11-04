@@ -3,7 +3,9 @@ import path from "node:path";
 import type { MediaHandler } from "./media";
 import { memoryMediaDir } from "./memories";
 import type { Storage } from "./storage";
-import type { MediaItem } from "./types";
+import { GalleryError } from "./errors";
+import { findMemory } from "./find-memory";
+import type { Database, MediaItem } from "./types";
 
 /**
  * Slow Media (videos) is processed in the background, one item at a time
@@ -58,13 +60,20 @@ export async function whenMediaProcessed(storage: Storage): Promise<void> {
  * Processes one item: on success it becomes ready with its files; on
  * failure it is marked failed and whatever was written is removed. Either
  * way the original is deleted (ADR-0001). An item deleted in the meantime is
- * simply dropped. Never rejects, so one bad file can't stop the queue.
+ * simply dropped, and when its whole Memory was deleted the Memory's folder
+ * is never created again. Never rejects, so one bad file can't stop the queue.
  */
 async function runJob(storage: Storage, { memoryId, mediaId, original, handler }: BackgroundJob): Promise<void> {
   const dir = memoryMediaDir(storage, memoryId);
   try {
-    if (!(await stillProcessing(storage, memoryId, mediaId))) return;
-    await mkdir(dir, { recursive: true });
+    // Checked and created inside the write lock, so a Memory deleted at the
+    // same time can't have its folder created again after it was removed.
+    const started = await storage.update(async (db) => {
+      if (findItem(db, memoryId, mediaId)?.status !== "processing") return false;
+      await mkdir(dir, { recursive: true });
+      return true;
+    });
+    if (!started) return;
     let result: Awaited<ReturnType<MediaHandler["process"]>> | undefined;
     try {
       result = await handler.process({ path: original, fileName: path.basename(original) }, { dir, id: mediaId });
@@ -72,15 +81,17 @@ async function runJob(storage: Storage, { memoryId, mediaId, original, handler }
       console.error(error);
       await removeFilesNamedAfter(mediaId, dir);
     }
-    const kept = await storage.update((db) => {
+    await storage.update(async (db) => {
       const item = findItem(db, memoryId, mediaId);
-      if (!item) return false;
+      if (!item) {
+        await removeFilesNamedAfter(mediaId, dir);
+        await removeFolderOfDeletedMemory(db, storage, memoryId);
+        return;
+      }
       if (result) Object.assign(item, { ...result, capturedAt: result.capturedAt ?? item.capturedAt });
       else item.status = "failed";
       if (!item.capturedAt) delete item.capturedAt;
-      return true;
     });
-    if (!kept) await removeFilesNamedAfter(mediaId, dir);
   } catch (error) {
     console.error(error);
   } finally {
@@ -88,12 +99,23 @@ async function runJob(storage: Storage, { memoryId, mediaId, original, handler }
   }
 }
 
-async function stillProcessing(storage: Storage, memoryId: string, mediaId: string): Promise<boolean> {
-  return findItem(await storage.read(), memoryId, mediaId)?.status === "processing";
+/** The item, or undefined when it or its whole Memory was deleted in the meantime. */
+function findItem(db: Database, memoryId: string, mediaId: string): MediaItem | undefined {
+  try {
+    return findMemory(db, memoryId).media.find((item) => item.id === mediaId);
+  } catch (error) {
+    if (error instanceof GalleryError) return undefined;
+    throw error;
+  }
 }
 
-function findItem(db: { memories: { id: string; media: MediaItem[] }[] }, memoryId: string, mediaId: string) {
-  return db.memories.find((memory) => memory.id === memoryId)?.media.find((item) => item.id === mediaId);
+/**
+ * Removes the Memory's folder in `media/` when the Memory is no longer in
+ * `db`. Called inside `storage.update`, so nothing can add Media to it meanwhile.
+ */
+export async function removeFolderOfDeletedMemory(db: Database, storage: Storage, memoryId: string): Promise<void> {
+  if (db.memories.some((memory) => memory.id === memoryId)) return;
+  await rm(memoryMediaDir(storage, memoryId), { recursive: true, force: true });
 }
 
 /** Removes the files of an item: handlers name every file they write after the item id. */

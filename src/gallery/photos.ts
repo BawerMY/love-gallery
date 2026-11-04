@@ -3,6 +3,7 @@ import path from "node:path";
 import exifr from "exifr";
 import decodeHeic from "heic-decode";
 import sharp, { type Sharp } from "sharp";
+import { normalizeCaptureTime } from "./capture-days";
 import type { MediaHandler } from "./media";
 
 /** Photos are shown with their longest side at most this many pixels. */
@@ -67,9 +68,9 @@ async function openImage(file: string, heic: boolean): Promise<Sharp> {
 }
 
 /**
- * When the photo was taken, as written by the camera: local wall-clock time,
- * plus the UTC offset when the camera recorded one
- * (e.g. `2025-03-14T18:30:05+01:00`). Undefined when the photo doesn't say.
+ * When the photo was taken, as stored (see `normalizeCaptureTime`): the
+ * camera's wall-clock time with the UTC offset it recorded, or Italy's
+ * offset when it recorded none. Undefined when the photo doesn't say.
  */
 async function readCaptureTime(file: string): Promise<string | undefined> {
   let tags: Record<string, unknown> | undefined;
@@ -86,5 +87,7 @@ async function readCaptureTime(file: string): Promise<string | undefined> {
   if (!match) return undefined;
   const [, year, month, day, hour, minute, second] = match;
   const offset = String(tags?.OffsetTimeOriginal ?? tags?.OffsetTime ?? "");
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${/^[+-]\d{2}:\d{2}$/.test(offset) ? offset : ""}`;
+  return normalizeCaptureTime(
+    `${year}-${month}-${day}T${hour}:${minute}:${second}${/^[+-]\d{2}:\d{2}$/.test(offset) ? offset : ""}`,
+  );
 }

@@ -2,14 +2,22 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readdir, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { t } from "../strings";
+import { byCaptureTime } from "./capture-days";
 import { GalleryError } from "./errors";
+import { findMemory } from "./find-memory";
 import { cellsBelowLayout } from "./layout";
 import { memoryMediaDir } from "./memories";
 import { photoHandler } from "./photos";
-import { enqueueProcessing, pendingOriginalsDir, removeFilesNamedAfter, type BackgroundJob } from "./processing";
+import {
+  enqueueProcessing,
+  pendingOriginalsDir,
+  removeFilesNamedAfter,
+  removeFolderOfDeletedMemory,
+  type BackgroundJob,
+} from "./processing";
 import { videoHandler } from "./videos";
 import type { Storage } from "./storage";
-import type { MediaItem, Memory } from "./types";
+import type { MediaItem } from "./types";
 
 /** A file the Curator uploaded, fully received on disk and not yet processed. */
 export type Upload = {
@@ -59,16 +67,18 @@ export async function addMedia(storage: Storage, memoryId: string, uploads: Uplo
   const created: string[] = [];
   const background: BackgroundJob[] = [];
   try {
-    if (!(await storage.read()).memories.some((memory) => memory.id === memoryId)) {
-      throw new GalleryError(t.memories.notFound);
-    }
     const jobs = uploads.map((upload) => {
       const handler = MEDIA_HANDLERS.find((candidate) => candidate.accepts(upload));
       if (!handler) throw new GalleryError(t.media.unsupported(upload.fileName));
       return { upload, handler };
     });
 
-    await mkdir(dir, { recursive: true });
+    // Checked and created inside the write lock, so the folder of a Memory
+    // being deleted at the same time is never created again.
+    await storage.update(async (db) => {
+      findMemory(db, memoryId);
+      await mkdir(dir, { recursive: true });
+    });
     const processed: Omit<MediaItem, "cell">[] = [];
     for (const { upload, handler } of jobs) {
       const id = randomUUID();
@@ -96,7 +106,7 @@ export async function addMedia(storage: Storage, memoryId: string, uploads: Uplo
 
     const ordered = byCaptureTime(processed);
     const added = await storage.update((db) => {
-      const memory = findMemory(db.memories, memoryId);
+      const memory = findMemory(db, memoryId);
       const cells = cellsBelowLayout(memory.media.map((item) => item.cell), ordered.length);
       const items = ordered.map((item, i) => ({ ...item, cell: cells[i] }));
       memory.media.push(...items);
@@ -105,6 +115,10 @@ export async function addMedia(storage: Storage, memoryId: string, uploads: Uplo
     created.length = 0;
     for (const job of background) enqueueProcessing(storage, job);
     return added;
+  } catch (error) {
+    // The Memory may have been deleted while the uploads were processed.
+    await storage.update((db) => removeFolderOfDeletedMemory(db, storage, memoryId));
+    throw error;
   } finally {
     await Promise.all([
       ...uploads.map((upload) => rm(upload.path, { force: true })),
@@ -154,7 +168,7 @@ export async function resumeMediaProcessing(storage: Storage): Promise<void> {
 /** Deletes one Media item and its files. There is no undo. */
 export async function deleteMedia(storage: Storage, memoryId: string, mediaId: string): Promise<void> {
   await storage.update(async (db) => {
-    const memory = findMemory(db.memories, memoryId);
+    const memory = findMemory(db, memoryId);
     const index = memory.media.findIndex((item) => item.id === mediaId);
     if (index < 0) throw new GalleryError(t.media.notFound);
     const [item] = memory.media.splice(index, 1);
@@ -162,16 +176,4 @@ export async function deleteMedia(storage: Storage, memoryId: string, mediaId: s
     const dir = memoryMediaDir(storage, memoryId);
     await Promise.all(Object.values(item.files).map((file) => rm(path.join(dir, file), { force: true })));
   });
-}
-
-function findMemory(memories: Memory[], id: string): Memory {
-  const memory = memories.find((candidate) => candidate.id === id);
-  if (!memory) throw new GalleryError(t.memories.notFound);
-  return memory;
-}
-
-/** Oldest capture first; items with no capture time keep their order at the end. */
-function byCaptureTime<T extends Pick<MediaItem, "capturedAt">>(items: T[]): T[] {
-  const time = (item: T) => (item.capturedAt ? Date.parse(item.capturedAt) : Number.MAX_SAFE_INTEGER);
-  return [...items].sort((a, b) => time(a) - time(b));
 }

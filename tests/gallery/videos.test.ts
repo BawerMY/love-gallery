@@ -8,6 +8,7 @@ import {
   addMedia,
   createMemory,
   deleteMedia,
+  deleteMemory,
   getMemory,
   memoryMediaDir,
   openStorage,
@@ -115,6 +116,22 @@ describe("adding a video", () => {
     );
   });
 
+  it("only reads the uploaded file itself: a playlist pointing at other files is a failed video", async () => {
+    const storage = openStorage(await makeDataDir());
+    const memory = await memoryIn(storage);
+    // A file the playlist would pull in, next to where the upload waits.
+    await mkdir(pendingOriginalsDir(storage), { recursive: true });
+    await copyFile(path.join(FIXTURES, "sample.mov"), path.join(pendingOriginalsDir(storage), "secret.mov"));
+    const playlist = path.join(storage.dataDir, "playlist.mov");
+    await writeFile(playlist, "ffconcat version 1.0\nfile secret.mov\n");
+
+    const [item] = await addMedia(storage, memory.id, [{ path: playlist, fileName: "IMG_0006.MOV" }]);
+    await whenMediaProcessed(storage);
+
+    expect(item.capturedAt).toBeUndefined();
+    expect((await getMemory(storage, memory.id))!.media[0]).toMatchObject({ status: "failed" });
+  });
+
   it("can delete a failed video", async () => {
     const storage = openStorage(await makeDataDir());
     const memory = await memoryIn(storage);
@@ -136,6 +153,19 @@ describe("adding a video", () => {
     await whenMediaProcessed(storage);
 
     expect((await getMemory(storage, memory.id))!.media).toEqual([]);
+    expect(await filesIn(dataDir)).toEqual(["database.json"]);
+  });
+
+  it("leaves no folder behind when its Memory is deleted while videos are still processing", async () => {
+    const dataDir = await makeDataDir();
+    const storage = openStorage(dataDir);
+    const memory = await memoryIn(storage);
+    await addMedia(storage, memory.id, [await upload(storage, "sample.mov"), await upload(storage, "sample.mov")]);
+
+    await deleteMemory(storage, memory.id);
+    await whenMediaProcessed(storage);
+
+    expect(await readdir(storage.mediaDir)).toEqual([]);
     expect(await filesIn(dataDir)).toEqual(["database.json"]);
   });
 });

@@ -1,0 +1,15 @@
+services:
+  love-gallery:
+    build: .
+    image: love-gallery
+    restart: unless-stopped
+    ports:
+      # nginx on the host proxies the subdomain to this port.
+      - "127.0.0.1:3000:3000"
+    environment:
+      GALLERY_PASSWORD: ${GALLERY_PASSWORD:?set GALLERY_PASSWORD in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      DATA_DIR: /data
+    volumes:
+      # Holds database.json and media/. Back up this one folder.
+      - ./data:/data

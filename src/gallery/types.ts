@@ -37,9 +37,9 @@ export type MediaItem = {
  * content always gets a new name, so the files can be cached forever.
  */
 export type MediaFiles = {
-  /** What the Memory page shows: a WebP for a photo. */
+  /** What the Memory page shows: a WebP for a photo, an H.264 MP4 for a video. */
   display: string;
-  /** A small WebP for 1×1 tiles and previews. */
+  /** A small WebP for 1×1 tiles and previews; for a video, its poster frame. */
   thumbnail: string;
 };
 

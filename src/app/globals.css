@@ -422,6 +422,23 @@ a {
   background: var(--placeholder);
 }
 
+.admin-media-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--placeholder);
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.admin-media-status.failed {
+  color: var(--error);
+}
+
 .admin-media-list .warning {
   margin: 0;
   color: #8a5a00;

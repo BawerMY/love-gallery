@@ -88,7 +88,7 @@ describe("adding photos", () => {
     const attempt = addMedia(storage, memory.id, [{ path: path.join(dir, "note.txt"), fileName: "note.txt" }]);
 
     await expect(attempt).rejects.toThrow(GalleryError);
-    await expect(attempt).rejects.toThrow("«note.txt» non è una foto che la galleria sa leggere.");
+    await expect(attempt).rejects.toThrow("«note.txt» non è una foto o un video che la galleria sa leggere.");
     expect(await readdir(dir)).toEqual([]);
     expect((await getMemory(storage, memory.id))!.media).toEqual([]);
   });

@@ -1,5 +1,6 @@
 import type { MediaItem } from "@/gallery";
 import { PhotoTile } from "./PhotoTile";
+import { VideoTile } from "./VideoTile";
 
 type Props = {
   memoryId: string;
@@ -13,6 +14,8 @@ export function MediaTile({ memoryId, item, position }: Props) {
   switch (item.kind) {
     case "photo":
       return <PhotoTile memoryId={memoryId} item={item} position={position} />;
+    case "video":
+      return <VideoTile memoryId={memoryId} item={item} position={position} />;
     default:
       return null;
   }

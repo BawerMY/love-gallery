@@ -19,7 +19,7 @@ export function TimelineCardCover({ memory }: { memory: Memory }) {
     <div className="timeline-card-cover">
       {/* A plain <img>: Media comes from the session-protected Media route, not next/image. */}
       <img
-        src={mediaPath(memory.id, cover.files.display)}
+        src={mediaPath(memory.id, cover.kind === "video" ? cover.files.thumbnail : cover.files.display)}
         alt=""
         width={cover.width}
         height={cover.height}

@@ -8,8 +8,10 @@ import { t } from "@/strings";
 type Progress = { phase: "idle" } | { phase: "uploading"; percent: number } | { phase: "processing" };
 
 /**
- * Uploads several photos at once to a Memory, showing a progress bar while
- * they are sent and a "processing" state while the server converts them.
+ * Uploads several photos and videos at once to a Memory, showing a progress
+ * bar while they are sent and a "processing" state while the server converts
+ * the photos. Videos are converted in the background afterwards; the Media
+ * list shows their state.
  * Uses XMLHttpRequest because fetch can't report upload progress.
  */
 export function MediaUpload({ memoryId }: { memoryId: string }) {
@@ -56,7 +58,7 @@ export function MediaUpload({ memoryId }: { memoryId: string }) {
         <input
           type="file"
           multiple
-          accept="image/*,.heic,.heif"
+          accept="image/*,.heic,.heif,video/*,.mov,.mp4,.m4v"
           disabled={busy}
           hidden
           onChange={(event) => {

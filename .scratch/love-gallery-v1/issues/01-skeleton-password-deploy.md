@@ -4,14 +4,18 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `pnpm dev` and `pnpm build && pnpm start` serve the app; `pnpm test` runs Vitest; `pnpm test:e2e` runs Playwright.
-- [ ] `Dockerfile` (with `ffmpeg` installed) and `docker-compose.yml` mount a host folder at `/data` and set `GALLERY_PASSWORD`, `SESSION_SECRET` and `DATA_DIR`; `docker build` succeeds.
-- [ ] `database.json` is created with an empty Memory list and an empty Yearly occasion list if it's missing; writes are atomic and queued one at a time.
-- [ ] Requests without a valid session are redirected to the password screen (pages) or get 401 (API); a wrong password shows an Italian error.
-- [ ] The session cookie is HttpOnly, Secure (in production), SameSite=Lax, lasts one year, and stops working when `GALLERY_PASSWORD` changes.
-- [ ] Every response carries `X-Robots-Tag: noindex`.
-- [ ] Interface strings are in Italian and kept together in one place.
-- [ ] The README covers setup, the environment variables, backups (the data folder) and a sample nginx server block with a raised `client_max_body_size`.
-- [ ] Vitest covers storage and sessions; a Playwright test covers login and the redirect.
+- [x] `pnpm dev` and `pnpm build && pnpm start` serve the app; `pnpm test` runs Vitest; `pnpm test:e2e` runs Playwright.
+- [x] `Dockerfile` (with `ffmpeg` installed) and `docker-compose.yml` mount a host folder at `/data` and set `GALLERY_PASSWORD`, `SESSION_SECRET` and `DATA_DIR`; `docker build` succeeds.
+- [x] `database.json` is created with an empty Memory list and an empty Yearly occasion list if it's missing; writes are atomic and queued one at a time.
+- [x] Requests without a valid session are redirected to the password screen (pages) or get 401 (API); a wrong password shows an Italian error.
+- [x] The session cookie is HttpOnly, Secure (in production), SameSite=Lax, lasts one year, and stops working when `GALLERY_PASSWORD` changes.
+- [x] Every response carries `X-Robots-Tag: noindex`.
+- [x] Interface strings are in Italian and kept together in one place.
+- [x] The README covers setup, the environment variables, backups (the data folder) and a sample nginx server block with a raised `client_max_body_size`.
+- [x] Vitest covers storage and sessions; a Playwright test covers login and the redirect.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

@@ -4,8 +4,12 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Videos only start loading as they approach the screen.
-- [ ] Playwright (with a sample video in a temp data folder): a video is playing while in view, is paused after scrolling away, resumes from the same moment or later, and is muted when scrolled back.
-- [ ] Playwright: unmuting video A, then video B, leaves A muted.
+- [x] Videos only start loading as they approach the screen.
+- [x] Playwright (with a sample video in a temp data folder): a video is playing while in view, is paused after scrolling away, resumes from the same moment or later, and is muted when scrolled back.
+- [x] Playwright: unmuting video A, then video B, leaves A muted.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

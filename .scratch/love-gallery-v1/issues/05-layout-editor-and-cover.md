@@ -4,9 +4,13 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The core module validates a Layout change as a whole: in bounds (column + width ≤ 3), no overlaps; otherwise it's rejected with nothing saved.
-- [ ] The chosen cover is used on the Timeline card; when it's deleted, the default cover takes over.
-- [ ] The editor works with both touch and mouse.
-- [ ] Vitest covers validation and cover choice; a Playwright test resizes an item, saves, and checks the Memory page.
+- [x] The core module validates a Layout change as a whole: in bounds (column + width ≤ 3), no overlaps; otherwise it's rejected with nothing saved.
+- [x] The chosen cover is used on the Timeline card; when it's deleted, the default cover takes over.
+- [x] The editor works with both touch and mouse.
+- [x] Vitest covers validation and cover choice; a Playwright test resizes an item, saves, and checks the Memory page.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

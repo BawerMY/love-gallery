@@ -4,8 +4,12 @@
 
 **Blocked by:** 03, 06
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Playwright: a quick tap opens nothing; a long press opens the modal; Esc and a backdrop tap close it.
-- [ ] Playwright: a magnified video starts within about a second of where the grid video was and keeps its mute state; dragging the progress bar seeks.
-- [ ] A swipe down closes the modal on touch devices.
+- [x] Playwright: a quick tap opens nothing; a long press opens the modal; Esc and a backdrop tap close it.
+- [x] Playwright: a magnified video starts within about a second of where the grid video was and keeps its mute state; dragging the progress bar seeks.
+- [x] A swipe down closes the modal on touch devices.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

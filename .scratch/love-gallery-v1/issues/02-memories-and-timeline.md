@@ -4,11 +4,15 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The core module can create, edit, delete and list Memories in Timeline order, and rejects overlapping Date ranges (back-to-back days are allowed).
-- [ ] Days apart = the next Memory's start day − the previous Memory's end day − 1.
-- [ ] City suggestions come from the distinct Cities of all existing Memories.
-- [ ] The Admin page has a list, create and edit forms, and a delete button with a confirmation.
-- [ ] The Timeline opens scrolled to the newest Memory at the bottom; cards show the title, Cities and Date range (in it-IT format), with a placeholder where the cover will go.
-- [ ] Vitest covers the rules; a Playwright test covers creating a Memory in the Admin page, seeing it on the Timeline, and the page opening scrolled to the bottom.
+- [x] The core module can create, edit, delete and list Memories in Timeline order, and rejects overlapping Date ranges (back-to-back days are allowed).
+- [x] Days apart = the next Memory's start day − the previous Memory's end day − 1.
+- [x] City suggestions come from the distinct Cities of all existing Memories.
+- [x] The Admin page has a list, create and edit forms, and a delete button with a confirmation.
+- [x] The Timeline opens scrolled to the newest Memory at the bottom; cards show the title, Cities and Date range (in it-IT format), with a placeholder where the cover will go.
+- [x] Vitest covers the rules; a Playwright test covers creating a Memory in the Admin page, seeing it on the Timeline, and the page opening scrolled to the bottom.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

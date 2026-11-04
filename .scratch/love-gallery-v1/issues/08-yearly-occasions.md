@@ -4,8 +4,12 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest: matching across year boundaries (a Date range of 30 Dec–2 Jan), first-year cut-off, numbering, leap days, and retroactive matching of an occasion added later.
-- [ ] Badges render on Timeline cards and Memory pages.
-- [ ] Playwright: add a Yearly occasion in the Admin page and see its badge on an existing Memory.
+- [x] Vitest: matching across year boundaries (a Date range of 30 Dec–2 Jan), first-year cut-off, numbering, leap days, and retroactive matching of an occasion added later.
+- [x] Badges render on Timeline cards and Memory pages.
+- [x] Playwright: add a Yearly occasion in the Admin page and see its badge on an existing Memory.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

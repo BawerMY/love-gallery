@@ -4,10 +4,14 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Uploads are streamed to disk, never held whole in memory.
-- [ ] Vitest with sample files: a JPEG with GPS EXIF comes out as a WebP with no GPS, its longest side at most 2560, with a thumbnail, its capture time saved, and the original gone; a HEIC sample is converted too.
-- [ ] Vitest: Layout placement of new items; the default cover; the Date range suggestion; the out-of-range warning; deleting a Media item removes its files.
-- [ ] The Media route returns 401 without a session and handles Range requests.
-- [ ] Playwright: upload a photo in the Admin page, see it on the Memory page and as the cover on the Timeline card.
+- [x] Uploads are streamed to disk, never held whole in memory.
+- [x] Vitest with sample files: a JPEG with GPS EXIF comes out as a WebP with no GPS, its longest side at most 2560, with a thumbnail, its capture time saved, and the original gone; a HEIC sample is converted too.
+- [x] Vitest: Layout placement of new items; the default cover; the Date range suggestion; the out-of-range warning; deleting a Media item removes its files.
+- [x] The Media route returns 401 without a session and handles Range requests.
+- [x] Playwright: upload a photo in the Admin page, see it on the Memory page and as the cover on the Timeline card.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

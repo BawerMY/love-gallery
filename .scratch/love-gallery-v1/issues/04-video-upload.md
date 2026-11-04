@@ -4,9 +4,13 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest with a 1-second sample video: the item goes from processing to ready, the output is a playable H.264 MP4 with a poster, the capture time is saved, and the original is gone.
-- [ ] Vitest: a corrupt video ends up marked as failed, and its temporary files are removed.
-- [ ] The Admin page shows upload progress and the processing state, refreshing until the item is ready.
-- [ ] Media items that are still processing don't appear on the public Memory page.
+- [x] Vitest with a 1-second sample video: the item goes from processing to ready, the output is a playable H.264 MP4 with a poster, the capture time is saved, and the original is gone.
+- [x] Vitest: a corrupt video ends up marked as failed, and its temporary files are removed.
+- [x] The Admin page shows upload progress and the processing state, refreshing until the item is ready.
+- [x] Media items that are still processing don't appear on the public Memory page.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

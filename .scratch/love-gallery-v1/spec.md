@@ -1,6 +1,6 @@
 # Spec: Love Gallery v1
 
-**Status:** ready-for-agent
+**Status:** done
 
 Vocabulary follows `GLOSSARY.md`. Decisions follow `docs/adr/0001`–`0003`.
 
@@ -170,3 +170,7 @@ A private, self-hosted web gallery in Italian, reachable on a subdomain of the C
 
 - **Deployment:** the app runs in the Curator's homelab behind an nginx they already run, with DNS on Hostinger, so there's no proxy in between to limit upload sizes. The upload size is limited only by nginx's `client_max_body_size`.
 - **Development machine:** it has Node 24, pnpm, `ffmpeg` 9 and Playwright browsers. It doesn't have the `docker compose` plugin, so the Compose file can't be run here. Verify the container image with a plain `docker build`.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

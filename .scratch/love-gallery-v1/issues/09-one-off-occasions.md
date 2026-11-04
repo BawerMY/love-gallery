@@ -4,7 +4,11 @@
 
 **Blocked by:** 08
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest: adding, removing, rejecting a day outside the Date range, and the Date range edit guard.
-- [ ] Badges are sorted by day with the Yearly occasions on cards and pages.
+- [x] Vitest: adding, removing, rejecting a day outside the Date range, and the Date range edit guard.
+- [x] Badges are sorted by day with the Yearly occasions on cards and pages.
+
+## Comments
+
+- 2026-11-04: implemented on the integration branch `love-gallery-v1`, reviewed with /code-review, and the review findings fixed.

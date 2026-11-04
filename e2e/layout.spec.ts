@@ -72,6 +72,46 @@ async function seedMedia(items: SeedItem[]) {
   );
 }
 
+test("the full Admin round trip: create a Memory, upload a photo, make it bigger, save, and see it on the Memory page and the Timeline", async ({
+  pageWithSession: page,
+}) => {
+  await page.goto("/admin");
+  await page.getByRole("link", { name: "Nuovo ricordo" }).click();
+  await page.getByLabel("Titolo").fill("Weekend a Milano");
+  await page.getByLabel("Città 1", { exact: true }).fill("Milano");
+  await page.getByLabel("Primo giorno").fill("2025-03-14");
+  await page.getByLabel("Ultimo giorno").fill("2025-03-14");
+  await page.getByRole("button", { name: "Salva" }).click();
+  await expect(page.getByText("Ricordo salvato.")).toBeVisible();
+
+  await page.getByLabel("Aggiungi foto").setInputFiles([PHOTO]);
+  const editor = page.getByRole("region", { name: "Disposizione" });
+  const tile = editor.getByRole("group", { name: /^Foto 1,/ });
+  await expect(tile).toHaveAccessibleName("Foto 1, 1×1, colonna 1, riga 1");
+  const pitch = (await tile.boundingBox())!.width + 4;
+
+  await mouseDrag(page, editor.getByRole("button", { name: "Ridimensiona foto 1" }), pitch, pitch);
+  await expect(editor.getByRole("group", { name: "Foto 1, 2×2, colonna 1, riga 1" })).toBeVisible();
+  await editor.getByRole("button", { name: "Salva disposizione" }).click();
+  await expect(editor.getByText("Disposizione salvata.")).toBeVisible();
+  expect(await savedCells()).toEqual([{ column: 0, row: 0, width: 2, height: 2 }]);
+
+  await page.goto("/");
+  const card = page.getByRole("link", { name: /Weekend a Milano/ });
+  const db = JSON.parse(await readFile(path.join(dataDir, "database.json"), "utf8"));
+  await expect(card.locator("img")).toHaveAttribute("src", new RegExp(db.memories[0].media[0].files.display));
+
+  await card.click();
+  await expect(page.getByRole("heading", { name: "Weekend a Milano" })).toBeVisible();
+  const photo = page.getByRole("img", { name: "Foto 1" });
+  await photo.scrollIntoViewIfNeeded();
+  const shown = (await photo.boundingBox())!;
+  const grid = (await photo.locator("xpath=ancestor::ol[1]").boundingBox())!;
+  // Two of the three square columns wide, and as tall as it is wide.
+  expect(Math.abs(shown.width - (grid.width * 2) / 3)).toBeLessThan(6);
+  expect(Math.abs(shown.height - shown.width)).toBeLessThan(3);
+});
+
 test("unsaved Layout changes survive a video becoming ready and new Media arriving", async ({ pageWithSession: page }) => {
   await seedMedia([
     { id: "photo", kind: "photo", status: "ready", column: 0, row: 0 },

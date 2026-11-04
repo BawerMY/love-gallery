@@ -69,4 +69,22 @@ describe("storage", () => {
     expect(db.yearlyOccasions.map((o) => o.id)).toEqual(["kept"]);
     expect((await readdir(dataDir)).sort()).toEqual(["database.json", "media"]);
   });
+
+  it("saves the database the change was given, and hands back what the change returns", async () => {
+    const dataDir = await makeDataDir();
+    const storage = openStorage(dataDir);
+
+    const returned = await storage.update((db) => {
+      db.yearlyOccasions.push({ id: "y1", name: "Anniversario", month: 6, day: 1 });
+      return db.yearlyOccasions.length;
+    });
+
+    expect(returned).toBe(1);
+    expect(((await readDatabaseFile(dataDir)) as { yearlyOccasions: unknown[] }).yearlyOccasions).toHaveLength(1);
+    // A change can't hand back a new database instead of changing the one it was given.
+    // @ts-expect-error a returned database would not be saved
+    await storage.update((db) => ({ ...db, memories: [] }));
+    // @ts-expect-error a returned database would not be saved
+    await storage.update(async (db) => db);
+  });
 });

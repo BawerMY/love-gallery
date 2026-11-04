@@ -20,12 +20,17 @@ export type Storage = {
   ensure(): Promise<void>;
   read(): Promise<Database>;
   /**
-   * Runs `change` on the current database inside the write lock and saves the
-   * result. `change` may mutate the database it is given or return a new one.
-   * If it throws, nothing is saved and the error is passed on.
+   * Runs `change` on the current database inside the write lock, then saves
+   * that same database. `change` makes its changes by mutating the database
+   * it is given; whatever it returns is handed back to the caller and never
+   * saved, so returning a database is a type error. If it throws, nothing is
+   * saved and the error is passed on.
    */
-  update<T = void>(change: (db: Database) => T | Promise<T>): Promise<T>;
+  update<T = void>(change: (db: Database) => NotDatabase<T> | Promise<NotDatabase<T>>): Promise<T>;
 };
+
+/** Anything but a Database: what a `storage.update` change may hand back. */
+type NotDatabase<T> = T extends Database ? never : T;
 
 const DATABASE_FILE = "database.json";
 

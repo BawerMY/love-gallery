@@ -9,6 +9,7 @@ import {
   getMemory,
   listTimeline,
   openStorage,
+  parseDay,
   suggestCities,
   updateMemory,
 } from "@/gallery";
@@ -16,14 +17,14 @@ import { makeDataDir, readDatabaseFile } from "./helpers";
 
 describe("days apart", () => {
   it("counts the days between the previous Memory's end and the next one's start", () => {
-    expect(daysApart({ endDay: "2025-03-16" }, { startDay: "2025-03-20" })).toBe(3);
-    expect(daysApart({ endDay: "2024-12-30" }, { startDay: "2025-01-02" })).toBe(2);
-    expect(daysApart({ endDay: "2024-02-28" }, { startDay: "2024-03-01" })).toBe(1);
-    expect(daysApart({ endDay: "2025-03-29" }, { startDay: "2025-10-27" })).toBe(211);
+    expect(daysApart({ endDay: parseDay("2025-03-16") }, { startDay: parseDay("2025-03-20") })).toBe(3);
+    expect(daysApart({ endDay: parseDay("2024-12-30") }, { startDay: parseDay("2025-01-02") })).toBe(2);
+    expect(daysApart({ endDay: parseDay("2024-02-28") }, { startDay: parseDay("2024-03-01") })).toBe(1);
+    expect(daysApart({ endDay: parseDay("2025-03-29") }, { startDay: parseDay("2025-10-27") })).toBe(211);
   });
 
   it("is 0 for back-to-back Memories", () => {
-    expect(daysApart({ endDay: "2025-12-27" }, { startDay: "2025-12-28" })).toBe(0);
+    expect(daysApart({ endDay: parseDay("2025-12-27") }, { startDay: parseDay("2025-12-28") })).toBe(0);
   });
 });
 

@@ -10,7 +10,7 @@ import styles from "./occasions.module.css";
 export function OneOffOccasionForm({ memory }: { memory: Memory }) {
   const id = useId();
   const [name, setName] = useState("");
-  const [day, setDay] = useState(memory.startDay);
+  const [day, setDay] = useState<string>(memory.startDay);
   const [edited, setEdited] = useState(false);
 
   const [state, formAction, pending] = useActionState(

@@ -1,5 +1,6 @@
 import { t } from "../strings";
 import { GalleryError } from "./errors";
+import { findMemory } from "./find-memory";
 import type { Storage } from "./storage";
 import type { MediaCell } from "./types";
 
@@ -81,8 +82,7 @@ export async function saveLayout(
   cells: Readonly<Record<string, MediaCell>>,
 ): Promise<void> {
   await storage.update((db) => {
-    const memory = db.memories.find((candidate) => candidate.id === memoryId);
-    if (!memory) throw new GalleryError(t.memories.notFound);
+    const memory = findMemory(db, memoryId);
     if (Object.keys(cells).some((id) => !memory.media.some((item) => item.id === id))) {
       throw new GalleryError(t.layout.unknownMedia);
     }

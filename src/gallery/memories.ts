@@ -2,18 +2,22 @@ import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
 import path from "node:path";
 import { LOCALE, t } from "../strings";
+import { parseDay } from "./days";
 import { GalleryError } from "./errors";
+import { findMemory } from "./find-memory";
 import type { Storage } from "./storage";
 import type { Database, Day, Memory } from "./types";
 
-/** What the Curator fills in for a Memory on the Admin page. */
+/** What the Curator fills in for a Memory on the Admin page, as typed: the days are checked here. */
 export type MemoryInput = {
   title?: string;
   note?: string;
   cities: string[];
-  startDay: Day;
-  endDay: Day;
+  startDay: string;
+  endDay: string;
 };
+
+type MemoryFields = Pick<Memory, "title" | "note" | "cities" | "startDay" | "endDay">;
 
 /** Every Memory in Timeline order. */
 export async function listTimeline(storage: Storage): Promise<Memory[]> {
@@ -49,17 +53,16 @@ export async function updateMemory(
 ): Promise<Memory> {
   const fields = cleanInput(input);
   return storage.update((db) => {
-    const index = db.memories.findIndex((memory) => memory.id === id);
-    if (index < 0) throw new GalleryError(t.memories.notFound);
+    const current = findMemory(db, id);
     refuseOverlap(db, fields, id);
-    const outside = db.memories[index].oneOffOccasions.find(
+    const outside = current.oneOffOccasions.find(
       (occasion) => occasion.day < fields.startDay || occasion.day > fields.endDay,
     );
     if (outside) throw new GalleryError(t.occasions.rangeExcludesOneOff(outside.name));
 
-    const { title: _title, note: _note, ...kept } = db.memories[index];
+    const { title: _title, note: _note, ...kept } = current;
     const memory: Memory = { ...kept, ...fields };
-    db.memories[index] = memory;
+    db.memories[db.memories.indexOf(current)] = memory;
     return memory;
   });
 }
@@ -72,9 +75,7 @@ export function memoryMediaDir(storage: Storage, id: string): string {
 /** Deletes a Memory and its folder in `media/`. There is no undo. */
 export async function deleteMemory(storage: Storage, id: string): Promise<void> {
   await storage.update(async (db) => {
-    const index = db.memories.findIndex((memory) => memory.id === id);
-    if (index < 0) throw new GalleryError(t.memories.notFound);
-    db.memories.splice(index, 1);
+    db.memories.splice(db.memories.indexOf(findMemory(db, id)), 1);
     // Inside the write lock, so nothing can add Media to it meanwhile. If the
     // folder can't be removed, the Memory is kept and the Curator can retry.
     await rm(memoryMediaDir(storage, id), { recursive: true, force: true });
@@ -105,25 +106,16 @@ function dayNumber(day: Day): number {
 }
 
 /** Trims every field, drops blank ones, and checks the Cities and the Date range. */
-function cleanInput(input: MemoryInput): MemoryInput {
+function cleanInput(input: MemoryInput): MemoryFields {
   const title = input.title?.trim();
   const note = input.note?.trim();
   const cities = input.cities.map((city) => city.trim()).filter(Boolean);
-  const startDay = input.startDay.trim();
-  const endDay = input.endDay.trim();
-
   if (!cities.length) throw new GalleryError(t.memories.noCity);
-  if (!isDay(startDay) || !isDay(endDay)) throw new GalleryError(t.memories.invalidDay);
+  const startDay = parseDay(input.startDay);
+  const endDay = parseDay(input.endDay);
   if (endDay < startDay) throw new GalleryError(t.memories.endBeforeStart);
 
   return { ...(title && { title }), ...(note && { note }), cities, startDay, endDay };
-}
-
-/** Whether `value` is a real calendar date written `YYYY-MM-DD`. */
-export function isDay(value: string): value is Day {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 function compareDays(a: Day, b: Day): number {

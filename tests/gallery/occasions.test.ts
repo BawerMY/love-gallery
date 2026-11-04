@@ -12,13 +12,14 @@ import {
   openStorage,
   updateMemory,
   updateYearlyOccasion,
+  parseDay,
   type Memory,
   type YearlyOccasion,
 } from "@/gallery";
 import { makeDataDir, readDatabaseFile } from "./helpers";
 
 function memory(startDay: string, endDay: string): Memory {
-  return { id: "m", cities: ["Roma"], startDay, endDay, oneOffOccasions: [], media: [] };
+  return { id: "m", cities: ["Roma"], startDay: parseDay(startDay), endDay: parseDay(endDay), oneOffOccasions: [], media: [] };
 }
 
 const capodanno: YearlyOccasion = { id: "capodanno", name: "Capodanno", month: 1, day: 1 };

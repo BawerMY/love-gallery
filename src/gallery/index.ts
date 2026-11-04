@@ -6,6 +6,8 @@
  */
 export * from "./types";
 export * from "./errors";
+export * from "./days";
+export * from "./find-memory";
 export * from "./storage";
 export * from "./session";
 export * from "./config";

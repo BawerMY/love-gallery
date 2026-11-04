@@ -2,8 +2,11 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { GalleryError } from "./errors";
+import { findMemory } from "./find-memory";
 import { memoryMediaDir } from "./memories";
 import type { Storage } from "./storage";
+import type { Memory } from "./types";
 
 const CONTENT_TYPES: Record<string, string> = {
   ".webp": "image/webp",
@@ -24,10 +27,16 @@ export async function serveMedia(
   fileName: string,
   range: string | null,
 ): Promise<Response> {
-  const db = await storage.read();
-  const memory = db.memories.find((candidate) => candidate.id === memoryId);
-  const known = memory?.media.some((item) => Object.values(item.files).includes(fileName));
-  if (!known) return new Response(null, { status: 404 });
+  let memory: Memory;
+  try {
+    memory = findMemory(await storage.read(), memoryId);
+  } catch (error) {
+    if (error instanceof GalleryError) return new Response(null, { status: 404 });
+    throw error;
+  }
+  if (!memory.media.some((item) => Object.values(item.files).includes(fileName))) {
+    return new Response(null, { status: 404 });
+  }
 
   const file = path.join(memoryMediaDir(storage, memoryId), fileName);
   let size: number;

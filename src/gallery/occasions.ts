@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { LOCALE, t } from "../strings";
+import { dayOf, isDay } from "./days";
 import { GalleryError } from "./errors";
-import { isDay } from "./memories";
+import { findMemory } from "./find-memory";
 import type { Storage } from "./storage";
 import type { Day, Memory, OneOffOccasion, YearlyOccasion } from "./types";
 
@@ -77,7 +78,8 @@ function cleanYearlyInput(input: YearlyOccasionInput): Omit<YearlyOccasion, "id"
 /** What the Curator fills in for a One-off occasion on a Memory's Admin page. */
 export type OneOffOccasionInput = {
   name: string;
-  day: Day;
+  /** As typed: checked here. */
+  day: string;
 };
 
 /** Adds a One-off occasion to a Memory. Its day must be inside the Memory's Date range. */
@@ -90,8 +92,7 @@ export async function addOneOffOccasion(
   const day = input.day.trim();
   if (!name) throw new GalleryError(t.occasions.noName);
   return storage.update((db) => {
-    const memory = db.memories.find((candidate) => candidate.id === memoryId);
-    if (!memory) throw new GalleryError(t.memories.notFound);
+    const memory = findMemory(db, memoryId);
     if (!isDay(day) || day < memory.startDay || day > memory.endDay) {
       throw new GalleryError(t.occasions.oneOffOutsideRange);
     }
@@ -108,8 +109,7 @@ export async function deleteOneOffOccasion(
   occasionId: string,
 ): Promise<void> {
   await storage.update((db) => {
-    const memory = db.memories.find((candidate) => candidate.id === memoryId);
-    if (!memory) throw new GalleryError(t.memories.notFound);
+    const memory = findMemory(db, memoryId);
     const index = memory.oneOffOccasions.findIndex((occasion) => occasion.id === occasionId);
     if (index < 0) throw new GalleryError(t.occasions.notFound);
     memory.oneOffOccasions.splice(index, 1);
@@ -166,12 +166,5 @@ export function occasionsOfMemory(memory: Memory, yearlyOccasions: YearlyOccasio
 
 /** The occasion's day in `year`, or nothing if that year has no such day (29 February). */
 function dayInYear(yearly: Pick<YearlyOccasion, "month" | "day">, year: number): Day | undefined {
-  if (yearly.month < 1 || yearly.month > 12 || yearly.day < 1) return undefined;
-  const day = `${String(year).padStart(4, "0")}-${pad(yearly.month)}-${pad(yearly.day)}`;
-  const date = new Date(`${day}T00:00:00Z`);
-  return date.getUTCDate() === yearly.day ? day : undefined;
-}
-
-function pad(value: number): string {
-  return String(value).padStart(2, "0");
+  return dayOf(year, yearly.month, yearly.day);
 }

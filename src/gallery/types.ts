@@ -3,8 +3,9 @@
  * Later tickets fill in the Memory, Media item and Yearly occasion fields.
  */
 
-/** A calendar date with no time zone, formatted `YYYY-MM-DD`. */
-export type Day = string;
+import type { Day } from "./days";
+
+export type { Day };
 
 export type OneOffOccasion = {
   id: string;
@@ -23,7 +24,11 @@ export type MediaItem = {
   id: string;
   kind: "photo" | "video";
   status: "processing" | "ready" | "failed";
-  /** ISO timestamp of when the photo or video was taken, if known. */
+  /**
+   * When the photo or video was taken, if known: the wall-clock time where it
+   * was taken plus that place's UTC offset, e.g. `2025-03-14T18:30:05+01:00`
+   * (see `normalizeCaptureTime`).
+   */
   capturedAt?: string;
   width: number;
   height: number;

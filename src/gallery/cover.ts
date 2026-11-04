@@ -1,5 +1,6 @@
 import { t } from "../strings";
 import { GalleryError } from "./errors";
+import { findMemory } from "./find-memory";
 import { readingOrder } from "./layout";
 import type { Storage } from "./storage";
 import type { MediaItem, Memory } from "./types";
@@ -21,8 +22,7 @@ export function coverOf(memory: Memory): MediaItem | undefined {
  */
 export async function chooseCover(storage: Storage, memoryId: string, mediaId: string | undefined): Promise<void> {
   await storage.update((db) => {
-    const memory = db.memories.find((candidate) => candidate.id === memoryId);
-    if (!memory) throw new GalleryError(t.memories.notFound);
+    const memory = findMemory(db, memoryId);
     if (mediaId === undefined) {
       delete memory.coverMediaId;
       return;

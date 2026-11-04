@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
 import { dataDir, expect, seedMemories, test } from "./fixtures";
 
@@ -37,6 +37,78 @@ async function savedCells() {
   const db = JSON.parse(await readFile(path.join(dataDir, "database.json"), "utf8"));
   return db.memories[0].media.map((item: { cell: unknown }) => item.cell);
 }
+
+const FIXTURES = path.join(import.meta.dirname, "..", "tests", "fixtures");
+
+type SeedItem = { id: string; kind: "photo" | "video"; status: "processing" | "ready"; column: number; row: number };
+
+/** Writes the "milano" Memory with these 1×1 Media items, and the files of the ready ones. */
+async function seedMedia(items: SeedItem[]) {
+  const dir = path.join(dataDir, "media", "milano");
+  await mkdir(dir, { recursive: true });
+  for (const item of items) {
+    if (item.status !== "ready") continue;
+    await copyFile(path.join(FIXTURES, "playback-poster.webp"), path.join(dir, `${item.id}-thumb.webp`));
+    await copyFile(path.join(FIXTURES, item.kind === "video" ? "playback.mp4" : "playback-poster.webp"), path.join(dir, `${item.id}.media`));
+  }
+  const media = items.map(({ id, kind, status, column, row }) => ({
+    id,
+    kind,
+    status,
+    width: status === "ready" ? 96 : 0,
+    height: status === "ready" ? 64 : 0,
+    cell: { column, row, width: 1, height: 1 },
+    files: { display: `${id}.media`, thumbnail: `${id}-thumb.webp` },
+  }));
+  await writeFile(
+    path.join(dataDir, "database.json"),
+    JSON.stringify({
+      version: 1,
+      memories: [
+        { id: "milano", title: "Milano", cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-14", oneOffOccasions: [], media },
+      ],
+      yearlyOccasions: [],
+    }),
+  );
+}
+
+test("unsaved Layout changes survive a video becoming ready and new Media arriving", async ({ pageWithSession: page }) => {
+  await seedMedia([
+    { id: "photo", kind: "photo", status: "ready", column: 0, row: 0 },
+    { id: "video", kind: "video", status: "processing", column: 1, row: 0 },
+  ]);
+  await page.goto("/admin/memories/milano");
+  const editor = page.getByRole("region", { name: "Disposizione" });
+  await expect(editor.getByText("In preparazione")).toBeVisible();
+  const pitch = (await editor.getByRole("group", { name: /^Foto 1,/ }).boundingBox())!.width + 4;
+
+  // Foto 1 goes down a row, not saved yet.
+  await mouseDrag(page, editor.getByRole("button", { name: "Sposta foto 1" }), 0, pitch);
+  await expect(editor.getByRole("group", { name: "Foto 1, 1×1, colonna 1, riga 2" })).toBeVisible();
+
+  // Meanwhile the video becomes ready, and a new photo arrives where the core
+  // puts it: right below the saved Layout, the very cell Foto 1 was moved to.
+  await seedMedia([
+    { id: "photo", kind: "photo", status: "ready", column: 0, row: 0 },
+    { id: "video", kind: "video", status: "ready", column: 1, row: 0 },
+    { id: "new", kind: "photo", status: "ready", column: 0, row: 1 },
+  ]);
+  await expect(editor.getByRole("group", { name: /^Foto 3,/ })).toBeVisible({ timeout: 10_000 });
+  await expect(editor.getByText("In preparazione")).toHaveCount(0);
+
+  // The move is still there and unsaved; the new photo went below it instead.
+  await expect(editor.getByRole("group", { name: "Foto 1, 1×1, colonna 1, riga 2" })).toBeVisible();
+  await expect(editor.getByRole("group", { name: "Foto 3, 1×1, colonna 1, riga 3" })).toBeVisible();
+  await expect(editor.getByText("Modifiche non salvate.")).toBeVisible();
+
+  await editor.getByRole("button", { name: "Salva disposizione" }).click();
+  await expect(editor.getByText("Disposizione salvata.")).toBeVisible();
+  expect(await savedCells()).toEqual([
+    { column: 0, row: 1, width: 1, height: 1 },
+    { column: 1, row: 0, width: 1, height: 1 },
+    { column: 0, row: 2, width: 1, height: 1 },
+  ]);
+});
 
 test("the Curator moves a photo by touch, resizes one with the mouse, saves, and the Memory page shows that Layout", async ({
   pageWithSession: page,

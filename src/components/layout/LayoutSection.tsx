@@ -21,8 +21,9 @@ export function LayoutSection({ memory }: { memory: Memory }) {
       <h2 id="layout-heading">{t.layout.heading}</h2>
       {items.length ? (
         <LayoutEditor
-          // A new or deleted item starts the editor again from the saved Layout.
-          key={memory.media.map((item) => `${item.id}:${item.status}`).join(",")}
+          // Never keyed on the Media: the editor keeps its unsaved changes while
+          // the page refreshes and merges in new, changed or deleted items.
+          key={memory.id}
           memoryId={memory.id}
           items={items}
           coverId={cover?.id}

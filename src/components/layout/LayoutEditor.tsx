@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition, type CSSProperties } from "react";
 import { chooseCoverAction, saveLayoutAction, type FormState } from "@/app/admin/actions";
-import { layoutBottom, layoutProblem } from "@/gallery/layout";
+import { cellsBelowLayout, layoutBottom, layoutProblem } from "@/gallery/layout";
 import type { MediaCell } from "@/gallery/types";
 import { t } from "@/strings";
 import styles from "./layout-editor.module.css";
@@ -36,22 +36,27 @@ const SPARE_ROWS = 2;
  * item can be dragged by its ✥ handle and resized by its ◢ handle, with touch
  * or mouse. A change that would leave the grid or overlap another item is
  * simply not taken, and the core checks the whole Layout again on saving.
+ *
+ * The editor holds only the Curator's unsaved changes, on top of the saved
+ * Layout in `items`. So when the page refreshes (a video becomes ready, new
+ * Media arrives, an item is deleted) the changes stay and the new items are
+ * merged in; an arrived item whose saved cell clashes with a change goes
+ * below the Layout instead.
  */
 export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
   const gridRef = useRef<HTMLDivElement>(null);
-  const [cells, setCells] = useState(() => Object.fromEntries(items.map((item) => [item.id, item.cell])));
-  const [dirty, setDirty] = useState(false);
+  const [changes, setChanges] = useState<Record<string, MediaCell>>({});
+  const cells = mergeChanges(items, changes);
+  const dirty = items.some((item) => !sameCell(cells[item.id], item.cell));
   const [state, setState] = useState<FormState>({});
   const [pending, startTransition] = useTransition();
 
   const place = (id: string, cell: MediaCell) => {
-    const old = cells[id];
-    if (old.column === cell.column && old.row === cell.row && old.width === cell.width && old.height === cell.height)
-      return;
+    if (sameCell(cells[id], cell)) return;
     const next = { ...cells, [id]: cell };
     if (layoutProblem(Object.values(next))) return;
-    setCells(next);
-    setDirty(true);
+    // Every cell that now differs from the saved Layout, items moved aside by the merge included.
+    setChanges(Object.fromEntries(items.filter((item) => !sameCell(next[item.id], item.cell)).map((item) => [item.id, next[item.id]])));
     setState({});
   };
   const handlers = useCellGesture({ gridRef, gap: GAP, cellOf: (id) => cells[id], place });
@@ -60,7 +65,7 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
     startTransition(async () => {
       const result = await saveLayoutAction(memoryId, cells);
       setState(result);
-      if (result.saved) setDirty(false);
+      if (result.saved) setChanges({});
     });
   const chooseCover = (mediaId: string | undefined) =>
     startTransition(async () => {
@@ -152,6 +157,34 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
       </div>
     </div>
   );
+}
+
+/**
+ * The Layout the editor shows: each item's unsaved change, or else its saved
+ * cell. Changes for items no longer there are dropped. An item whose saved
+ * cell would overlap a change (it arrived after the change was made) goes
+ * in a new row below everything else.
+ */
+function mergeChanges(items: readonly EditorItem[], changes: Readonly<Record<string, MediaCell>>): Record<string, MediaCell> {
+  const placed: MediaCell[] = items.flatMap((item) => (changes[item.id] ? [changes[item.id]] : []));
+  const cells: Record<string, MediaCell> = {};
+  const clashing: EditorItem[] = [];
+  for (const item of items) {
+    const changed = changes[item.id];
+    if (changed) cells[item.id] = changed;
+    else if (layoutProblem([...placed, item.cell])) clashing.push(item);
+    else {
+      cells[item.id] = item.cell;
+      placed.push(item.cell);
+    }
+  }
+  const below = cellsBelowLayout(placed, clashing.length);
+  clashing.forEach((item, i) => (cells[item.id] = below[i]));
+  return cells;
+}
+
+function sameCell(a: MediaCell, b: MediaCell): boolean {
+  return a.column === b.column && a.row === b.row && a.width === b.width && a.height === b.height;
 }
 
 function cellStyle(cell: MediaCell): CSSProperties {

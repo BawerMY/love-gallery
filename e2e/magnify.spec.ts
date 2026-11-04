@@ -153,6 +153,29 @@ test("a magnified video goes on from the grid's moment with its mute state, seek
   expect(back.muted).toBe(false);
 });
 
+test("unmuting a magnified video holds even when its grid tile is mostly off screen", async ({ pageWithSession: page }) => {
+  await seedPhotoAndVideo();
+  await page.goto("/memories/milano");
+  // Room to scroll, so the grid video can sit with only its bottom quarter on screen.
+  await page.addStyleTag({ content: "body { padding-bottom: 200vh; }" });
+  const grid = page.getByLabel("Video 2", { exact: true }).first();
+  await expect.poll(async () => (await state(grid)).paused, { timeout: 10_000 }).toBe(false);
+  const box = (await grid.boundingBox())!;
+  await page.evaluate((y) => window.scrollBy(0, y), box.y + box.height * 0.75);
+  await expect.poll(async () => (await state(grid)).paused).toBe(true);
+
+  const visible = (await grid.boundingBox())!;
+  await page.mouse.click(visible.x + visible.width / 2, visible.y + visible.height - 5);
+  const modal = page.getByRole("dialog");
+  await expect(modal).toBeVisible();
+  await modal.getByRole("button", { name: "Attiva l'audio del video 2" }).click();
+
+  const big = modal.getByLabel("Video 2", { exact: true });
+  await page.waitForTimeout(500);
+  expect((await state(big)).muted).toBe(false);
+  await expect(modal.getByRole("button", { name: "Disattiva l'audio del video 2" })).toBeVisible();
+});
+
 test("a swipe down closes the modal", async ({ pageWithSession: page }) => {
   await seedPhotoAndVideo();
   await page.goto("/memories/milano");

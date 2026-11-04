@@ -35,10 +35,12 @@ export function VideoTile({ memoryId, item, position }: Props) {
     else video.pause();
   }, [near, visible, pausedAll]);
 
-  // Leaving the screen silences it, so it comes back muted.
+  // Leaving the screen silences it, so it comes back muted. Not while the
+  // magnify modal is open: the modal owns the mute state then, and its video
+  // may be this one, unmuted while this tile is mostly off screen.
   useEffect(() => {
-    if (!visible && unmuted) setUnmuted(null);
-  }, [visible, unmuted, setUnmuted]);
+    if (!visible && unmuted && !pausedAll) setUnmuted(null);
+  }, [visible, unmuted, pausedAll, setUnmuted]);
 
   useEffect(() => {
     ref.current!.muted = !unmuted;

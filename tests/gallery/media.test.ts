@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
@@ -16,20 +16,8 @@ import {
   type MediaItem,
   type Memory,
   type Storage,
-  type Upload,
 } from "@/gallery";
-import { makeDataDir, readDatabaseFile } from "./helpers";
-
-const FIXTURES = path.join(import.meta.dirname, "..", "fixtures");
-
-/** Puts a copy of a sample file where an upload would land, as the Curator's phone named it. */
-async function upload(storage: Storage, fixture: string, fileName = fixture): Promise<Upload> {
-  const dir = path.join(storage.dataDir, "incoming");
-  await mkdir(dir, { recursive: true });
-  const target = path.join(dir, `${Math.random().toString(36).slice(2)}-${fileName}`);
-  await copyFile(path.join(FIXTURES, fixture), target);
-  return { path: target, fileName };
-}
+import { makeDataDir, readDatabaseFile, upload } from "./helpers";
 
 async function memoryIn(storage: Storage) {
   return createMemory(storage, { cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-16" });

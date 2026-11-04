@@ -13,6 +13,8 @@ export * from "./memories";
 export * from "./layout";
 export * from "./media";
 export * from "./photos";
+export * from "./videos";
+export * from "./processing";
 export * from "./cover";
 export * from "./capture-days";
 export * from "./uploads";

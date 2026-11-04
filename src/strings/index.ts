@@ -4,11 +4,13 @@
  */
 import { common } from "./common";
 import { login } from "./login";
+import { memories } from "./memories";
 import { timeline } from "./timeline";
 
 export const t = {
   common,
   login,
+  memories,
   timeline,
 };
 

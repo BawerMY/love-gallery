@@ -5,6 +5,7 @@
  * Each area lives in its own file and is re-exported here, one line per area.
  */
 export * from "./types";
+export * from "./errors";
 export * from "./storage";
 export * from "./session";
 export * from "./config";

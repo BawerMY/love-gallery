@@ -67,3 +67,22 @@ test("tells search engines not to index any response", async ({ request, page })
   const timeline = await page.goto("/");
   expect(timeline!.headers()["x-robots-tag"]).toBe("noindex");
 });
+
+test("makes a client wait after too many wrong passwords, even for the right one", async ({ page }) => {
+  // Its own address, so the wait doesn't hold up the other tests.
+  await page.setExtraHTTPHeaders({ "X-Real-IP": "203.0.113.42" });
+  await page.goto("/accesso");
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    await page.getByLabel("Password").fill("sbagliata");
+    await page.getByRole("button", { name: "Entra" }).click();
+    await expect(page.getByText("Password sbagliata. Riprova.")).toBeVisible();
+  }
+  await page.getByLabel("Password").fill("sbagliata");
+  await page.getByRole("button", { name: "Entra" }).click();
+  await expect(page.getByText("Troppi tentativi sbagliati. Riprova tra 30 secondi.")).toBeVisible();
+
+  await page.getByLabel("Password").fill(galleryPassword);
+  await page.getByRole("button", { name: "Entra" }).click();
+  await expect(page.getByText(/^Troppi tentativi sbagliati\. Riprova tra \d+ secondi\.$/)).toBeVisible();
+  await expect(page).toHaveURL(/\/accesso/);
+});

@@ -1,12 +1,19 @@
 import { safeNextPath } from "@/routes";
 import { t } from "@/strings";
 
+/** The password screen, where the Gallery password is entered. */
 export default async function PasswordScreenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; errore?: string }>;
+  searchParams: Promise<{ next?: string; errore?: string; attesa?: string }>;
 }) {
-  const { next, errore } = await searchParams;
+  const { next, errore, attesa } = await searchParams;
+  const waitSeconds = Math.max(0, Math.floor(Number(attesa) || 0));
+  const message = waitSeconds
+    ? t.passwordScreen.tooManyAttempts(waitSeconds)
+    : errore
+      ? t.passwordScreen.wrongPassword
+      : undefined;
 
   return (
     <main className="password-screen">
@@ -23,9 +30,9 @@ export default async function PasswordScreenPage({
           required
           autoFocus
         />
-        {errore ? (
+        {message ? (
           <p role="alert" className="error">
-            {t.passwordScreen.wrongPassword}
+            {message}
           </p>
         ) : null}
         <button type="submit">{t.passwordScreen.submit}</button>

@@ -5,7 +5,7 @@ const config = { galleryPassword: "il-nostro-segreto", sessionSecret: "s".repeat
 const DAY = 24 * 60 * 60 * 1000;
 
 describe("session", () => {
-  it("logs in with the Gallery password and accepts the resulting session", async () => {
+  it("opens a session with the Gallery password and accepts the resulting session", async () => {
     const token = await enterGalleryPassword(config, "il-nostro-segreto");
 
     expect(token).toEqual(expect.any(String));

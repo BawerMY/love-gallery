@@ -10,6 +10,7 @@ export * from "./days";
 export * from "./find-memory";
 export * from "./storage";
 export * from "./session";
+export * from "./password-attempts";
 export * from "./config";
 export * from "./memories";
 export * from "./layout";

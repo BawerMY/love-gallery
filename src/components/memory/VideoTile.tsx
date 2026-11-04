@@ -94,7 +94,7 @@ function useIntersecting(
   return intersecting;
 }
 
-function SoundOffIcon() {
+export function SoundOffIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M11 5 6 9H2v6h4l5 4z" fill="currentColor" />
@@ -103,7 +103,7 @@ function SoundOffIcon() {
   );
 }
 
-function SoundOnIcon() {
+export function SoundOnIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M11 5 6 9H2v6h4l5 4z" fill="currentColor" />

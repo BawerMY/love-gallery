@@ -7,6 +7,7 @@ import { admin } from "./admin";
 import { common } from "./common";
 import { layout } from "./layout";
 import { login } from "./login";
+import { magnify } from "./magnify";
 import { media } from "./media";
 import { memory } from "./memory";
 import { memories } from "./memories";
@@ -18,6 +19,7 @@ export const t = {
   common,
   layout,
   login,
+  magnify,
   media,
   memory,
   memories,

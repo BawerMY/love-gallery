@@ -4,6 +4,9 @@
   --muted: #7a6a70;
   --accent: #c2416b;
   --error: #b3261e;
+  --surface: #ffffff;
+  --line: #d8c8cd;
+  --placeholder: #f1e4e8;
   --page-max-width: 1000px;
   color-scheme: light;
 }
@@ -68,4 +71,261 @@ main {
   color: var(--muted);
   text-align: center;
   margin-top: 40vh;
+}
+
+a {
+  color: inherit;
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+
+/* Timeline */
+
+.timeline-chain {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0 0 24px;
+  max-width: 520px;
+}
+
+.timeline-gap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 72px;
+  position: relative;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.timeline-gap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 2px dashed var(--line);
+}
+
+.timeline-gap span {
+  position: relative;
+  background: var(--background);
+  padding: 4px 8px;
+}
+
+.timeline-card {
+  display: block;
+  background: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 2px 12px rgb(43 32 36 / 8%);
+}
+
+.timeline-card-cover {
+  aspect-ratio: 4 / 3;
+  background: var(--placeholder);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.timeline-card-body {
+  padding: 12px 16px 16px;
+}
+
+.timeline-card h2,
+.memory-header h1 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+.memory-header h1 {
+  font-size: 1.6rem;
+}
+
+.cities,
+.date-range {
+  margin: 0;
+  color: var(--muted);
+}
+
+.cities {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Memory page */
+
+.memory-header {
+  margin-bottom: 24px;
+}
+
+.memory-header .note {
+  white-space: pre-line;
+  margin: 12px 0 0;
+}
+
+/* Admin page */
+
+.admin {
+  max-width: 640px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-memory-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-memory-list a {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+.admin-memory-list span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.admin .empty {
+  color: var(--muted);
+}
+
+.memory-form,
+.city-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.city-list {
+  border: 0;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.city-list legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.city-list ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.city-list li {
+  display: flex;
+  gap: 8px;
+}
+
+.city-list li input {
+  flex: 1;
+  min-width: 0;
+}
+
+.date-fields {
+  display: flex;
+  gap: 12px;
+}
+
+.date-fields > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.memory-form label small {
+  color: var(--muted);
+}
+
+.admin input,
+.admin textarea,
+.admin button,
+.admin .button {
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: white;
+  color: inherit;
+}
+
+.admin button,
+.admin .button {
+  cursor: pointer;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  text-decoration: none;
+}
+
+.admin button:disabled {
+  opacity: 0.6;
+}
+
+.admin button.secondary,
+.city-list li button {
+  background: white;
+  border-color: var(--line);
+  color: inherit;
+}
+
+.admin button.danger {
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.memory-form .error {
+  color: var(--error);
+  margin: 0;
+}
+
+.memory-form .saved {
+  color: var(--muted);
+  margin: 0;
+}
+
+.danger-zone {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.delete-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.delete-confirm p {
+  flex-basis: 100%;
+  margin: 0 0 4px;
 }

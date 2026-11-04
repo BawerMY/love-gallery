@@ -40,4 +40,25 @@ export async function logIn(page: Page, next = "/") {
   await page.waitForURL((url) => url.pathname === next);
 }
 
+type SeedMemory = {
+  id: string;
+  title?: string;
+  note?: string;
+  cities: string[];
+  startDay: string;
+  endDay: string;
+};
+
+/** Writes these Memories (with no Media or Occasions) straight into `database.json`. */
+export async function seedMemories(memories: SeedMemory[]) {
+  await writeFile(
+    path.join(dataDir, "database.json"),
+    JSON.stringify({
+      version: 1,
+      memories: memories.map((memory) => ({ ...memory, oneOffOccasions: [], media: [] })),
+      yearlyOccasions: [],
+    }),
+  );
+}
+
 export { expect };

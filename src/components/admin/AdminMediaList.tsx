@@ -1,6 +1,7 @@
 import { isOutsideDateRange, readingOrder, type MediaItem, type Memory } from "@/gallery";
 import { mediaPath } from "@/routes";
 import { t } from "@/strings";
+import { MEDIA_KINDS } from "../media-kinds";
 import { DeleteMediaButton } from "./DeleteMediaButton";
 import { RefreshWhileProcessing } from "./RefreshWhileProcessing";
 
@@ -41,7 +42,7 @@ function Preview({ memoryId, item, position }: { memoryId: string; item: MediaIt
     // A plain <img>: Media comes from the session-protected Media route, not next/image.
     <img
       src={mediaPath(memoryId, item.files.thumbnail)}
-      alt={item.kind === "video" ? t.media.videoAlt(position) : t.media.photoAlt(position)}
+      alt={MEDIA_KINDS[item.kind].alt(position)}
       loading="lazy"
       decoding="async"
     />

@@ -1,6 +1,7 @@
 import { coverOf, type Memory } from "@/gallery";
 import { mediaPath } from "@/routes";
 import { t } from "@/strings";
+import { MEDIA_KINDS } from "../media-kinds";
 
 /**
  * Where a Timeline card shows the Memory's cover (see `coverOf`). A Memory
@@ -19,7 +20,7 @@ export function TimelineCardCover({ memory }: { memory: Memory }) {
     <div className="timeline-card-cover">
       {/* A plain <img>: Media comes from the session-protected Media route, not next/image. */}
       <img
-        src={mediaPath(memory.id, cover.kind === "video" ? cover.files.thumbnail : cover.files.display)}
+        src={mediaPath(memory.id, MEDIA_KINDS[cover.kind].still(cover.files))}
         alt=""
         width={cover.width}
         height={cover.height}

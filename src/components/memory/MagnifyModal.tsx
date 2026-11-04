@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent, type RefObject } from "
 import type { MediaItem } from "@/gallery";
 import { mediaPath } from "@/routes";
 import { t } from "@/strings";
+import { MEDIA_KINDS } from "../media-kinds";
 import { useVideoPlayback } from "./playback";
 import { SoundOffIcon, SoundOnIcon } from "./VideoTile";
 
@@ -72,7 +73,7 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
     },
   };
 
-  const label = isVideo ? t.magnify.videoLabel(position) : t.magnify.photoLabel(position);
+  const label = MEDIA_KINDS[item.kind].magnifiedLabel(position);
   return (
     <dialog
       ref={dialog}
@@ -97,8 +98,8 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
         ) : (
           <img
             className="magnify-media"
-            src={mediaPath(memoryId, item.files.display)}
-            alt={t.media.photoAlt(position)}
+            src={mediaPath(memoryId, MEDIA_KINDS[item.kind].still(item.files))}
+            alt={MEDIA_KINDS[item.kind].alt(position)}
             width={item.width}
             height={item.height}
             draggable={false}
@@ -146,6 +147,7 @@ function MagnifiedVideo({ ref, memoryId, item, position, start }: VideoProps) {
     });
   };
 
+  const poster = MEDIA_KINDS[item.kind].poster(item.files);
   const soundLabel = unmuted ? t.media.mute(position) : t.media.unmute(position);
   return (
     <div className="magnify-video">
@@ -153,8 +155,8 @@ function MagnifiedVideo({ ref, memoryId, item, position, start }: VideoProps) {
         ref={ref}
         className="magnify-media"
         src={mediaPath(memoryId, item.files.display)}
-        poster={mediaPath(memoryId, item.files.thumbnail)}
-        aria-label={t.media.videoAlt(position)}
+        poster={poster && mediaPath(memoryId, poster)}
+        aria-label={MEDIA_KINDS[item.kind].alt(position)}
         width={item.width}
         height={item.height}
         preload="auto"

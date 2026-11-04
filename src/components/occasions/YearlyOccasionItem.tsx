@@ -4,6 +4,7 @@ import { useState } from "react";
 import { deleteYearlyOccasionAction } from "@/app/admin/actions";
 import type { YearlyOccasion } from "@/gallery";
 import { t } from "@/strings";
+import { ConfirmDeleteButton } from "../admin/ConfirmDeleteButton";
 import styles from "./occasions.module.css";
 import { YearlyOccasionForm } from "./YearlyOccasionForm";
 
@@ -22,46 +23,28 @@ export function YearlyOccasionItem({ occasion }: { occasion: YearlyOccasion }) {
           </small>
         </span>
         {mode === "view" ? (
-          <>
-            <button
-              type="button"
-              className="secondary"
-              aria-label={t.occasions.editYearly(occasion.name)}
-              onClick={() => setMode("edit")}
-            >
-              {t.occasions.edit}
-            </button>
-            <button
-              type="button"
-              className="danger"
-              aria-label={t.occasions.deleteLabel(occasion.name)}
-              onClick={() => setMode("delete")}
-            >
-              {t.occasions.delete}
-            </button>
-          </>
+          <button
+            type="button"
+            className="secondary"
+            aria-label={t.occasions.editYearly(occasion.name)}
+            onClick={() => setMode("edit")}
+          >
+            {t.occasions.edit}
+          </button>
+        ) : null}
+        {mode !== "edit" ? (
+          <ConfirmDeleteButton
+            label={t.occasions.delete}
+            name={t.occasions.deleteLabel(occasion.name)}
+            question={t.occasions.deleteConfirm(occasion.name)}
+            action={deleteYearlyOccasionAction.bind(null, occasion.id)}
+            onConfirmingChange={(confirming) => setMode(confirming ? "delete" : "view")}
+          />
         ) : null}
       </div>
 
       {mode === "edit" ? (
         <YearlyOccasionForm occasion={occasion} onDone={() => setMode("view")} />
-      ) : null}
-
-      {mode === "delete" ? (
-        <form
-          className={styles.confirm}
-          action={deleteYearlyOccasionAction.bind(null, occasion.id)}
-          role="alertdialog"
-          aria-label={t.occasions.deleteLabel(occasion.name)}
-        >
-          <p>{t.occasions.deleteConfirm(occasion.name)}</p>
-          <button type="submit" className="danger">
-            {t.occasions.deleteYes}
-          </button>
-          <button type="button" className="secondary" onClick={() => setMode("view")}>
-            {t.occasions.cancel}
-          </button>
-        </form>
       ) : null}
     </li>
   );

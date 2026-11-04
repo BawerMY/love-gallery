@@ -29,7 +29,6 @@ export const occasions = {
   cancel: "Annulla",
   delete: "Elimina",
   deleteConfirm: (name: string) => `Eliminare la ricorrenza «${name}» da tutti i ricordi?`,
-  deleteYes: "Sì, elimina",
   sinceYear: (year: number) => `dal ${year}`,
   deleteLabel: (name: string) => `Elimina «${name}»`,
   noName: "Dai un nome alla ricorrenza.",

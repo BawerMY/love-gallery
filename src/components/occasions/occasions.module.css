@@ -82,16 +82,15 @@
   color: inherit;
 }
 
-.buttons,
-.confirm {
+.buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.confirm p {
+/* A delete confirmation takes a line of its own below the name. */
+.summary > :global(.delete-confirm) {
   flex-basis: 100%;
-  margin: 0;
 }
 
 .error {

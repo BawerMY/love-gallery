@@ -1,13 +1,18 @@
 import Link from "next/link";
 import { AdminMemoryList } from "@/components/admin/AdminMemoryList";
-import { getGallery, listTimeline } from "@/gallery";
+import { YearlyOccasionsSection } from "@/components/occasions/YearlyOccasionsSection";
+import { getGallery, listTimeline, listYearlyOccasions } from "@/gallery";
 import { t } from "@/strings";
 
 export const dynamic = "force-dynamic";
 
 /** The Admin page: every Memory, and the way to add one. */
 export default async function AdminPage() {
-  const memories = await listTimeline(getGallery().storage);
+  const { storage } = getGallery();
+  const [memories, yearlyOccasions] = await Promise.all([
+    listTimeline(storage),
+    listYearlyOccasions(storage),
+  ]);
 
   return (
     <main className="admin">
@@ -24,6 +29,7 @@ export default async function AdminPage() {
         </div>
         <AdminMemoryList memories={memories} />
       </section>
+      <YearlyOccasionsSection occasions={yearlyOccasions} />
     </main>
   );
 }

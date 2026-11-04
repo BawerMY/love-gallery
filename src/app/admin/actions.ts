@@ -13,6 +13,14 @@ import {
 } from "@/gallery";
 import { t } from "@/strings";
 import { requireSession } from "../require-session";
+import {
+  addOneOffOccasion,
+  createYearlyOccasion,
+  deleteOneOffOccasion,
+  deleteYearlyOccasion,
+  updateYearlyOccasion,
+  type YearlyOccasionInput,
+} from "@/gallery";
 
 /** What the Memory form shows after saving: an Italian error, or that it was saved. */
 export type MemoryFormState = { error?: string; saved?: boolean };
@@ -74,5 +82,81 @@ export async function deleteMemoryAction(id: string): Promise<void> {
 export async function deleteMediaAction(memoryId: string, mediaId: string): Promise<void> {
   await requireSession();
   await deleteMedia(getGallery().storage, memoryId, mediaId);
+  revalidatePath("/", "layout");
+}
+
+// Yearly occasions
+
+/** What a Yearly occasion form shows after saving: an Italian error, or that it was saved. */
+export type YearlyOccasionFormState = { error?: string; saved?: boolean };
+
+function readYearlyOccasionForm(form: FormData): YearlyOccasionInput {
+  const firstYear = String(form.get("firstYear") ?? "").trim();
+  return {
+    name: String(form.get("name") ?? ""),
+    month: Number(form.get("month")),
+    day: Number(form.get("day")),
+    ...(firstYear && { firstYear: Number(firstYear) }),
+  };
+}
+
+export async function createYearlyOccasionAction(
+  _state: YearlyOccasionFormState,
+  form: FormData,
+): Promise<YearlyOccasionFormState> {
+  await requireSession();
+  try {
+    await createYearlyOccasion(getGallery().storage, readYearlyOccasionForm(form));
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function updateYearlyOccasionAction(
+  id: string,
+  _state: YearlyOccasionFormState,
+  form: FormData,
+): Promise<YearlyOccasionFormState> {
+  await requireSession();
+  try {
+    await updateYearlyOccasion(getGallery().storage, id, readYearlyOccasionForm(form));
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function deleteYearlyOccasionAction(id: string): Promise<void> {
+  await requireSession();
+  await deleteYearlyOccasion(getGallery().storage, id);
+  revalidatePath("/", "layout");
+}
+
+// One-off occasions
+
+export async function addOneOffOccasionAction(
+  memoryId: string,
+  _state: YearlyOccasionFormState,
+  form: FormData,
+): Promise<YearlyOccasionFormState> {
+  await requireSession();
+  try {
+    await addOneOffOccasion(getGallery().storage, memoryId, {
+      name: String(form.get("name") ?? ""),
+      day: String(form.get("day") ?? ""),
+    });
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function deleteOneOffOccasionAction(memoryId: string, occasionId: string): Promise<void> {
+  await requireSession();
+  await deleteOneOffOccasion(getGallery().storage, memoryId, occasionId);
   revalidatePath("/", "layout");
 }

@@ -4,6 +4,7 @@ import { AdminMediaList } from "@/components/admin/AdminMediaList";
 import { DeleteMemoryButton } from "@/components/admin/DeleteMemoryButton";
 import { MediaUpload } from "@/components/admin/MediaUpload";
 import { MemoryForm } from "@/components/admin/MemoryForm";
+import { OneOffOccasionsSection } from "@/components/occasions/OneOffOccasionsSection";
 import { getGallery, getMemory, suggestCities, suggestDateRange } from "@/gallery";
 import { t } from "@/strings";
 import { updateMemoryAction } from "../../actions";
@@ -51,6 +52,7 @@ export default async function EditMemoryPage({
         </div>
         <AdminMediaList memory={memory} />
       </section>
+      <OneOffOccasionsSection memory={memory} />
       <section className="danger-zone">
         <DeleteMemoryButton memoryId={memory.id} />
       </section>

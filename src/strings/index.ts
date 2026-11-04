@@ -9,6 +9,7 @@ import { login } from "./login";
 import { media } from "./media";
 import { memory } from "./memory";
 import { memories } from "./memories";
+import { occasions } from "./occasions";
 import { timeline } from "./timeline";
 
 export const t = {
@@ -18,6 +19,7 @@ export const t = {
   media,
   memory,
   memories,
+  occasions,
   timeline,
 };
 

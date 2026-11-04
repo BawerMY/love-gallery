@@ -52,6 +52,10 @@ export async function updateMemory(
     const index = db.memories.findIndex((memory) => memory.id === id);
     if (index < 0) throw new GalleryError(t.memories.notFound);
     refuseOverlap(db, fields, id);
+    const outside = db.memories[index].oneOffOccasions.find(
+      (occasion) => occasion.day < fields.startDay || occasion.day > fields.endDay,
+    );
+    if (outside) throw new GalleryError(t.occasions.rangeExcludesOneOff(outside.name));
 
     const { title: _title, note: _note, ...kept } = db.memories[index];
     const memory: Memory = { ...kept, ...fields };
@@ -116,7 +120,7 @@ function cleanInput(input: MemoryInput): MemoryInput {
 }
 
 /** Whether `value` is a real calendar date written `YYYY-MM-DD`. */
-function isDay(value: string): value is Day {
+export function isDay(value: string): value is Day {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;

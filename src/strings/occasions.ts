@@ -36,4 +36,12 @@ export const occasions = {
   invalidDay: "Scegli un giorno e un mese che esistono.",
   invalidFirstYear: "Il primo anno non è valido.",
   notFound: "Questa ricorrenza non esiste più.",
+  oneOffHeading: "Ricorrenze di questo ricordo",
+  noOneOff: "Questo ricordo non ha ricorrenze proprie.",
+  newOneOff: "Nuova ricorrenza del ricordo",
+  oneOffDayLabel: "Data",
+  oneOffDeleteConfirm: (name: string) => `Eliminare la ricorrenza «${name}» da questo ricordo?`,
+  oneOffOutsideRange: "Scegli un giorno compreso nelle date del ricordo.",
+  rangeExcludesOneOff: (name: string) =>
+    `La ricorrenza «${name}» resterebbe fuori dalle nuove date. Spostala o eliminala prima.`,
 };

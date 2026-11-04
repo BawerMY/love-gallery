@@ -13,7 +13,9 @@ import {
 import { t } from "@/strings";
 import { requireSession } from "../require-session";
 import {
+  addOneOffOccasion,
   createYearlyOccasion,
+  deleteOneOffOccasion,
   deleteYearlyOccasion,
   updateYearlyOccasion,
   type YearlyOccasionInput,
@@ -123,5 +125,31 @@ export async function updateYearlyOccasionAction(
 export async function deleteYearlyOccasionAction(id: string): Promise<void> {
   await requireSession();
   await deleteYearlyOccasion(getGallery().storage, id);
+  revalidatePath("/", "layout");
+}
+
+// One-off occasions
+
+export async function addOneOffOccasionAction(
+  memoryId: string,
+  _state: YearlyOccasionFormState,
+  form: FormData,
+): Promise<YearlyOccasionFormState> {
+  await requireSession();
+  try {
+    await addOneOffOccasion(getGallery().storage, memoryId, {
+      name: String(form.get("name") ?? ""),
+      day: String(form.get("day") ?? ""),
+    });
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function deleteOneOffOccasionAction(memoryId: string, occasionId: string): Promise<void> {
+  await requireSession();
+  await deleteOneOffOccasion(getGallery().storage, memoryId, occasionId);
   revalidatePath("/", "layout");
 }

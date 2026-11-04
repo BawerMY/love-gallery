@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  addOneOffOccasion,
   createMemory,
   createYearlyOccasion,
+  deleteOneOffOccasion,
   deleteYearlyOccasion,
   GalleryError,
   getMemory,
   listYearlyOccasions,
   occasionsOfMemory,
   openStorage,
+  updateMemory,
   updateYearlyOccasion,
   type Memory,
   type YearlyOccasion,
@@ -128,5 +131,71 @@ describe("managing Yearly occasions", () => {
 
     await createYearlyOccasion(storage, { name: "Bisestile", month: 2, day: 29 });
     expect(await listYearlyOccasions(storage)).toHaveLength(1);
+  });
+});
+
+describe("One-off occasions", () => {
+  it("are added to a Memory with a name and a day, and listed by day with its Yearly occasions", async () => {
+    const dataDir = await makeDataDir();
+    const storage = openStorage(dataDir);
+    const viaggio = await createMemory(storage, { cities: ["Napoli"], startDay: "2024-12-30", endDay: "2025-01-03" });
+
+    const laurea = await addOneOffOccasion(storage, viaggio.id, { name: " Laurea di Anna ", day: "2025-01-02" });
+    const primo = await addOneOffOccasion(storage, viaggio.id, { name: "Primo bagno", day: "2024-12-30" });
+
+    expect(laurea).toEqual({ id: laurea.id, name: "Laurea di Anna", day: "2025-01-02" });
+    const saved = (await getMemory(storage, viaggio.id))!;
+    expect(occasionsOfMemory(saved, [capodanno])).toEqual([
+      { id: primo.id, kind: "one-off", name: "Primo bagno", day: "2024-12-30" },
+      { id: "capodanno", kind: "yearly", name: "Capodanno", day: "2025-01-01" },
+      { id: laurea.id, kind: "one-off", name: "Laurea di Anna", day: "2025-01-02" },
+    ]);
+    expect(await readDatabaseFile(dataDir)).toMatchObject({
+      memories: [{ id: viaggio.id, oneOffOccasions: [laurea, primo] }],
+    });
+  });
+
+  it("refuse, in Italian, a day outside the Date range, a day that doesn't exist and a blank name", async () => {
+    const storage = openStorage(await makeDataDir());
+    const viaggio = await createMemory(storage, { cities: ["Napoli"], startDay: "2025-03-10", endDay: "2025-03-12" });
+    const refused = [
+      [{ name: "Prima", day: "2025-03-09" }, "Scegli un giorno compreso nelle date del ricordo."],
+      [{ name: "Dopo", day: "2025-03-13" }, "Scegli un giorno compreso nelle date del ricordo."],
+      [{ name: "Mai", day: "2025-02-30" }, "Scegli un giorno compreso nelle date del ricordo."],
+      [{ name: "  ", day: "2025-03-11" }, "Dai un nome alla ricorrenza."],
+    ] as const;
+    for (const [input, message] of refused) {
+      await expect(addOneOffOccasion(storage, viaggio.id, input)).rejects.toThrow(new GalleryError(message));
+    }
+    expect((await getMemory(storage, viaggio.id))!.oneOffOccasions).toEqual([]);
+  });
+
+  it("are removed from their Memory only", async () => {
+    const storage = openStorage(await makeDataDir());
+    const viaggio = await createMemory(storage, { cities: ["Napoli"], startDay: "2025-03-10", endDay: "2025-03-12" });
+    const cena = await addOneOffOccasion(storage, viaggio.id, { name: "Cena", day: "2025-03-10" });
+    const gita = await addOneOffOccasion(storage, viaggio.id, { name: "Gita", day: "2025-03-11" });
+
+    await deleteOneOffOccasion(storage, viaggio.id, cena.id);
+
+    expect((await getMemory(storage, viaggio.id))!.oneOffOccasions).toEqual([gita]);
+    await expect(deleteOneOffOccasion(storage, viaggio.id, cena.id)).rejects.toThrow(
+      new GalleryError("Questa ricorrenza non esiste più."),
+    );
+  });
+
+  it("keep a Date range edit from leaving one of them outside, in Italian", async () => {
+    const storage = openStorage(await makeDataDir());
+    const input = { cities: ["Napoli"], startDay: "2025-03-10", endDay: "2025-03-12" };
+    const viaggio = await createMemory(storage, input);
+    const gita = await addOneOffOccasion(storage, viaggio.id, { name: "Gita", day: "2025-03-12" });
+
+    await expect(updateMemory(storage, viaggio.id, { ...input, endDay: "2025-03-11" })).rejects.toThrow(
+      new GalleryError("La ricorrenza «Gita» resterebbe fuori dalle nuove date. Spostala o eliminala prima."),
+    );
+    expect(await getMemory(storage, viaggio.id)).toEqual({ ...viaggio, oneOffOccasions: [gita] });
+
+    const moved = await updateMemory(storage, viaggio.id, { ...input, startDay: "2025-03-12", endDay: "2025-03-14" });
+    expect(moved.oneOffOccasions).toEqual([gita]);
   });
 });

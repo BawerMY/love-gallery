@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeleteMemoryButton } from "@/components/admin/DeleteMemoryButton";
 import { MemoryForm } from "@/components/admin/MemoryForm";
+import { OneOffOccasionsSection } from "@/components/occasions/OneOffOccasionsSection";
 import { getGallery, getMemory, suggestCities } from "@/gallery";
 import { t } from "@/strings";
 import { updateMemoryAction } from "../../actions";
@@ -41,6 +42,7 @@ export default async function EditMemoryPage({
           saved={salvato === "1"}
         />
       </section>
+      <OneOffOccasionsSection memory={memory} />
       <section className="danger-zone">
         <DeleteMemoryButton memoryId={memory.id} />
       </section>

@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { LOCALE, t } from "../strings";
 import { GalleryError } from "./errors";
+import { isDay } from "./memories";
 import type { Storage } from "./storage";
-import type { Day, Memory, YearlyOccasion } from "./types";
+import type { Day, Memory, OneOffOccasion, YearlyOccasion } from "./types";
 
 /** What the Curator fills in for a Yearly occasion on the Admin page. */
 export type YearlyOccasionInput = {
@@ -73,9 +74,51 @@ function cleanYearlyInput(input: YearlyOccasionInput): Omit<YearlyOccasion, "id"
   return { name, month, day, ...(firstYear !== undefined && { firstYear }) };
 }
 
+/** What the Curator fills in for a One-off occasion on a Memory's Admin page. */
+export type OneOffOccasionInput = {
+  name: string;
+  day: Day;
+};
+
+/** Adds a One-off occasion to a Memory. Its day must be inside the Memory's Date range. */
+export async function addOneOffOccasion(
+  storage: Storage,
+  memoryId: string,
+  input: OneOffOccasionInput,
+): Promise<OneOffOccasion> {
+  const name = input.name.trim();
+  const day = input.day.trim();
+  if (!name) throw new GalleryError(t.occasions.noName);
+  return storage.update((db) => {
+    const memory = db.memories.find((candidate) => candidate.id === memoryId);
+    if (!memory) throw new GalleryError(t.memories.notFound);
+    if (!isDay(day) || day < memory.startDay || day > memory.endDay) {
+      throw new GalleryError(t.occasions.oneOffOutsideRange);
+    }
+    const occasion: OneOffOccasion = { id: randomUUID(), name, day };
+    memory.oneOffOccasions.push(occasion);
+    return occasion;
+  });
+}
+
+/** Removes a One-off occasion from its Memory. */
+export async function deleteOneOffOccasion(
+  storage: Storage,
+  memoryId: string,
+  occasionId: string,
+): Promise<void> {
+  await storage.update((db) => {
+    const memory = db.memories.find((candidate) => candidate.id === memoryId);
+    if (!memory) throw new GalleryError(t.memories.notFound);
+    const index = memory.oneOffOccasions.findIndex((occasion) => occasion.id === occasionId);
+    if (index < 0) throw new GalleryError(t.occasions.notFound);
+    memory.oneOffOccasions.splice(index, 1);
+  });
+}
+
 /**
  * One Occasion as it appears on a Memory: a Yearly occasion matched to a day
- * of its Date range (or, later, a One-off occasion added to it).
+ * of its Date range, or a One-off occasion added to it.
  */
 export type Occasion = {
   /** The id of the Yearly or One-off occasion this comes from. */
@@ -92,10 +135,15 @@ export type Occasion = {
  * The Occasions of a Memory, sorted by day. Yearly occasions are never stored
  * on a Memory: one belongs to it whenever its Date range includes the
  * occasion's day in some year Y, with Y on or after the first year if set.
- * One-off occasions (ticket 09) are merged into the same list before sorting.
+ * One-off occasions are merged into the same list before sorting.
  */
 export function occasionsOfMemory(memory: Memory, yearlyOccasions: YearlyOccasion[]): Occasion[] {
-  const occasions: Occasion[] = [];
+  const occasions: Occasion[] = memory.oneOffOccasions.map(({ id, name, day }) => ({
+    id,
+    kind: "one-off",
+    name,
+    day,
+  }));
   const firstYear = Number(memory.startDay.slice(0, 4));
   const lastYear = Number(memory.endDay.slice(0, 4));
   for (const yearly of yearlyOccasions) {

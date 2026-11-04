@@ -46,3 +46,63 @@ test("the Curator adds a Yearly occasion in the Admin page and its badge shows o
   await page.goto("/");
   await expect(page.getByRole("list", { name: "Ricorrenze" })).toHaveCount(0);
 });
+
+test("the Curator adds and removes One-off occasions on a Memory, shown by day with the Yearly ones", async ({
+  loggedInPage: page,
+}) => {
+  await seedMemories([
+    { id: "estate", title: "Estate al mare", cities: ["Rimini"], startDay: "2025-06-12", endDay: "2025-06-16" },
+  ]);
+  await page.goto("/admin");
+  const yearly = page.getByRole("form", { name: "Nuova ricorrenza annuale" });
+  await yearly.getByLabel("Nome").fill("anniversario");
+  await yearly.getByLabel("Giorno").fill("14");
+  await yearly.getByLabel("Mese").selectOption({ label: "giugno" });
+  await yearly.getByRole("button", { name: "Aggiungi" }).click();
+  await expect(yearly.getByText("Ricorrenza salvata.")).toBeVisible();
+
+  await page.goto("/admin/memories/estate");
+  await expect(page.getByText("Questo ricordo non ha ricorrenze proprie.")).toBeVisible();
+  const form = page.getByRole("form", { name: "Nuova ricorrenza del ricordo" });
+  for (const [name, day] of [
+    ["Cena sul molo", "2025-06-15"],
+    ["Primo tuffo", "2025-06-12"],
+  ]) {
+    await form.getByLabel("Nome").fill(name);
+    await form.getByLabel("Data").fill(day);
+    await form.getByRole("button", { name: "Aggiungi" }).click();
+    await expect(page.getByText(name, { exact: true })).toBeVisible();
+  }
+  await expect(page.getByText("15 giugno 2025")).toBeVisible();
+
+  // Moving the Date range so that "Cena sul molo" falls outside is refused.
+  await page.getByLabel("Ultimo giorno").fill("2025-06-14");
+  await page.getByRole("button", { name: "Salva", exact: true }).click();
+  await expect(
+    page.getByText("La ricorrenza «Cena sul molo» resterebbe fuori dalle nuove date. Spostala o eliminala prima."),
+  ).toBeVisible();
+
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: /Estate al mare/ }).getByRole("listitem")).toHaveText([
+    "Primo tuffo",
+    "anniversario",
+    "Cena sul molo",
+  ]);
+  await page.goto("/memories/estate");
+  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText([
+    "Primo tuffo",
+    "anniversario",
+    "Cena sul molo",
+  ]);
+
+  await page.goto("/admin/memories/estate");
+  await page.getByRole("button", { name: "Elimina «Cena sul molo»" }).click();
+  await page.getByRole("button", { name: "Sì, elimina" }).click();
+  await expect(page.getByText("Cena sul molo", { exact: true })).toHaveCount(0);
+
+  await page.goto("/memories/estate");
+  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText([
+    "Primo tuffo",
+    "anniversario",
+  ]);
+});

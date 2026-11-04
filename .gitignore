@@ -8,3 +8,6 @@ playwright-report/
 /data/
 .env
 .env*.local
+
+# agent worktrees
+.claude/worktrees/

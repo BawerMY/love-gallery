@@ -28,8 +28,19 @@ export type MediaItem = {
   width: number;
   height: number;
   cell: MediaCell;
-  /** Names of the processed files inside `media/`. */
-  files: Record<string, string>;
+  /** Names of the processed files inside the Memory's folder in `media/`. */
+  files: MediaFiles;
+};
+
+/**
+ * The processed files of a Media item. A name never changes meaning: new
+ * content always gets a new name, so the files can be cached forever.
+ */
+export type MediaFiles = {
+  /** What the Memory page shows: a WebP for a photo. */
+  display: string;
+  /** A small WebP for 1×1 tiles and previews. */
+  thumbnail: string;
 };
 
 export type Memory = {

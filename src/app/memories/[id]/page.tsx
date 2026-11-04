@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MemoryGrid } from "@/components/memory/MemoryGrid";
 import { MemoryHeader } from "@/components/memory/MemoryHeader";
+import { VideoPlaybackProvider } from "@/components/memory/playback";
 import { getGallery, getMemory, listYearlyOccasions, occasionsOfMemory } from "@/gallery";
 import { t } from "@/strings";
 
@@ -21,7 +22,9 @@ export default async function MemoryPage({ params }: { params: Promise<{ id: str
         ← {t.memory.backToTimeline}
       </Link>
       <MemoryHeader memory={memory} occasions={occasions} />
-      <MemoryGrid memory={memory} />
+      <VideoPlaybackProvider>
+        <MemoryGrid memory={memory} />
+      </VideoPlaybackProvider>
     </main>
   );
 }

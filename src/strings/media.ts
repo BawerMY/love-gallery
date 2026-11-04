@@ -8,6 +8,8 @@ export const media = {
   noFiles: "Scegli almeno una foto o un video.",
   photoAlt: (position: number) => `Foto ${position}`,
   videoAlt: (position: number) => `Video ${position}`,
+  unmute: (position: number) => `Attiva l'audio del video ${position}`,
+  mute: (position: number) => `Disattiva l'audio del video ${position}`,
 
   // Admin page
   heading: "Foto e video",

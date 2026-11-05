@@ -1,6 +1,5 @@
 /**
  * The shape of `database.json` (see spec "Data shape" and ADR-0002).
- * Later tickets fill in the Memory, Media item and Yearly occasion fields.
  */
 
 import type { Day } from "./days";
@@ -8,11 +7,13 @@ import type { ThemeKey } from "./themes";
 
 export type { Day };
 
-export type OneOffOccasion = {
+/**
+ * One entry of the gallery's list of Occasions. Its name is unique, ignoring
+ * upper and lower case and surrounding spaces.
+ */
+export type Occasion = {
   id: string;
   name: string;
-  day: Day;
-  /** Neutro when missing from `database.json` (see `openStorage`). */
   theme: ThemeKey;
 };
 
@@ -59,45 +60,22 @@ export type Memory = {
   startDay: Day;
   endDay: Day;
   coverMediaId?: string;
-  oneOffOccasions: OneOffOccasion[];
+  /** The ids of the Memory's Occasions, in badge order. */
+  occasionIds: string[];
   /**
-   * The Occasion the Curator chose as Main occasion, if any; missing means
-   * "not chosen" (see `themeOfMemory`). It may no longer apply, e.g. after a
-   * Date range edit: it is then ignored, not removed.
+   * The id of the Occasion the Curator chose as Main occasion, if any; missing
+   * means "not chosen" (see `themeOfMemory`). It is ignored, not removed,
+   * while it doesn't apply, e.g. after its Occasion turned Neutro.
    */
-  mainOccasion?: MainOccasionRef;
+  mainOccasionId?: string;
   media: MediaItem[];
 };
 
-/** Points at an Occasion: a Yearly occasion by its id, a One-off occasion by its id within the Memory. */
-export type MainOccasionRef = { kind: "yearly" | "one-off"; id: string };
-
-/** A Main occasion as one string, `kind:id` (e.g. `yearly:natale`), for a form value. Read back with `decodeMainOccasion`. */
-export function encodeMainOccasion(ref: MainOccasionRef): string {
-  return `${ref.kind}:${ref.id}`;
-}
-
-/** The Main occasion written by `encodeMainOccasion`; undefined for anything else, such as "" for automatic. */
-export function decodeMainOccasion(value: string): MainOccasionRef | undefined {
-  const separator = value.indexOf(":");
-  const kind = value.slice(0, separator);
-  return kind === "yearly" || kind === "one-off" ? { kind, id: value.slice(separator + 1) } : undefined;
-}
-
-export type YearlyOccasion = {
-  id: string;
-  name: string;
-  month: number;
-  day: number;
-  firstYear?: number;
-  /** Neutro when missing from `database.json` (see `openStorage`). */
-  theme: ThemeKey;
-};
-
-export const DATABASE_VERSION = 1;
+export const DATABASE_VERSION = 2;
 
 export type Database = {
   version: typeof DATABASE_VERSION;
   memories: Memory[];
-  yearlyOccasions: YearlyOccasion[];
+  /** The list of Occasions, in the order they were created. */
+  occasions: Occasion[];
 };

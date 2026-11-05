@@ -5,13 +5,13 @@ import { openStorage } from "@/gallery";
 import { makeDataDir, readDatabaseFile } from "./helpers";
 
 describe("storage", () => {
-  it("creates database.json with no Memories and no Yearly occasions when it is missing", async () => {
+  it("creates database.json with no Memories and no Occasions when it is missing", async () => {
     const dataDir = await makeDataDir();
 
     const storage = openStorage(dataDir);
     const db = await storage.read();
 
-    const expected = { version: 1, memories: [], yearlyOccasions: [] };
+    const expected = { version: 2, memories: [], occasions: [] };
     expect(db).toEqual(expected);
     expect(await readDatabaseFile(dataDir)).toEqual(expected);
   });
@@ -19,9 +19,9 @@ describe("storage", () => {
   it("keeps an existing database.json as it is", async () => {
     const dataDir = await makeDataDir();
     const existing = {
-      version: 1,
+      version: 2,
       memories: [],
-      yearlyOccasions: [{ id: "y1", name: "San Valentino", month: 2, day: 14, theme: "san-valentino" }],
+      occasions: [{ id: "y1", name: "San Valentino", theme: "san-valentino" }],
     };
     await writeFile(path.join(dataDir, "database.json"), JSON.stringify(existing));
 
@@ -38,15 +38,15 @@ describe("storage", () => {
     await Promise.all(
       Array.from({ length: 40 }, (_, i) =>
         (i % 2 ? first : second).update(async (db) => {
-          const count = db.yearlyOccasions.length;
+          const count = db.occasions.length;
           await new Promise((resolve) => setTimeout(resolve, 1));
-          db.yearlyOccasions.push({ id: `y${count}`, name: `Occasione ${i}`, month: 1, day: 1, theme: "neutro" });
+          db.occasions.push({ id: `y${count}`, name: `Occasione ${i}`, theme: "neutro" });
         }),
       ),
     );
 
-    const db = (await readDatabaseFile(dataDir)) as { yearlyOccasions: { id: string }[] };
-    expect(db.yearlyOccasions.map((o) => o.id)).toEqual(
+    const db = (await readDatabaseFile(dataDir)) as { occasions: { id: string }[] };
+    expect(db.occasions.map((o) => o.id)).toEqual(
       Array.from({ length: 40 }, (_, i) => `y${i}`),
     );
   });
@@ -55,18 +55,18 @@ describe("storage", () => {
     const dataDir = await makeDataDir();
     const storage = openStorage(dataDir);
     await storage.update((db) => {
-      db.yearlyOccasions.push({ id: "kept", name: "Anniversario", month: 6, day: 1, theme: "neutro" });
+      db.occasions.push({ id: "kept", name: "Anniversario", theme: "neutro" });
     });
 
     await expect(
       storage.update((db) => {
-        db.yearlyOccasions.push({ id: "lost", name: "Compleanno", month: 3, day: 9, theme: "neutro" });
+        db.occasions.push({ id: "lost", name: "Compleanno", theme: "neutro" });
         throw new Error("rifiutato");
       }),
     ).rejects.toThrow("rifiutato");
 
-    const db = (await readDatabaseFile(dataDir)) as { yearlyOccasions: { id: string }[] };
-    expect(db.yearlyOccasions.map((o) => o.id)).toEqual(["kept"]);
+    const db = (await readDatabaseFile(dataDir)) as { occasions: { id: string }[] };
+    expect(db.occasions.map((o) => o.id)).toEqual(["kept"]);
     expect((await readdir(dataDir)).sort()).toEqual(["database.json", "media"]);
   });
 
@@ -75,12 +75,12 @@ describe("storage", () => {
     const storage = openStorage(dataDir);
 
     const returned = await storage.update((db) => {
-      db.yearlyOccasions.push({ id: "y1", name: "Anniversario", month: 6, day: 1, theme: "neutro" });
-      return db.yearlyOccasions.length;
+      db.occasions.push({ id: "y1", name: "Anniversario", theme: "neutro" });
+      return db.occasions.length;
     });
 
     expect(returned).toBe(1);
-    expect(((await readDatabaseFile(dataDir)) as { yearlyOccasions: unknown[] }).yearlyOccasions).toHaveLength(1);
+    expect(((await readDatabaseFile(dataDir)) as { occasions: unknown[] }).occasions).toHaveLength(1);
     // A change can't hand back a new database instead of changing the one it was given.
     // @ts-expect-error a returned database would not be saved
     await storage.update((db) => ({ ...db, memories: [] }));

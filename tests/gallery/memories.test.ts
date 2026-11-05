@@ -90,7 +90,7 @@ describe("memories", () => {
       cities: ["Napoli", "Salerno"],
       startDay: "2025-05-02",
       endDay: "2025-05-05",
-      oneOffOccasions: [],
+      occasionIds: [],
       media: [],
     };
     expect(edited).toEqual(expected);
@@ -155,7 +155,7 @@ describe("memories", () => {
       cities: ["Milano", "Bergamo"],
       startDay: "2025-03-14",
       endDay: "2025-03-16",
-      oneOffOccasions: [],
+      occasionIds: [],
       media: [],
     });
     expect(await listTimeline(storage)).toEqual([memory]);

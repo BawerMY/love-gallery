@@ -21,7 +21,7 @@ export const test = base.extend<Fixtures & { emptyGallery: void }>({
       await rm(path.join(dataDir, "media"), { recursive: true, force: true });
       await writeFile(
         path.join(dataDir, "database.json"),
-        JSON.stringify({ version: 1, memories: [], yearlyOccasions: [] }),
+        JSON.stringify({ version: 2, memories: [], occasions: [] }),
       );
       await use();
     },
@@ -47,22 +47,25 @@ type SeedMemory = {
   cities: string[];
   startDay: string;
   endDay: string;
-  oneOffOccasions?: { id: string; name: string; day: string; theme?: string }[];
+  /** Ids from the list of Occasions, in badge order. */
+  occasionIds?: string[];
+  mainOccasionId?: string;
 };
 
-type SeedYearlyOccasion = { id: string; name: string; month: number; day: number; theme?: string };
+type SeedOccasion = { id: string; name: string; theme?: string };
 
 /**
- * Writes these Memories (with no Media, and no One-off occasions unless
- * given) and Yearly occasions straight into `database.json`.
+ * Writes these Memories (with no Media, and no Occasions unless given) and
+ * this list of Occasions (Neutro unless given a Theme) straight into
+ * `database.json`.
  */
-export async function seedMemories(memories: SeedMemory[], yearlyOccasions: SeedYearlyOccasion[] = []) {
+export async function seedMemories(memories: SeedMemory[], occasions: SeedOccasion[] = []) {
   await writeFile(
     path.join(dataDir, "database.json"),
     JSON.stringify({
-      version: 1,
-      memories: memories.map((memory) => ({ oneOffOccasions: [], ...memory, media: [] })),
-      yearlyOccasions,
+      version: 2,
+      memories: memories.map((memory) => ({ occasionIds: [], ...memory, media: [] })),
+      occasions: occasions.map((occasion) => ({ theme: "neutro", ...occasion })),
     }),
   );
 }

@@ -1,25 +1,34 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
-import { addOneOffOccasionAction, type FormState } from "@/app/admin/actions";
-import type { Memory } from "@/gallery";
+import { createOccasionAction, updateOccasionAction, type FormState } from "@/app/admin/actions";
+import type { Occasion } from "@/gallery";
 import { DEFAULT_THEME, type ThemeKey } from "@/gallery/themes";
 import { t } from "@/strings";
 import { ThemeSelect } from "../themes/ThemeSelect";
-import { button, errorText, field, formStack, quietText } from "../ui";
+import { button, errorText, field, formStack, quietText, secondaryButton } from "../ui";
 
-/** The name, day and Theme of a new One-off occasion. The day picker stays inside the Date range. */
-export function OneOffOccasionForm({ memory }: { memory: Memory }) {
+type Props = {
+  /** The Occasion being edited, or nothing when adding one to the list. */
+  occasion?: Occasion;
+  /** Called after an edit is saved, or when the Curator cancels it. */
+  onDone?: () => void;
+};
+
+/** The name and Theme of an Occasion in the list. */
+export function OccasionForm({ occasion, onDone }: Props) {
   const id = useId();
-  const [name, setName] = useState("");
-  const [day, setDay] = useState<string>(memory.startDay);
-  const [theme, setTheme] = useState<ThemeKey>(DEFAULT_THEME);
+  const [name, setName] = useState(occasion?.name ?? "");
+  const [theme, setTheme] = useState<ThemeKey>(occasion?.theme ?? DEFAULT_THEME);
   const [edited, setEdited] = useState(false);
 
   const [state, formAction, pending] = useActionState(
     async (previous: FormState, form: FormData) => {
-      const result = await addOneOffOccasionAction(memory.id, previous, form);
-      if (result.saved) {
+      const result = occasion
+        ? await updateOccasionAction(occasion.id, previous, form)
+        : await createOccasionAction(previous, form);
+      if (result.saved && occasion) onDone?.();
+      if (result.saved && !occasion) {
         setName("");
         setTheme(DEFAULT_THEME);
       }
@@ -38,7 +47,7 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
   return (
     <form
       className={formStack}
-      aria-label={t.occasions.newOneOff}
+      aria-label={occasion ? t.occasions.editOccasion(occasion.name) : t.occasions.newOccasion}
       action={(form) => {
         setEdited(false);
         return formAction(form);
@@ -47,19 +56,6 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
       <label htmlFor={`${id}-name`}>{t.occasions.nameLabel}</label>
       <input id={`${id}-name`} className={field} name="name" required value={name} onChange={change(setName)} />
 
-      <label htmlFor={`${id}-day`}>{t.occasions.oneOffDayLabel}</label>
-      <input
-        id={`${id}-day`}
-        className={field}
-        name="day"
-        type="date"
-        required
-        min={memory.startDay}
-        max={memory.endDay}
-        value={day}
-        onChange={change(setDay)}
-      />
-
       <ThemeSelect id={`${id}-theme`} value={theme} onChange={change((value) => setTheme(value as ThemeKey))} />
 
       {state.error ? (
@@ -67,7 +63,7 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
           {state.error}
         </p>
       ) : null}
-      {state.saved && !edited && !pending ? (
+      {state.saved && !edited && !pending && !occasion ? (
         <p role="status" className={quietText}>
           {t.occasions.saved}
         </p>
@@ -75,8 +71,13 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
 
       <div className="flex flex-wrap gap-2">
         <button type="submit" className={button} disabled={pending}>
-          {pending ? t.occasions.saving : t.occasions.add}
+          {pending ? t.occasions.saving : occasion ? t.occasions.save : t.occasions.add}
         </button>
+        {occasion ? (
+          <button type="button" className={secondaryButton} onClick={onDone}>
+            {t.occasions.cancel}
+          </button>
+        ) : null}
       </div>
     </form>
   );

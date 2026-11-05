@@ -1,203 +1,193 @@
 import { describe, expect, it } from "vitest";
 import {
-  addOneOffOccasion,
+  addOccasionToMemory,
   createMemory,
-  createYearlyOccasion,
-  deleteOneOffOccasion,
-  deleteYearlyOccasion,
+  countOccasionUses,
+  createOccasion,
+  deleteOccasion,
   GalleryError,
   getMemory,
-  listYearlyOccasions,
+  listOccasions,
+  listTimeline,
   occasionsOfMemory,
   openStorage,
+  removeOccasionFromMemory,
   updateMemory,
-  updateYearlyOccasion,
-  parseDay,
-  type Memory,
-  type YearlyOccasion,
+  updateOccasion,
+  type Storage,
 } from "@/gallery";
 import { makeDataDir, readDatabaseFile } from "./helpers";
 
-function memory(startDay: string, endDay: string): Memory {
-  return { id: "m", cities: ["Roma"], startDay: parseDay(startDay), endDay: parseDay(endDay), oneOffOccasions: [], media: [] };
+/** A Memory's badges as the gallery pages show them: name and Theme, in badge order. */
+async function badges(storage: Storage, memoryId: string) {
+  const memory = (await getMemory(storage, memoryId))!;
+  return occasionsOfMemory(memory, await listOccasions(storage)).map(({ name, theme }) => [name, theme]);
 }
 
-const capodanno: YearlyOccasion = { id: "capodanno", name: "Capodanno", month: 1, day: 1, theme: "neutro" };
-
-describe("Yearly occasions of a Memory", () => {
-  it("match a Date range that crosses the new year", () => {
-    expect(occasionsOfMemory(memory("2024-12-30", "2025-01-02"), [capodanno])).toEqual([
-      { id: "capodanno", kind: "yearly", name: "Capodanno", day: "2025-01-01", theme: "neutro" },
-    ]);
-  });
-
-  it("leave out a Date range that misses the day", () => {
-    expect(occasionsOfMemory(memory("2025-01-02", "2025-12-31"), [capodanno])).toEqual([]);
-  });
-
-  it("on 29 February match only in leap years", () => {
-    const bisestile: YearlyOccasion = { id: "bisestile", name: "Giorno bisestile", month: 2, day: 29, theme: "neutro" };
-    expect(occasionsOfMemory(memory("2025-02-27", "2025-03-02"), [bisestile])).toEqual([]);
-    expect(occasionsOfMemory(memory("2024-02-27", "2024-03-02"), [bisestile])).toEqual([
-      { id: "bisestile", kind: "yearly", name: "Giorno bisestile", day: "2024-02-29", theme: "neutro" },
-    ]);
-  });
-
-  it("are listed by day, whatever order they were added in", () => {
-    const natale: YearlyOccasion = { id: "natale", name: "Natale", month: 12, day: 25, theme: "neutro" };
-    const vigilia: YearlyOccasion = { id: "vigilia", name: "Vigilia", month: 12, day: 24, theme: "neutro" };
-    const occasions = occasionsOfMemory(memory("2024-12-23", "2025-01-02"), [capodanno, natale, vigilia]);
-    expect(occasions.map((occasion) => occasion.day)).toEqual(["2024-12-24", "2024-12-25", "2025-01-01"]);
-  });
-
-  describe("with a first year", () => {
-    const anniversario: YearlyOccasion = {
-      id: "anniversario",
-      name: "anniversario",
-      month: 6,
-      day: 14,
-      firstYear: 2023,
-      theme: "neutro",
-    };
-
-    it("are not matched before the first year", () => {
-      expect(occasionsOfMemory(memory("2022-06-10", "2022-06-20"), [anniversario])).toEqual([]);
-    });
-
-    it("are not numbered on the very first year", () => {
-      expect(occasionsOfMemory(memory("2023-06-14", "2023-06-14"), [anniversario])).toEqual([
-        { id: "anniversario", kind: "yearly", name: "anniversario", day: "2023-06-14", theme: "neutro" },
-      ]);
-    });
-
-    it("are numbered by the years since the first year", () => {
-      expect(occasionsOfMemory(memory("2025-06-13", "2025-06-15"), [anniversario])).toEqual([
-        { id: "anniversario", kind: "yearly", name: "anniversario", day: "2025-06-14", number: 2, theme: "neutro" },
-      ]);
-    });
-  });
-});
-
-describe("managing Yearly occasions", () => {
-  it("an occasion added later belongs to Memories made before it, without being stored on them", async () => {
+describe("the list of Occasions", () => {
+  it("holds Occasions with a name and a Theme, defaulting to Neutro, listed alphabetically", async () => {
     const dataDir = await makeDataDir();
     const storage = openStorage(dataDir);
-    const san = await createMemory(storage, { cities: ["Verona"], startDay: "2024-02-13", endDay: "2024-02-15" });
 
-    const valentino = await createYearlyOccasion(storage, { name: "San Valentino", month: 2, day: 14 });
+    const viaggio = await createOccasion(storage, { name: " Viaggio insieme ", theme: "anniversario" });
+    const anniversario = await createOccasion(storage, { name: "anniversario" });
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
 
-    expect(await listYearlyOccasions(storage)).toEqual([valentino]);
-    const saved = (await getMemory(storage, san.id))!;
-    expect(occasionsOfMemory(saved, await listYearlyOccasions(storage))).toEqual([
-      { id: valentino.id, kind: "yearly", name: "San Valentino", day: "2024-02-14", theme: "neutro" },
-    ]);
+    expect(viaggio).toEqual({ id: expect.any(String), name: "Viaggio insieme", theme: "anniversario" });
+    expect(anniversario.theme).toBe("neutro");
+    expect(await listOccasions(storage)).toEqual([anniversario, natale, viaggio]);
     expect(await readDatabaseFile(dataDir)).toEqual({
-      version: 1,
-      memories: [{ ...san }],
-      yearlyOccasions: [{ id: valentino.id, name: "San Valentino", month: 2, day: 14, theme: "neutro" }],
+      version: 2,
+      memories: [],
+      occasions: [viaggio, anniversario, natale],
     });
   });
 
-  it("are listed in calendar order and can be edited and deleted", async () => {
+  it("refuses, in Italian, a blank name, a name already in the list and an unknown Theme", async () => {
     const storage = openStorage(await makeDataDir());
-    const natale = await createYearlyOccasion(storage, { name: "Natale", month: 12, day: 25 });
-    const anniversario = await createYearlyOccasion(storage, {
-      name: " anniversario ",
-      month: 6,
-      day: 14,
-      firstYear: 2023,
-    });
-    expect((await listYearlyOccasions(storage)).map((o) => o.name)).toEqual(["anniversario", "Natale"]);
-
-    const edited = await updateYearlyOccasion(storage, anniversario.id, { name: "anniversario", month: 6, day: 15 });
-    expect(edited).toEqual({ id: anniversario.id, name: "anniversario", month: 6, day: 15, theme: "neutro" });
-
-    await deleteYearlyOccasion(storage, natale.id);
-    expect(await listYearlyOccasions(storage)).toEqual([edited]);
-    await expect(deleteYearlyOccasion(storage, natale.id)).rejects.toThrow("Questa ricorrenza non esiste più.");
-  });
-
-  it("refuses, in Italian, a blank name, a day that never exists and a bad first year", async () => {
-    const storage = openStorage(await makeDataDir());
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
     const refused = [
-      [{ name: "  ", month: 1, day: 1 }, "Dai un nome alla ricorrenza."],
-      [{ name: "Mai", month: 2, day: 30 }, "Scegli un giorno e un mese che esistono."],
-      [{ name: "Mai", month: 13, day: 1 }, "Scegli un giorno e un mese che esistono."],
-      [{ name: "Mai", month: 4, day: 31 }, "Scegli un giorno e un mese che esistono."],
-      [{ name: "Mai", month: 1, day: 1, firstYear: 20.5 }, "Il primo anno non è valido."],
+      [{ name: "  " }, "Dai un nome all'occasione."],
+      [{ name: " natale " }, "C'è già un'occasione chiamata «natale»."],
+      [{ name: "NATALE", theme: "capodanno" }, "C'è già un'occasione chiamata «NATALE»."],
+      [{ name: "Gita", theme: "gita" }, "Scegli uno dei temi della lista."],
     ] as const;
     for (const [input, message] of refused) {
-      await expect(createYearlyOccasion(storage, input)).rejects.toThrow(new GalleryError(message));
+      await expect(createOccasion(storage, input)).rejects.toThrow(new GalleryError(message));
     }
-    expect(await listYearlyOccasions(storage)).toEqual([]);
+    expect(await listOccasions(storage)).toEqual([natale]);
+  });
 
-    await createYearlyOccasion(storage, { name: "Bisestile", month: 2, day: 29 });
-    expect(await listYearlyOccasions(storage)).toHaveLength(1);
+  it("renames and re-themes an Occasion, and every Memory that has it shows the change", async () => {
+    const storage = openStorage(await makeDataDir());
+    const estate = await createMemory(storage, { cities: ["Bari"], startDay: "2025-08-01", endDay: "2025-08-05" });
+    const autunno = await createMemory(storage, { cities: ["Asti"], startDay: "2025-10-01", endDay: "2025-10-02" });
+    const viaggio = await createOccasion(storage, { name: "Viaggio" });
+    for (const memory of [estate, autunno]) await addOccasionToMemory(storage, memory.id, viaggio.id);
+
+    const edited = await updateOccasion(storage, viaggio.id, { name: "Viaggio insieme", theme: "anniversario" });
+
+    expect(edited).toEqual({ id: viaggio.id, name: "Viaggio insieme", theme: "anniversario" });
+    for (const memory of [estate, autunno]) {
+      expect(await badges(storage, memory.id)).toEqual([["Viaggio insieme", "anniversario"]]);
+    }
+    // A Theme left out goes back to Neutro; a change of case alone is not a clash with itself.
+    await updateOccasion(storage, viaggio.id, { name: "viaggio insieme" });
+    expect(await badges(storage, estate.id)).toEqual([["viaggio insieme", "neutro"]]);
+  });
+
+  it("refuses, in Italian, an edit to another Occasion's name, an unknown Theme or a missing Occasion", async () => {
+    const storage = openStorage(await makeDataDir());
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    const capodanno = await createOccasion(storage, { name: "Capodanno", theme: "capodanno" });
+
+    await expect(updateOccasion(storage, capodanno.id, { name: "natale" })).rejects.toThrow(
+      new GalleryError("C'è già un'occasione chiamata «natale»."),
+    );
+    await expect(updateOccasion(storage, capodanno.id, { name: "Capodanno", theme: "Capodanno" })).rejects.toThrow(
+      new GalleryError("Scegli uno dei temi della lista."),
+    );
+    await expect(updateOccasion(storage, "nessuna", { name: "Pasqua" })).rejects.toThrow(
+      new GalleryError("Questa occasione non esiste più."),
+    );
+    expect(await listOccasions(storage)).toEqual([capodanno, natale]);
+  });
+
+  it("deletes an Occasion from the list and every Memory, reporting how many Memories used it", async () => {
+    const storage = openStorage(await makeDataDir());
+    const estate = await createMemory(storage, { cities: ["Bari"], startDay: "2025-08-01", endDay: "2025-08-05" });
+    const autunno = await createMemory(storage, { cities: ["Asti"], startDay: "2025-10-01", endDay: "2025-10-02" });
+    const inverno = await createMemory(storage, { cities: ["Aosta"], startDay: "2025-12-01", endDay: "2025-12-02" });
+    const viaggio = await createOccasion(storage, { name: "Viaggio insieme" });
+    const gita = await createOccasion(storage, { name: "Gita" });
+    for (const memory of [estate, autunno]) await addOccasionToMemory(storage, memory.id, viaggio.id);
+    await addOccasionToMemory(storage, estate.id, gita.id);
+
+    // Counted ahead, for the confirmation.
+    const memories = await listTimeline(storage);
+    expect(countOccasionUses(memories, viaggio.id)).toBe(2);
+    expect(countOccasionUses(memories, gita.id)).toBe(1);
+
+    expect(await deleteOccasion(storage, viaggio.id)).toBe(2);
+
+    expect(await listOccasions(storage)).toEqual([gita]);
+    expect(await badges(storage, estate.id)).toEqual([["Gita", "neutro"]]);
+    expect(await badges(storage, autunno.id)).toEqual([]);
+    expect((await getMemory(storage, autunno.id))!.occasionIds).toEqual([]);
+    expect(await deleteOccasion(storage, (await createOccasion(storage, { name: "Mai usata" })).id)).toBe(0);
+    expect(await badges(storage, inverno.id)).toEqual([]);
+    await expect(deleteOccasion(storage, viaggio.id)).rejects.toThrow(
+      new GalleryError("Questa occasione non esiste più."),
+    );
   });
 });
 
-describe("One-off occasions", () => {
-  it("are added to a Memory with a name and a day, and listed by day with its Yearly occasions", async () => {
+describe("Occasions on a Memory", () => {
+  it("are added by hand from the list, shown in the order they were added, and saved as ids", async () => {
     const dataDir = await makeDataDir();
     const storage = openStorage(dataDir);
-    const viaggio = await createMemory(storage, { cities: ["Napoli"], startDay: "2024-12-30", endDay: "2025-01-03" });
+    const memory = await createMemory(storage, { cities: ["Torino"], startDay: "2025-06-01", endDay: "2025-06-03" });
+    expect(memory.occasionIds).toEqual([]);
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    const viaggio = await createOccasion(storage, { name: "Viaggio insieme" });
 
-    const laurea = await addOneOffOccasion(storage, viaggio.id, { name: " Laurea di Anna ", day: "2025-01-02" });
-    const primo = await addOneOffOccasion(storage, viaggio.id, { name: "Primo bagno", day: "2024-12-30" });
+    await addOccasionToMemory(storage, memory.id, viaggio.id);
+    await addOccasionToMemory(storage, memory.id, natale.id);
 
-    expect(laurea).toEqual({ id: laurea.id, name: "Laurea di Anna", day: "2025-01-02", theme: "neutro" });
-    const saved = (await getMemory(storage, viaggio.id))!;
-    expect(occasionsOfMemory(saved, [capodanno])).toEqual([
-      { id: primo.id, kind: "one-off", name: "Primo bagno", day: "2024-12-30", theme: "neutro" },
-      { id: "capodanno", kind: "yearly", name: "Capodanno", day: "2025-01-01", theme: "neutro" },
-      { id: laurea.id, kind: "one-off", name: "Laurea di Anna", day: "2025-01-02", theme: "neutro" },
+    // Dates don't matter: Natale belongs to a June Memory because the Curator said so.
+    expect(await badges(storage, memory.id)).toEqual([
+      ["Viaggio insieme", "neutro"],
+      ["Natale", "natale"],
     ]);
     expect(await readDatabaseFile(dataDir)).toMatchObject({
-      memories: [{ id: viaggio.id, oneOffOccasions: [laurea, primo] }],
+      memories: [{ id: memory.id, occasionIds: [viaggio.id, natale.id] }],
     });
   });
 
-  it("refuse, in Italian, a day outside the Date range, a day that doesn't exist and a blank name", async () => {
+  it("refuse, in Italian, an Occasion the Memory already has or that isn't in the list", async () => {
     const storage = openStorage(await makeDataDir());
-    const viaggio = await createMemory(storage, { cities: ["Napoli"], startDay: "2025-03-10", endDay: "2025-03-12" });
-    const refused = [
-      [{ name: "Prima", day: "2025-03-09" }, "Scegli un giorno compreso nelle date del ricordo."],
-      [{ name: "Dopo", day: "2025-03-13" }, "Scegli un giorno compreso nelle date del ricordo."],
-      [{ name: "Mai", day: "2025-02-30" }, "Scegli un giorno compreso nelle date del ricordo."],
-      [{ name: "  ", day: "2025-03-11" }, "Dai un nome alla ricorrenza."],
-    ] as const;
-    for (const [input, message] of refused) {
-      await expect(addOneOffOccasion(storage, viaggio.id, input)).rejects.toThrow(new GalleryError(message));
-    }
-    expect((await getMemory(storage, viaggio.id))!.oneOffOccasions).toEqual([]);
+    const memory = await createMemory(storage, { cities: ["Torino"], startDay: "2025-06-01", endDay: "2025-06-03" });
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    await addOccasionToMemory(storage, memory.id, natale.id);
+
+    await expect(addOccasionToMemory(storage, memory.id, natale.id)).rejects.toThrow(
+      new GalleryError("Questo ricordo ha già questa occasione."),
+    );
+    await expect(addOccasionToMemory(storage, memory.id, "nessuna")).rejects.toThrow(
+      new GalleryError("Questa occasione non esiste più."),
+    );
+    expect(await badges(storage, memory.id)).toEqual([["Natale", "natale"]]);
   });
 
-  it("are removed from their Memory only", async () => {
+  it("are removed from one Memory only, staying in the list and on other Memories", async () => {
     const storage = openStorage(await makeDataDir());
-    const viaggio = await createMemory(storage, { cities: ["Napoli"], startDay: "2025-03-10", endDay: "2025-03-12" });
-    const cena = await addOneOffOccasion(storage, viaggio.id, { name: "Cena", day: "2025-03-10" });
-    const gita = await addOneOffOccasion(storage, viaggio.id, { name: "Gita", day: "2025-03-11" });
+    const estate = await createMemory(storage, { cities: ["Bari"], startDay: "2025-08-01", endDay: "2025-08-05" });
+    const autunno = await createMemory(storage, { cities: ["Asti"], startDay: "2025-10-01", endDay: "2025-10-02" });
+    const viaggio = await createOccasion(storage, { name: "Viaggio insieme" });
+    const gita = await createOccasion(storage, { name: "Gita" });
+    for (const memory of [estate, autunno]) await addOccasionToMemory(storage, memory.id, viaggio.id);
+    await addOccasionToMemory(storage, estate.id, gita.id);
 
-    await deleteOneOffOccasion(storage, viaggio.id, cena.id);
+    await removeOccasionFromMemory(storage, estate.id, viaggio.id);
 
-    expect((await getMemory(storage, viaggio.id))!.oneOffOccasions).toEqual([gita]);
-    await expect(deleteOneOffOccasion(storage, viaggio.id, cena.id)).rejects.toThrow(
-      new GalleryError("Questa ricorrenza non esiste più."),
+    expect(await badges(storage, estate.id)).toEqual([["Gita", "neutro"]]);
+    expect(await badges(storage, autunno.id)).toEqual([["Viaggio insieme", "neutro"]]);
+    expect((await listOccasions(storage)).map((occasion) => occasion.name)).toEqual(["Gita", "Viaggio insieme"]);
+    await expect(removeOccasionFromMemory(storage, estate.id, viaggio.id)).rejects.toThrow(
+      new GalleryError("Questo ricordo non ha questa occasione."),
     );
   });
 
-  it("keep a Date range edit from leaving one of them outside, in Italian", async () => {
+  it("are left alone by a Date range edit", async () => {
     const storage = openStorage(await makeDataDir());
-    const input = { cities: ["Napoli"], startDay: "2025-03-10", endDay: "2025-03-12" };
-    const viaggio = await createMemory(storage, input);
-    const gita = await addOneOffOccasion(storage, viaggio.id, { name: "Gita", day: "2025-03-12" });
+    const input = { cities: ["Torino"], startDay: "2025-12-24", endDay: "2025-12-26" };
+    const memory = await createMemory(storage, input);
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    await addOccasionToMemory(storage, memory.id, natale.id);
 
-    await expect(updateMemory(storage, viaggio.id, { ...input, endDay: "2025-03-11" })).rejects.toThrow(
-      new GalleryError("La ricorrenza «Gita» resterebbe fuori dalle nuove date. Spostala o eliminala prima."),
-    );
-    expect(await getMemory(storage, viaggio.id)).toEqual({ ...viaggio, oneOffOccasions: [gita] });
+    const moved = await updateMemory(storage, memory.id, { ...input, startDay: "2026-03-01", endDay: "2026-03-02" });
 
-    const moved = await updateMemory(storage, viaggio.id, { ...input, startDay: "2025-03-12", endDay: "2025-03-14" });
-    expect(moved.oneOffOccasions).toEqual([gita]);
+    expect(moved.occasionIds).toEqual([natale.id]);
+    expect(await badges(storage, memory.id)).toEqual([["Natale", "natale"]]);
   });
 });

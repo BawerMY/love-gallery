@@ -4,12 +4,12 @@ import { dataDir, expect, test } from "./fixtures";
 
 const FIXTURES = path.join(import.meta.dirname, "..", "tests", "fixtures");
 
-const MEMORY = { id: "milano", title: "Milano", cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-16", oneOffOccasions: [] };
+const MEMORY = { id: "milano", title: "Milano", cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-16", occasionIds: [] };
 
 async function seedMedia(media: unknown[]) {
   await writeFile(
     path.join(dataDir, "database.json"),
-    JSON.stringify({ version: 1, memories: [{ ...MEMORY, media }], yearlyOccasions: [] }),
+    JSON.stringify({ version: 2, memories: [{ ...MEMORY, media }], occasions: [] }),
   );
 }
 

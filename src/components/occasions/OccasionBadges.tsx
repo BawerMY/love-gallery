@@ -3,10 +3,9 @@ import { t } from "@/strings";
 import { Motif } from "../themes/Motif";
 
 /**
- * A Memory's Occasions as badges, in the order given (by day, see
+ * A Memory's Occasions as badges, in the order given (badge order, see
  * `occasionsOfMemory`). Each badge wears its own Occasion's Theme: its
- * colours and a tiny motif. Yearly and One-off occasions look the same; each
- * badge carries its kind in `data-kind` and its Theme in `data-theme`.
+ * colours and a tiny motif, and carries it in `data-theme`.
  * Shows nothing when there are none.
  */
 export function OccasionBadges({ occasions, className = "" }: { occasions: Occasion[]; className?: string }) {
@@ -18,15 +17,14 @@ export function OccasionBadges({ occasions, className = "" }: { occasions: Occas
         const theme = THEMES[occasion.theme];
         return (
           <li
-            key={`${occasion.kind}:${occasion.id}:${occasion.day}`}
+            key={occasion.id}
             className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-bold"
             style={{ backgroundColor: theme.badge.background, color: theme.badge.text }}
-            data-kind={occasion.kind}
             data-theme={occasion.theme}
           >
             {/* A single-colour motif takes the badge's text colour, so it always stands out. */}
             <Motif theme={theme} size={11} color={theme.badge.text} />
-            {t.occasions.badge(occasion.name, occasion.number)}
+            {occasion.name}
           </li>
         );
       })}

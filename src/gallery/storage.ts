@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { DEFAULT_THEME } from "./themes";
+import { upgradeDatabase } from "./upgrade";
 import { DATABASE_VERSION, type Database } from "./types";
 
 /**
@@ -12,8 +12,8 @@ import { DATABASE_VERSION, type Database } from "./types";
  *   `database.json`, so a crash never leaves it half written.
  * - Nothing is cached: every read goes to disk, so the file can be inspected
  *   or edited by hand (and by tests).
- * - A file written before a field existed still loads: missing fields get
- *   their defaults when read (see `parse`), with no migration step.
+ * - A file written by an older version still loads: it is converted when
+ *   read (see `upgradeDatabase`) and written back converted on the next save.
  */
 export type Storage = {
   readonly dataDir: string;
@@ -51,21 +51,13 @@ function withLock<T>(key: string, task: () => Promise<T>): Promise<T> {
   return run;
 }
 
-/**
- * Parses `database.json`, filling in what a file from before a change lacks:
- * an Occasion with no Theme is Neutro.
- */
+/** Parses `database.json`, converting a file written by an older version (see `upgradeDatabase`). */
 function parse(text: string): Database {
-  const db = JSON.parse(text) as Database;
-  for (const occasion of db.yearlyOccasions) occasion.theme ??= DEFAULT_THEME;
-  for (const memory of db.memories) {
-    for (const occasion of memory.oneOffOccasions) occasion.theme ??= DEFAULT_THEME;
-  }
-  return db;
+  return upgradeDatabase(JSON.parse(text));
 }
 
 function emptyDatabase(): Database {
-  return { version: DATABASE_VERSION, memories: [], yearlyOccasions: [] };
+  return { version: DATABASE_VERSION, memories: [], occasions: [] };
 }
 
 export function openStorage(dataDir: string): Storage {

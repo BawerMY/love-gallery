@@ -6,12 +6,12 @@ import { LayoutSection } from "@/components/layout/LayoutSection";
 import { MediaUpload } from "@/components/admin/MediaUpload";
 import { MemoryForm } from "@/components/admin/MemoryForm";
 import { MainOccasionSelect } from "@/components/occasions/MainOccasionSelect";
-import { OneOffOccasionsSection } from "@/components/occasions/OneOffOccasionsSection";
+import { MemoryOccasionsSection } from "@/components/occasions/MemoryOccasionsSection";
 import { adminHeading, adminPage, adminTitle, backLink } from "@/components/ui";
 import {
   getGallery,
   getMemory,
-  listYearlyOccasions,
+  listOccasions,
   occasionsOfMemory,
   suggestCities,
   suggestDateRange,
@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * The Admin page for one Memory. Its details (and its Main occasion) come first, then its Media,
- * then its Layout (with the cover) and its One-off occasions.
+ * then its Layout (with the cover) and its Occasions.
  */
 export default async function EditMemoryPage({
   params,
@@ -37,7 +37,7 @@ export default async function EditMemoryPage({
   const { storage } = getGallery();
   const memory = await getMemory(storage, id);
   if (!memory) notFound();
-  const [citySuggestions, yearlyOccasions] = await Promise.all([suggestCities(storage), listYearlyOccasions(storage)]);
+  const [citySuggestions, occasions] = await Promise.all([suggestCities(storage), listOccasions(storage)]);
 
   return (
     <main className={adminPage}>
@@ -54,11 +54,11 @@ export default async function EditMemoryPage({
           saved={salvato === "1"}
           suggestedRange={suggestDateRange(memory.media)}
         />
-        {/* Keyed by the Date range, so it restarts when the Occasions that apply change. */}
+        {/* Keyed by the Memory's Occasions, so it restarts when they change. */}
         <MainOccasionSelect
-          key={`${memory.startDay}:${memory.endDay}`}
+          key={memory.occasionIds.join()}
           memory={memory}
-          occasions={occasionsOfMemory(memory, yearlyOccasions)}
+          occasions={occasionsOfMemory(memory, occasions)}
         />
       </section>
       <section className="mt-8">
@@ -69,7 +69,7 @@ export default async function EditMemoryPage({
         <AdminMediaList memory={memory} />
       </section>
       <LayoutSection memory={memory} />
-      <OneOffOccasionsSection memory={memory} />
+      <MemoryOccasionsSection memory={memory} occasions={occasions} />
       <section className="mt-8 border-t border-cocoa/15 pt-4">
         <DeleteMemoryButton memoryId={memory.id} />
       </section>

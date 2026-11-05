@@ -25,12 +25,12 @@ export async function listTimeline(storage: Storage): Promise<Memory[]> {
   return [...db.memories].sort((a, b) => compareDays(a.startDay, b.startDay));
 }
 
-/** Creates a Memory with no Media and no One-off occasions. */
+/** Creates a Memory with no Media and no Occasions. */
 export async function createMemory(storage: Storage, input: MemoryInput): Promise<Memory> {
   const fields = cleanInput(input);
   return storage.update((db) => {
     refuseOverlap(db, fields);
-    const memory: Memory = { id: randomUUID(), ...fields, oneOffOccasions: [], media: [] };
+    const memory: Memory = { id: randomUUID(), ...fields, occasionIds: [], media: [] };
     db.memories.push(memory);
     return memory;
   });
@@ -55,11 +55,6 @@ export async function updateMemory(
   return storage.update((db) => {
     const current = findMemory(db, id);
     refuseOverlap(db, fields, id);
-    const outside = current.oneOffOccasions.find(
-      (occasion) => occasion.day < fields.startDay || occasion.day > fields.endDay,
-    );
-    if (outside) throw new GalleryError(t.occasions.rangeExcludesOneOff(outside.name));
-
     const { title: _title, note: _note, ...kept } = current;
     const memory: Memory = { ...kept, ...fields };
     db.memories[db.memories.indexOf(current)] = memory;

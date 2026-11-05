@@ -1,50 +1,46 @@
 import { t } from "../strings";
 import { GalleryError } from "./errors";
 import { findMemory } from "./find-memory";
-import { occasionsOfMemory, type Occasion } from "./occasions";
+import { occasionsOfMemory } from "./occasions";
 import type { Storage } from "./storage";
 import { DEFAULT_THEME, type ThemeKey } from "./themes";
-import type { MainOccasionRef, Memory, YearlyOccasion } from "./types";
+import type { Memory, Occasion } from "./types";
 
 /** A Memory's effective Main occasion (none when no Occasion is themed) and the Theme it takes. */
 export type MemoryTheme = { mainOccasion?: Occasion; theme: ThemeKey };
 
 /**
- * Decides a Memory's Theme:
- * 1. the chosen Main occasion, if it still applies and isn't Neutro;
- * 2. otherwise the first non-Neutro Occasion by day;
+ * Decides a Memory's Theme, given the list of Occasions:
+ * 1. the chosen Main occasion, if the Memory still has it and it isn't Neutro;
+ * 2. otherwise the first non-Neutro Occasion in badge order;
  * 3. otherwise the default (Neutro) look, with no Main occasion.
  */
-export function themeOfMemory(memory: Memory, yearlyOccasions: YearlyOccasion[]): MemoryTheme {
-  const themed = occasionsOfMemory(memory, yearlyOccasions).filter((occasion) => occasion.theme !== DEFAULT_THEME);
-  const chosen = memory.mainOccasion && themed.find((occasion) => refersTo(memory.mainOccasion!, occasion));
+export function themeOfMemory(memory: Memory, occasions: Occasion[]): MemoryTheme {
+  const themed = occasionsOfMemory(memory, occasions).filter((occasion) => occasion.theme !== DEFAULT_THEME);
+  const chosen = themed.find((occasion) => occasion.id === memory.mainOccasionId);
   const mainOccasion = chosen ?? themed[0];
   return mainOccasion ? { mainOccasion, theme: mainOccasion.theme } : { theme: DEFAULT_THEME };
 }
 
 /**
- * Chooses the Main occasion of a Memory, or with nothing goes back to
- * choosing it automatically. It must be one of the Memory's Occasions, and
- * not a Neutro one: a Neutro Occasion has no Theme to give.
+ * Chooses the Main occasion of a Memory by its Occasion id, or with nothing
+ * goes back to choosing it automatically. The Memory must have it, and it
+ * must not be Neutro: a Neutro Occasion has no Theme to give.
  */
 export async function chooseMainOccasion(
   storage: Storage,
   memoryId: string,
-  ref: MainOccasionRef | undefined,
+  occasionId: string | undefined,
 ): Promise<void> {
   await storage.update((db) => {
     const memory = findMemory(db, memoryId);
-    if (!ref) {
-      delete memory.mainOccasion;
+    if (!occasionId) {
+      delete memory.mainOccasionId;
       return;
     }
-    const occasion = occasionsOfMemory(memory, db.yearlyOccasions).find((candidate) => refersTo(ref, candidate));
-    if (!occasion) throw new GalleryError(t.occasions.notFound);
+    const occasion = occasionsOfMemory(memory, db.occasions).find((candidate) => candidate.id === occasionId);
+    if (!occasion) throw new GalleryError(t.occasions.notOnMemory);
     if (occasion.theme === DEFAULT_THEME) throw new GalleryError(t.occasions.mainOccasionNeutroRefused);
-    memory.mainOccasion = { kind: ref.kind, id: ref.id };
+    memory.mainOccasionId = occasionId;
   });
-}
-
-function refersTo(ref: MainOccasionRef, occasion: Occasion): boolean {
-  return ref.kind === occasion.kind && ref.id === occasion.id;
 }

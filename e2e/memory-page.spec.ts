@@ -13,7 +13,7 @@ async function seedChristmasMemory() {
   await writeFile(
     path.join(dataDir, "database.json"),
     JSON.stringify({
-      version: 1,
+      version: 2,
       memories: [
         {
           id: "inverno",
@@ -22,7 +22,7 @@ async function seedChristmasMemory() {
           cities: ["Torino", "Asti"],
           startDay: "2025-12-24",
           endDay: "2026-01-02",
-          oneOffOccasions: [],
+          occasionIds: ["natale", "capodanno"],
           media: [
             {
               id: "foto",
@@ -36,9 +36,9 @@ async function seedChristmasMemory() {
           ],
         },
       ],
-      yearlyOccasions: [
-        { id: "natale", name: "Natale", month: 12, day: 25, theme: "natale" },
-        { id: "capodanno", name: "Capodanno", month: 1, day: 1, theme: "capodanno" },
+      occasions: [
+        { id: "natale", name: "Natale", theme: "natale" },
+        { id: "capodanno", name: "Capodanno", theme: "capodanno" },
       ],
     }),
   );

@@ -8,28 +8,27 @@ test("the Curator gives Occasions a Theme in the Admin page and each badge shows
   ]);
   await page.goto("/admin");
 
-  const yearly = page.getByRole("form", { name: "Nuova ricorrenza annuale" });
-  await expect(yearly.getByLabel("Tema")).toHaveValue("neutro");
-  await yearly.getByLabel("Nome").fill("Natale");
-  await yearly.getByLabel("Giorno").fill("25");
-  await yearly.getByLabel("Mese").selectOption({ label: "dicembre" });
-  await yearly.getByLabel("Tema").selectOption({ label: "Natale" });
-  await yearly.getByRole("button", { name: "Aggiungi" }).click();
-  await expect(yearly.getByText("Ricorrenza salvata.")).toBeVisible();
-  await expect(yearly.getByLabel("Tema")).toHaveValue("neutro");
+  const form = page.getByRole("form", { name: "Nuova occasione" });
+  for (const [name, theme] of [
+    ["Natale", "Natale"],
+    ["Cena coi nonni", undefined],
+    ["Compleanno di Giulia", "Compleanno"],
+  ] as const) {
+    await expect(form.getByLabel("Tema")).toHaveValue("neutro");
+    await form.getByLabel("Nome").fill(name);
+    if (theme) await form.getByLabel("Tema").selectOption({ label: theme });
+    await form.getByRole("button", { name: "Aggiungi" }).click();
+    await expect(page.getByRole("region", { name: "Occasioni", exact: true }).locator("strong", { hasText: name })).toBeVisible();
+  }
 
   await page.goto("/admin/memories/inverno");
-  const oneOff = page.getByRole("form", { name: "Nuova ricorrenza del ricordo" });
-  await expect(oneOff.getByLabel("Tema")).toHaveValue("neutro");
-  await oneOff.getByLabel("Nome").fill("Cena coi nonni");
-  await oneOff.getByLabel("Data").fill("2025-12-26");
-  await oneOff.getByRole("button", { name: "Aggiungi" }).click();
-  await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText("Cena coi nonni", { exact: true })).toBeVisible();
-  await oneOff.getByLabel("Nome").fill("Compleanno di Giulia");
-  await oneOff.getByLabel("Data").fill("2025-12-27");
-  await oneOff.getByLabel("Tema").selectOption({ label: "Compleanno" });
-  await oneOff.getByRole("button", { name: "Aggiungi" }).click();
-  await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText("Compleanno di Giulia", { exact: true })).toBeVisible();
+  const picker = page.getByLabel("Aggiungi un'occasione", { exact: true });
+  const section = page.getByRole("region", { name: "Occasioni di questo ricordo" });
+  for (const name of ["Natale", "Cena coi nonni", "Compleanno di Giulia"]) {
+    await picker.selectOption({ label: name });
+    await section.getByRole("button", { name: "Aggiungi" }).click();
+    await expect(section.getByRole("listitem").filter({ hasText: name })).toBeVisible();
+  }
 
   const expected = [
     ["Natale", "natale"],
@@ -45,7 +44,7 @@ test("the Curator gives Occasions a Theme in the Admin page and each badge shows
     }
   }
 
-  // Changing the Yearly occasion's Theme changes its badge.
+  // Changing the Occasion's Theme changes its badge.
   await page.goto("/admin");
   await page.getByRole("button", { name: "Modifica «Natale»" }).click();
   const edit = page.getByRole("form", { name: "Modifica «Natale»" });
@@ -67,18 +66,12 @@ test("the Pasqua, Viaggio and Escursione Themes show on badges, Timeline entries
     { id: "settembre", title: "Settembre in Valle d'Aosta", day: "2025-09-01", name: "Escursione insieme", theme: "escursione" },
   ];
   await seedMemories(
-    memories.map(({ id, title, day }) => ({ id, title, cities: ["Torino"], startDay: day, endDay: day })),
-    memories.map(({ id, name, day, theme }) => ({
-      id,
-      name,
-      month: Number(day.slice(5, 7)),
-      day: Number(day.slice(8, 10)),
-      theme,
-    })),
+    memories.map(({ id, title, day }) => ({ id, title, cities: ["Torino"], startDay: day, endDay: day, occasionIds: [id] })),
+    memories.map(({ id, name, theme }) => ({ id, name, theme })),
   );
 
   await page.goto("/admin");
-  await expect(page.getByRole("form", { name: "Nuova ricorrenza annuale" }).getByLabel("Tema").getByRole("option")).toContainText([
+  await expect(page.getByRole("form", { name: "Nuova occasione" }).getByLabel("Tema").getByRole("option")).toContainText([
     "Pasqua",
     "Viaggio",
     "Escursione",

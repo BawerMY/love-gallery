@@ -1,108 +1,106 @@
 import { expect, seedMemories, test } from "./fixtures";
 
-test("the Curator adds a Yearly occasion in the Admin page and its badge shows on an existing Memory", async ({
-  pageWithSession: page,
-}) => {
-  await seedMemories([
-    { id: "estate", title: "Estate al mare", cities: ["Rimini"], startDay: "2025-06-12", endDay: "2025-06-16" },
-    { id: "autunno", title: "Autunno", cities: ["Torino"], startDay: "2025-10-03", endDay: "2025-10-05" },
-  ]);
+test("the Curator manages the list of Occasions in the Admin page", async ({ pageWithSession: page }) => {
+  await seedMemories(
+    [
+      { id: "estate", title: "Estate al mare", cities: ["Rimini"], startDay: "2025-06-12", endDay: "2025-06-16", occasionIds: ["viaggio"] },
+      { id: "autunno", title: "Autunno", cities: ["Torino"], startDay: "2025-10-03", endDay: "2025-10-05", occasionIds: ["viaggio"] },
+    ],
+    [{ id: "viaggio", name: "Viaggio" }],
+  );
   await page.goto("/admin");
+  const section = page.getByRole("region", { name: "Occasioni", exact: true });
 
-  const form = page.getByRole("form", { name: "Nuova ricorrenza annuale" });
-  await form.getByLabel("Nome").fill("anniversario");
-  await form.getByLabel("Giorno").fill("14");
-  await form.getByLabel("Mese").selectOption({ label: "giugno" });
-  await form.getByLabel("Primo anno").fill("2023");
+  // Create, listed alphabetically; a duplicate name is refused, ignoring case.
+  const form = page.getByRole("form", { name: "Nuova occasione" });
+  await expect(form.getByLabel("Tema")).toHaveValue("neutro");
+  await form.getByLabel("Nome").fill("Anniversario");
+  await form.getByLabel("Tema").selectOption({ label: "Anniversario" });
   await form.getByRole("button", { name: "Aggiungi" }).click();
-  await expect(form.getByText("Ricorrenza salvata.")).toBeVisible();
-  await expect(page.getByText("14 giugno · dal 2023")).toBeVisible();
+  await expect(form.getByText("Occasione salvata.")).toBeVisible();
+  await expect(form.getByLabel("Tema")).toHaveValue("neutro");
+  await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Anniversario", "Viaggio"]);
+  await expect(section.getByRole("listitem").filter({ hasText: "Anniversario" })).toHaveAttribute("data-theme", "anniversario");
+
+  await form.getByLabel("Nome").fill("viaggio");
+  await form.getByRole("button", { name: "Aggiungi" }).click();
+  await expect(form.getByRole("alert")).toHaveText("C'è già un'occasione chiamata «viaggio».");
+
+  // Rename and change the Theme: every Memory that has it shows the change.
+  await page.getByRole("button", { name: "Modifica «Viaggio»" }).click();
+  const edit = page.getByRole("form", { name: "Modifica «Viaggio»" });
+  await edit.getByLabel("Nome").fill("Viaggio insieme");
+  await edit.getByLabel("Tema").selectOption({ label: "Natale" });
+  await edit.getByRole("button", { name: "Salva" }).click();
+  await expect(edit).toHaveCount(0);
 
   await page.goto("/");
-  const badges = page.getByRole("list", { name: "Ricorrenze" });
-  await expect(badges).toHaveCount(1);
-  await expect(page.getByRole("link", { name: /Estate al mare/ }).getByRole("listitem")).toHaveText(
-    "2° anniversario",
-  );
+  for (const title of ["Estate al mare", "Autunno"]) {
+    const badge = page.getByRole("link", { name: new RegExp(title) }).getByRole("listitem");
+    await expect(badge).toHaveText("Viaggio insieme");
+    await expect(badge).toHaveAttribute("data-theme", "natale");
+  }
 
-  await page.getByRole("link", { name: /Estate al mare/ }).click();
-  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText("2° anniversario");
-
+  // Delete, after a confirmation that says how many Memories use it.
   await page.goto("/admin");
-  await page.getByRole("button", { name: "Modifica «anniversario»" }).click();
-  const edit = page.getByRole("form", { name: "Modifica «anniversario»" });
-  await edit.getByLabel("Primo anno").fill("");
-  await edit.getByRole("button", { name: "Salva" }).click();
-  await expect(page.getByText(/^14 giugno$/)).toBeVisible();
-
-  await page.goto("/memories/estate");
-  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText("anniversario");
-
-  await page.goto("/admin");
-  await page.getByRole("button", { name: "Elimina «anniversario»" }).click();
+  await page.getByRole("button", { name: "Elimina «Viaggio insieme»" }).click();
+  await expect(page.getByText("Eliminare l'occasione «Viaggio insieme»? Verrà tolta da 2 ricordi.")).toBeVisible();
   await page.getByRole("button", { name: "Sì, elimina" }).click();
-  await expect(page.getByText("Non hai ancora aggiunto nessuna ricorrenza annuale.")).toBeVisible();
+  await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Anniversario"]);
 
   await page.goto("/");
   await expect(page.getByRole("list", { name: "Ricorrenze" })).toHaveCount(0);
 });
 
-test("the Curator adds and removes One-off occasions on a Memory, shown by day with the Yearly ones", async ({
+test("the Curator picks Occasions for a Memory and removes one, and the badges follow the order", async ({
   pageWithSession: page,
 }) => {
-  await seedMemories([
-    { id: "estate", title: "Estate al mare", cities: ["Rimini"], startDay: "2025-06-12", endDay: "2025-06-16" },
-  ]);
-  await page.goto("/admin");
-  const yearly = page.getByRole("form", { name: "Nuova ricorrenza annuale" });
-  await yearly.getByLabel("Nome").fill("anniversario");
-  await yearly.getByLabel("Giorno").fill("14");
-  await yearly.getByLabel("Mese").selectOption({ label: "giugno" });
-  await yearly.getByRole("button", { name: "Aggiungi" }).click();
-  await expect(yearly.getByText("Ricorrenza salvata.")).toBeVisible();
-
+  await seedMemories(
+    [
+      { id: "estate", title: "Estate al mare", cities: ["Rimini"], startDay: "2025-06-12", endDay: "2025-06-16" },
+      { id: "autunno", title: "Autunno", cities: ["Torino"], startDay: "2025-10-03", endDay: "2025-10-05", occasionIds: ["tuffo"] },
+    ],
+    [
+      { id: "tuffo", name: "Primo tuffo" },
+      { id: "natale", name: "Natale", theme: "natale" },
+      { id: "cena", name: "Cena sul molo" },
+    ],
+  );
   await page.goto("/admin/memories/estate");
-  await expect(page.getByText("Questo ricordo non ha ricorrenze proprie.")).toBeVisible();
-  const form = page.getByRole("form", { name: "Nuova ricorrenza del ricordo" });
-  for (const [name, day] of [
-    ["Cena sul molo", "2025-06-15"],
-    ["Primo tuffo", "2025-06-12"],
-  ]) {
-    await form.getByLabel("Nome").fill(name);
-    await form.getByLabel("Data").fill(day);
-    await form.getByRole("button", { name: "Aggiungi" }).click();
-    await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText(name, { exact: true })).toBeVisible();
+  const section = page.getByRole("region", { name: "Occasioni di questo ricordo" });
+  await expect(section.getByText("Questo ricordo non ha ancora occasioni.")).toBeVisible();
+
+  const picker = section.getByLabel("Aggiungi un'occasione", { exact: true });
+  for (const name of ["Natale", "Primo tuffo", "Cena sul molo"]) {
+    await picker.selectOption({ label: name });
+    await section.getByRole("button", { name: "Aggiungi" }).click();
+    await expect(section.getByRole("listitem").filter({ hasText: name })).toBeVisible();
   }
-  await expect(page.getByText("15 giugno 2025")).toBeVisible();
+  // Every Occasion is on the Memory now, so there's nothing left to pick.
+  await expect(section.getByText("Questo ricordo ha già tutte le occasioni della lista.")).toBeVisible();
 
-  // Moving the Date range so that "Cena sul molo" falls outside is refused.
-  await page.getByLabel("Ultimo giorno").fill("2025-06-14");
-  await page.getByRole("button", { name: "Salva", exact: true }).click();
-  await expect(
-    page.getByText("La ricorrenza «Cena sul molo» resterebbe fuori dalle nuove date. Spostala o eliminala prima."),
-  ).toBeVisible();
+  for (const path of ["/", "/memories/estate"]) {
+    await page.goto(path);
+    // On the Timeline, the summer Memory comes first.
+    const badges = page.getByRole("list", { name: "Ricorrenze" }).first().getByRole("listitem");
+    await expect(badges).toHaveText(["Natale", "Primo tuffo", "Cena sul molo"]);
+    await expect(badges.first()).toHaveAttribute("data-theme", "natale");
+  }
 
-  await page.goto("/");
-  await expect(page.getByRole("link", { name: /Estate al mare/ }).getByRole("listitem")).toHaveText([
-    "Primo tuffo",
-    "anniversario",
-    "Cena sul molo",
-  ]);
-  await page.goto("/memories/estate");
-  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText([
-    "Primo tuffo",
-    "anniversario",
-    "Cena sul molo",
-  ]);
-
+  // Changing the Date range leaves the Occasions alone.
   await page.goto("/admin/memories/estate");
-  await page.getByRole("button", { name: "Elimina «Cena sul molo»" }).click();
-  await page.getByRole("button", { name: "Sì, elimina" }).click();
-  await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText("Cena sul molo", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Primo giorno").fill("2025-07-01");
+  await page.getByLabel("Ultimo giorno").fill("2025-07-03");
+  await page.getByRole("button", { name: "Salva", exact: true }).click();
+  await expect(page.getByText("Ricordo salvato.")).toBeVisible();
+
+  // Removing takes it off this Memory only: it stays in the picker and on other Memories.
+  await section.getByRole("button", { name: "Togli «Primo tuffo»" }).click();
+  await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Natale", "Cena sul molo"]);
+  await expect(picker.getByRole("option", { name: "Primo tuffo" })).toHaveCount(1);
 
   await page.goto("/memories/estate");
-  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText([
-    "Primo tuffo",
-    "anniversario",
-  ]);
+  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText(["Natale", "Cena sul molo"]);
+  await page.goto("/memories/autunno");
+  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText(["Primo tuffo"]);
 });

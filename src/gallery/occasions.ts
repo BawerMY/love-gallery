@@ -1,180 +1,118 @@
 import { randomUUID } from "node:crypto";
 import { LOCALE, t } from "../strings";
-import { dayOf, isDay } from "./days";
 import { GalleryError } from "./errors";
 import { findMemory } from "./find-memory";
 import type { Storage } from "./storage";
-import { cleanThemeKey, type ThemeKey } from "./themes";
-import type { Day, Memory, OneOffOccasion, YearlyOccasion } from "./types";
+import { cleanThemeKey } from "./themes";
+import type { Database, Memory, Occasion } from "./types";
 
-/** What the Curator fills in for a Yearly occasion on the Admin page. */
-export type YearlyOccasionInput = {
+/** What the Curator fills in for an Occasion on the Admin page. */
+export type OccasionInput = {
   name: string;
-  month: number;
-  day: number;
-  firstYear?: number;
   /** A Theme key; Neutro when left out. */
   theme?: string;
 };
 
-/** Every Yearly occasion, in calendar order (January first), then by name. */
-export async function listYearlyOccasions(storage: Storage): Promise<YearlyOccasion[]> {
+/** The list of Occasions, alphabetically. */
+export async function listOccasions(storage: Storage): Promise<Occasion[]> {
   const db = await storage.read();
   const byName = new Intl.Collator(LOCALE).compare;
-  return [...db.yearlyOccasions].sort(
-    (a, b) => a.month - b.month || a.day - b.day || byName(a.name, b.name),
-  );
+  return [...db.occasions].sort((a, b) => byName(a.name, b.name));
 }
 
-export async function createYearlyOccasion(
-  storage: Storage,
-  input: YearlyOccasionInput,
-): Promise<YearlyOccasion> {
-  const fields = cleanYearlyInput(input);
+export async function createOccasion(storage: Storage, input: OccasionInput): Promise<Occasion> {
+  const fields = cleanOccasionInput(input);
   return storage.update((db) => {
-    const occasion: YearlyOccasion = { id: randomUUID(), ...fields };
-    db.yearlyOccasions.push(occasion);
+    refuseTakenName(db, fields.name);
+    const occasion: Occasion = { id: randomUUID(), ...fields };
+    db.occasions.push(occasion);
     return occasion;
   });
 }
 
-/** Replaces every field of a Yearly occasion. A first year left out is removed. */
-export async function updateYearlyOccasion(
-  storage: Storage,
-  id: string,
-  input: YearlyOccasionInput,
-): Promise<YearlyOccasion> {
-  const fields = cleanYearlyInput(input);
+/** Renames an Occasion or changes its Theme; every Memory that has it shows the change. A Theme left out is Neutro. */
+export async function updateOccasion(storage: Storage, id: string, input: OccasionInput): Promise<Occasion> {
+  const fields = cleanOccasionInput(input);
   return storage.update((db) => {
-    const index = db.yearlyOccasions.findIndex((occasion) => occasion.id === id);
-    if (index < 0) throw new GalleryError(t.occasions.notFound);
-    const occasion: YearlyOccasion = { id, ...fields };
-    db.yearlyOccasions[index] = occasion;
-    return occasion;
-  });
-}
-
-/** Deletes a Yearly occasion, so it no longer shows on any Memory. */
-export async function deleteYearlyOccasion(storage: Storage, id: string): Promise<void> {
-  await storage.update((db) => {
-    const index = db.yearlyOccasions.findIndex((occasion) => occasion.id === id);
-    if (index < 0) throw new GalleryError(t.occasions.notFound);
-    db.yearlyOccasions.splice(index, 1);
-  });
-}
-
-/** Trims the name and checks the day, month, first year and Theme. 29 February is allowed. */
-function cleanYearlyInput(input: YearlyOccasionInput): Omit<YearlyOccasion, "id"> {
-  const name = input.name.trim();
-  const { month, day, firstYear } = input;
-  if (!name) throw new GalleryError(t.occasions.noName);
-  // 2024 is a leap year, so every day that exists in some year passes.
-  if (!Number.isInteger(month) || !Number.isInteger(day) || !dayInYear({ month, day }, 2024)) {
-    throw new GalleryError(t.occasions.invalidDay);
-  }
-  if (firstYear !== undefined && (!Number.isInteger(firstYear) || firstYear < 1 || firstYear > 9999)) {
-    throw new GalleryError(t.occasions.invalidFirstYear);
-  }
-  const theme = cleanThemeKey(input.theme);
-  return { name, month, day, ...(firstYear !== undefined && { firstYear }), theme };
-}
-
-/** What the Curator fills in for a One-off occasion on a Memory's Admin page. */
-export type OneOffOccasionInput = {
-  name: string;
-  /** As typed: checked here. */
-  day: string;
-  /** A Theme key; Neutro when left out. */
-  theme?: string;
-};
-
-/** Adds a One-off occasion to a Memory. Its day must be inside the Memory's Date range. */
-export async function addOneOffOccasion(
-  storage: Storage,
-  memoryId: string,
-  input: OneOffOccasionInput,
-): Promise<OneOffOccasion> {
-  const name = input.name.trim();
-  const day = input.day.trim();
-  if (!name) throw new GalleryError(t.occasions.noName);
-  const theme = cleanThemeKey(input.theme);
-  return storage.update((db) => {
-    const memory = findMemory(db, memoryId);
-    if (!isDay(day) || day < memory.startDay || day > memory.endDay) {
-      throw new GalleryError(t.occasions.oneOffOutsideRange);
-    }
-    const occasion: OneOffOccasion = { id: randomUUID(), name, day, theme };
-    memory.oneOffOccasions.push(occasion);
-    return occasion;
-  });
-}
-
-/** Removes a One-off occasion from its Memory. */
-export async function deleteOneOffOccasion(
-  storage: Storage,
-  memoryId: string,
-  occasionId: string,
-): Promise<void> {
-  await storage.update((db) => {
-    const memory = findMemory(db, memoryId);
-    const index = memory.oneOffOccasions.findIndex((occasion) => occasion.id === occasionId);
-    if (index < 0) throw new GalleryError(t.occasions.notFound);
-    memory.oneOffOccasions.splice(index, 1);
+    const occasion = findOccasion(db, id);
+    refuseTakenName(db, fields.name, id);
+    Object.assign(occasion, fields);
+    return { ...occasion };
   });
 }
 
 /**
- * One Occasion as it appears on a Memory: a Yearly occasion matched to a day
- * of its Date range, or a One-off occasion added to it.
+ * Deletes an Occasion from the list and takes it off every Memory (dropping
+ * it as their Main occasion too). Hands back how many Memories had it.
  */
-export type Occasion = {
-  /** The id of the Yearly or One-off occasion this comes from. */
-  id: string;
-  kind: "yearly" | "one-off";
-  name: string;
-  /** The day of the Date range it falls on. */
-  day: Day;
-  /** For a Yearly occasion with a first year: how many years since then (1 or more). */
-  number?: number;
-  theme: ThemeKey;
-};
-
-/**
- * The Occasions of a Memory, sorted by day. Yearly occasions are never stored
- * on a Memory: one belongs to it whenever its Date range includes the
- * occasion's day in some year Y, with Y on or after the first year if set.
- * One-off occasions are merged into the same list before sorting.
- */
-export function occasionsOfMemory(memory: Memory, yearlyOccasions: YearlyOccasion[]): Occasion[] {
-  const occasions: Occasion[] = memory.oneOffOccasions.map(({ id, name, day, theme }) => ({
-    id,
-    kind: "one-off",
-    name,
-    day,
-    theme,
-  }));
-  const firstYear = Number(memory.startDay.slice(0, 4));
-  const lastYear = Number(memory.endDay.slice(0, 4));
-  for (const yearly of yearlyOccasions) {
-    for (let year = firstYear; year <= lastYear; year++) {
-      const day = dayInYear(yearly, year);
-      if (!day || day < memory.startDay || day > memory.endDay) continue;
-      if (yearly.firstYear !== undefined && year < yearly.firstYear) continue;
-      const number = yearly.firstYear === undefined ? 0 : year - yearly.firstYear;
-      occasions.push({
-        id: yearly.id,
-        kind: "yearly",
-        name: yearly.name,
-        day,
-        ...(number > 0 && { number }),
-        theme: yearly.theme,
-      });
+export async function deleteOccasion(storage: Storage, id: string): Promise<number> {
+  return storage.update((db) => {
+    db.occasions.splice(db.occasions.indexOf(findOccasion(db, id)), 1);
+    const uses = countOccasionUses(db.memories, id);
+    for (const memory of db.memories) {
+      memory.occasionIds = memory.occasionIds.filter((occasionId) => occasionId !== id);
+      if (memory.mainOccasionId === id) delete memory.mainOccasionId;
     }
-  }
-  return occasions.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+    return uses;
+  });
 }
 
-/** The occasion's day in `year`, or nothing if that year has no such day (29 February). */
-function dayInYear(yearly: Pick<YearlyOccasion, "month" | "day">, year: number): Day | undefined {
-  return dayOf(year, yearly.month, yearly.day);
+/** How many of these Memories have the Occasion: what deleting it would take it off. */
+export function countOccasionUses(memories: Memory[], occasionId: string): number {
+  return memories.filter((memory) => memory.occasionIds.includes(occasionId)).length;
+}
+
+/** Adds an Occasion from the list to the end of a Memory's Occasions. */
+export async function addOccasionToMemory(storage: Storage, memoryId: string, occasionId: string): Promise<void> {
+  await storage.update((db) => {
+    const memory = findMemory(db, memoryId);
+    findOccasion(db, occasionId);
+    if (memory.occasionIds.includes(occasionId)) throw new GalleryError(t.occasions.alreadyOnMemory);
+    memory.occasionIds.push(occasionId);
+  });
+}
+
+/** Takes an Occasion off a Memory. It stays in the list and on every other Memory. */
+export async function removeOccasionFromMemory(storage: Storage, memoryId: string, occasionId: string): Promise<void> {
+  await storage.update((db) => {
+    const memory = findMemory(db, memoryId);
+    const index = memory.occasionIds.indexOf(occasionId);
+    if (index < 0) throw new GalleryError(t.occasions.notOnMemory);
+    memory.occasionIds.splice(index, 1);
+  });
+}
+
+/**
+ * A Memory's Occasions as its badges show them, in badge order, each with its
+ * Theme. An id no longer in the list is skipped.
+ */
+export function occasionsOfMemory(memory: Memory, occasions: Occasion[]): Occasion[] {
+  const byId = new Map(occasions.map((occasion) => [occasion.id, occasion]));
+  return memory.occasionIds.flatMap((id) => byId.get(id) ?? []);
+}
+
+function findOccasion(db: Database, id: string): Occasion {
+  const occasion = db.occasions.find((candidate) => candidate.id === id);
+  if (!occasion) throw new GalleryError(t.occasions.notFound);
+  return occasion;
+}
+
+/** Trims the name and checks the Theme. */
+function cleanOccasionInput(input: OccasionInput): Omit<Occasion, "id"> {
+  const name = input.name.trim();
+  if (!name) throw new GalleryError(t.occasions.noName);
+  return { name, theme: cleanThemeKey(input.theme) };
+}
+
+/** Two names are the same Occasion name when they match ignoring upper and lower case and surrounding spaces. */
+export function occasionNameKey(name: string): string {
+  return name.trim().toLocaleLowerCase(LOCALE);
+}
+
+/** Refuses a name another Occasion already has (the Occasion `ignoreId` may keep its own). */
+function refuseTakenName(db: Database, name: string, ignoreId?: string) {
+  const key = occasionNameKey(name);
+  if (db.occasions.some((occasion) => occasion.id !== ignoreId && occasionNameKey(occasion.name) === key)) {
+    throw new GalleryError(t.occasions.duplicateName(name));
+  }
 }

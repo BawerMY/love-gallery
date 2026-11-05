@@ -35,6 +35,8 @@ export const occasions = {
   invalidDay: "Scegli un giorno e un mese che esistono.",
   invalidFirstYear: "Il primo anno non è valido.",
   notFound: "Questa ricorrenza non esiste più.",
+  themeLabel: "Tema",
+  unknownTheme: "Scegli uno dei temi della lista.",
   oneOffHeading: "Ricorrenze di questo ricordo",
   noOneOff: "Questo ricordo non ha ricorrenze proprie.",
   newOneOff: "Nuova ricorrenza del ricordo",

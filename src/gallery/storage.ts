@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { DEFAULT_THEME } from "./themes";
 import { DATABASE_VERSION, type Database } from "./types";
 
 /**
@@ -11,6 +12,8 @@ import { DATABASE_VERSION, type Database } from "./types";
  *   `database.json`, so a crash never leaves it half written.
  * - Nothing is cached: every read goes to disk, so the file can be inspected
  *   or edited by hand (and by tests).
+ * - A file written before a field existed still loads: missing fields get
+ *   their defaults when read (see `parse`), with no migration step.
  */
 export type Storage = {
   readonly dataDir: string;
@@ -48,6 +51,19 @@ function withLock<T>(key: string, task: () => Promise<T>): Promise<T> {
   return run;
 }
 
+/**
+ * Parses `database.json`, filling in what a file from before a change lacks:
+ * an Occasion with no Theme is Neutro.
+ */
+function parse(text: string): Database {
+  const db = JSON.parse(text) as Database;
+  for (const occasion of db.yearlyOccasions) occasion.theme ??= DEFAULT_THEME;
+  for (const memory of db.memories) {
+    for (const occasion of memory.oneOffOccasions) occasion.theme ??= DEFAULT_THEME;
+  }
+  return db;
+}
+
 function emptyDatabase(): Database {
   return { version: DATABASE_VERSION, memories: [], yearlyOccasions: [] };
 }
@@ -70,7 +86,7 @@ export function openStorage(dataDir: string): Storage {
 
   async function load(): Promise<Database> {
     try {
-      return JSON.parse(await readFile(file, "utf8")) as Database;
+      return parse(await readFile(file, "utf8"));
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
@@ -89,7 +105,7 @@ export function openStorage(dataDir: string): Storage {
     },
     async read() {
       try {
-        return JSON.parse(await readFile(file, "utf8")) as Database;
+        return parse(await readFile(file, "utf8"));
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
         return withLock(root, load);

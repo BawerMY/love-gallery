@@ -21,7 +21,7 @@ describe("storage", () => {
     const existing = {
       version: 1,
       memories: [],
-      yearlyOccasions: [{ id: "y1", name: "San Valentino", month: 2, day: 14 }],
+      yearlyOccasions: [{ id: "y1", name: "San Valentino", month: 2, day: 14, theme: "san-valentino" }],
     };
     await writeFile(path.join(dataDir, "database.json"), JSON.stringify(existing));
 
@@ -40,7 +40,7 @@ describe("storage", () => {
         (i % 2 ? first : second).update(async (db) => {
           const count = db.yearlyOccasions.length;
           await new Promise((resolve) => setTimeout(resolve, 1));
-          db.yearlyOccasions.push({ id: `y${count}`, name: `Occasione ${i}`, month: 1, day: 1 });
+          db.yearlyOccasions.push({ id: `y${count}`, name: `Occasione ${i}`, month: 1, day: 1, theme: "neutro" });
         }),
       ),
     );
@@ -55,12 +55,12 @@ describe("storage", () => {
     const dataDir = await makeDataDir();
     const storage = openStorage(dataDir);
     await storage.update((db) => {
-      db.yearlyOccasions.push({ id: "kept", name: "Anniversario", month: 6, day: 1 });
+      db.yearlyOccasions.push({ id: "kept", name: "Anniversario", month: 6, day: 1, theme: "neutro" });
     });
 
     await expect(
       storage.update((db) => {
-        db.yearlyOccasions.push({ id: "lost", name: "Compleanno", month: 3, day: 9 });
+        db.yearlyOccasions.push({ id: "lost", name: "Compleanno", month: 3, day: 9, theme: "neutro" });
         throw new Error("rifiutato");
       }),
     ).rejects.toThrow("rifiutato");
@@ -75,7 +75,7 @@ describe("storage", () => {
     const storage = openStorage(dataDir);
 
     const returned = await storage.update((db) => {
-      db.yearlyOccasions.push({ id: "y1", name: "Anniversario", month: 6, day: 1 });
+      db.yearlyOccasions.push({ id: "y1", name: "Anniversario", month: 6, day: 1, theme: "neutro" });
       return db.yearlyOccasions.length;
     });
 

@@ -22,4 +22,5 @@ export * from "./cover";
 export * from "./capture-days";
 export * from "./uploads";
 export * from "./serving";
+export * from "./themes";
 export * from "./occasions";

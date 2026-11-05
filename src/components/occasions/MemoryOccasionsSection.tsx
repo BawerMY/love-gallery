@@ -3,6 +3,7 @@ import { occasionsOfMemory, THEMES, type Memory, type Occasion } from "@/gallery
 import { t } from "@/strings";
 import { Motif } from "../themes/Motif";
 import { adminHeading, emptyText, list, occasionItem, occasionSummary, quietText, secondaryButton } from "../ui";
+import { NewMemoryOccasionForm } from "./NewMemoryOccasionForm";
 import { OccasionPicker } from "./OccasionPicker";
 
 type Props = {
@@ -14,7 +15,7 @@ type Props = {
 /**
  * The section of a Memory's Admin page with its Occasions, in badge order,
  * each with a button to take it off this Memory only, and a picker of the
- * Occasions it doesn't have yet.
+ * Occasions it doesn't have yet, and a form to create a new one on the spot.
  */
 export function MemoryOccasionsSection({ memory, occasions }: Props) {
   const own = occasionsOfMemory(memory, occasions);
@@ -51,6 +52,7 @@ export function MemoryOccasionsSection({ memory, occasions }: Props) {
       ) : (
         <p className={`${quietText} mt-3`}>{occasions.length ? t.occasions.pickNoneLeft : t.occasions.pickListEmpty}</p>
       )}
+      <NewMemoryOccasionForm memoryId={memory.id} />
     </section>
   );
 }

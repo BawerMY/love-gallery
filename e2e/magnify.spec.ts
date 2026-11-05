@@ -189,3 +189,36 @@ test("a swipe down closes the modal", async ({ pageWithSession: page }) => {
   await touch(page, { x, y }, { moves: [1, 2, 3, 4, 5, 6].map((step) => ({ x, y: y + step * 30 })) });
   await expect(modal).toHaveCount(0);
 });
+
+test("the magnified item grows out of its tile and shrinks back into it, leaving the tile empty in between", async ({
+  pageWithSession: page,
+}) => {
+  await seedPhotoAndVideo();
+  await page.goto("/memories/milano");
+  const tilePhoto = page.locator("li").getByRole("img", { name: "Foto 1", exact: true, includeHidden: true });
+  const modal = page.getByRole("dialog");
+  const magnified = modal.getByRole("img", { name: "Foto 1", exact: true });
+  const isMoving = () => magnified.evaluate((img) => img.getAnimations().some((a) => a.playState === "running"));
+
+  await tilePhoto.click();
+  await expect(modal).toBeVisible();
+  expect(await isMoving()).toBe(true);
+  await expect(tilePhoto).toBeHidden();
+  await expect.poll(isMoving).toBe(false);
+
+  await modal.getByRole("button", { name: "Chiudi" }).click();
+  // Still shrinking back: the modal is there until the item reaches its tile.
+  await expect(modal).toBeVisible();
+  expect(await isMoving()).toBe(true);
+  await expect(modal).toHaveCount(0);
+  await expect(tilePhoto).toBeVisible();
+
+  // With reduced motion the item just appears and disappears.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await tilePhoto.click();
+  await expect(modal).toBeVisible();
+  expect(await isMoving()).toBe(false);
+  await page.keyboard.press("Escape");
+  await expect(modal).toHaveCount(0);
+  await expect(tilePhoto).toBeVisible();
+});

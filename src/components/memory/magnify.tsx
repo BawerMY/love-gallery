@@ -21,14 +21,17 @@ const PRESS_SLOP = 10;
 
 type Target = { item: MediaItem; position: number };
 
-const MagnifyContext = createContext<((target: Target) => void) | null>(null);
+/** The item to magnify, and the grid tile it grows from and shrinks back into. */
+type Opened = Target & { tile: HTMLElement };
+
+const MagnifyContext = createContext<((opened: Opened) => void) | null>(null);
 
 /**
  * Lets the `Magnifiable` items inside it open the magnify modal, one item at a
  * time. Must sit inside `VideoPlaybackProvider`.
  */
 export function MagnifyProvider({ memoryId, children }: { memoryId: string; children: ReactNode }) {
-  const [target, setTarget] = useState<Target | null>(null);
+  const [target, setTarget] = useState<Opened | null>(null);
   return (
     <MagnifyContext value={setTarget}>
       {children}
@@ -38,6 +41,7 @@ export function MagnifyProvider({ memoryId, children }: { memoryId: string; chil
           memoryId={memoryId}
           item={target.item}
           position={target.position}
+          tile={target.tile}
           onClose={() => setTarget(null)}
         />
       )}
@@ -53,10 +57,12 @@ export function MagnifyProvider({ memoryId, children }: { memoryId: string; chil
 export function Magnifiable({ item, position, children }: Target & { children: ReactNode }) {
   const open = useContext(MagnifyContext);
   if (!open) throw new Error("Magnifiable must be used inside MagnifyProvider");
-  const press = useLongPress(() => open({ item, position }));
+  const tile = useRef<HTMLDivElement>(null);
+  const press = useLongPress(() => open({ item, position, tile: tile.current! }));
   return (
     // No text selection, drag or iOS callout; touch-action stays default so the page still scrolls.
     <div
+      ref={tile}
       className="size-full cursor-zoom-in select-none [-webkit-touch-callout:none] [&_:is(img,video)]:[-webkit-user-drag:none]"
       {...press}
     >

@@ -72,6 +72,22 @@ export async function addOccasionToMemory(storage: Storage, memoryId: string, oc
   });
 }
 
+/**
+ * Creates a new Occasion in the list and adds it to the end of a Memory's
+ * Occasions in one step, refusing what `createOccasion` refuses.
+ */
+export async function createOccasionOnMemory(storage: Storage, memoryId: string, input: OccasionInput): Promise<Occasion> {
+  const fields = cleanOccasionInput(input);
+  return storage.update((db) => {
+    const memory = findMemory(db, memoryId);
+    refuseTakenName(db, fields.name);
+    const occasion: Occasion = { id: randomUUID(), ...fields };
+    db.occasions.push(occasion);
+    memory.occasionIds.push(occasion.id);
+    return occasion;
+  });
+}
+
 /** Takes an Occasion off a Memory. It stays in the list and on every other Memory. */
 export async function removeOccasionFromMemory(storage: Storage, memoryId: string, occasionId: string): Promise<void> {
   await storage.update((db) => {

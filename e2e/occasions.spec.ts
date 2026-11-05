@@ -104,3 +104,38 @@ test("the Curator picks Occasions for a Memory and removes one, and the badges f
   await page.goto("/memories/autunno");
   await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText(["Primo tuffo"]);
 });
+
+test("the Curator creates an Occasion from a Memory's Admin page, adding it to that Memory and the list", async ({
+  pageWithSession: page,
+}) => {
+  await seedMemories(
+    [{ id: "napoli", title: "Napoli", cities: ["Napoli"], startDay: "2025-05-10", endDay: "2025-05-11", occasionIds: ["natale"] }],
+    [{ id: "natale", name: "Natale", theme: "natale" }],
+  );
+  await page.goto("/admin/memories/napoli");
+  const section = page.getByRole("region", { name: "Occasioni di questo ricordo" });
+  const form = section.getByRole("form", { name: "Nuova occasione" });
+
+  await expect(form.getByLabel("Tema")).toHaveValue("neutro");
+  await form.getByLabel("Nome").fill("Prima pizza insieme");
+  await form.getByRole("button", { name: "Crea" }).click();
+  await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Natale", "Prima pizza insieme"]);
+  await expect(form.getByLabel("Nome")).toHaveValue("");
+
+  // A name already in the list is refused, ignoring case, and nothing is added.
+  await form.getByLabel("Nome").fill("natale");
+  await form.getByRole("button", { name: "Crea" }).click();
+  await expect(form.getByRole("alert")).toHaveText("C'è già un'occasione chiamata «natale».");
+  await expect(section.getByRole("listitem")).toHaveCount(2);
+
+  await page.goto("/memories/napoli");
+  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText([
+    "Natale",
+    "Prima pizza insieme",
+  ]);
+
+  await page.goto("/admin");
+  await expect(
+    page.getByRole("region", { name: "Occasioni", exact: true }).getByRole("listitem").locator("strong"),
+  ).toHaveText(["Natale", "Prima pizza insieme"]);
+});

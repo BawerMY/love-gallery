@@ -4,6 +4,7 @@ import {
   createMemory,
   countOccasionUses,
   createOccasion,
+  createOccasionOnMemory,
   deleteOccasion,
   GalleryError,
   getMemory,
@@ -158,6 +159,44 @@ describe("Occasions on a Memory", () => {
       new GalleryError("Questa occasione non esiste più."),
     );
     expect(await badges(storage, memory.id)).toEqual([["Natale", "natale"]]);
+  });
+
+  it("can be created from a Memory, joining the list and the end of that Memory's Occasions in one step", async () => {
+    const dataDir = await makeDataDir();
+    const storage = openStorage(dataDir);
+    const memory = await createMemory(storage, { cities: ["Napoli"], startDay: "2025-05-10", endDay: "2025-05-11" });
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    await addOccasionToMemory(storage, memory.id, natale.id);
+
+    const pizza = await createOccasionOnMemory(storage, memory.id, { name: " Prima pizza insieme " });
+
+    expect(pizza).toEqual({ id: expect.any(String), name: "Prima pizza insieme", theme: "neutro" });
+    expect((await listOccasions(storage)).map((occasion) => occasion.name)).toEqual(["Natale", "Prima pizza insieme"]);
+    expect(await badges(storage, memory.id)).toEqual([
+      ["Natale", "natale"],
+      ["Prima pizza insieme", "neutro"],
+    ]);
+    expect(await readDatabaseFile(dataDir)).toMatchObject({
+      memories: [{ id: memory.id, occasionIds: [natale.id, pizza.id] }],
+    });
+  });
+
+  it("created from a Memory refuse, in Italian, a name already in the list or an unknown Theme, adding nothing", async () => {
+    const dataDir = await makeDataDir();
+    const storage = openStorage(dataDir);
+    const memory = await createMemory(storage, { cities: ["Napoli"], startDay: "2025-05-10", endDay: "2025-05-11" });
+    await createOccasion(storage, { name: "Natale", theme: "natale" });
+    const before = await readDatabaseFile(dataDir);
+
+    await expect(createOccasionOnMemory(storage, memory.id, { name: "natale" })).rejects.toThrow(
+      new GalleryError("C'è già un'occasione chiamata «natale»."),
+    );
+    await expect(createOccasionOnMemory(storage, memory.id, { name: "Gita", theme: "gita" })).rejects.toThrow(
+      new GalleryError("Scegli uno dei temi della lista."),
+    );
+    await expect(createOccasionOnMemory(storage, "nessuno", { name: "Gita" })).rejects.toThrow(GalleryError);
+
+    expect(await readDatabaseFile(dataDir)).toEqual(before);
   });
 
   it("are removed from one Memory only, staying in the list and on other Memories", async () => {

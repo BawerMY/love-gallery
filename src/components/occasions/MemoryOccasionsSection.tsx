@@ -1,6 +1,7 @@
 import { occasionsOfMemory, type Memory, type Occasion } from "@/gallery";
 import { t } from "@/strings";
 import { adminHeading, emptyText, quietText } from "../ui";
+import { NewMemoryOccasionForm } from "./NewMemoryOccasionForm";
 import { OccasionPicker } from "./OccasionPicker";
 import { SortableOccasionList } from "./SortableOccasionList";
 
@@ -13,7 +14,8 @@ type Props = {
 /**
  * The section of a Memory's Admin page with its Occasions, in badge order,
  * to reorder by drag and drop, each with a button to take it off this Memory
- * only, and a picker of the Occasions it doesn't have yet.
+ * only; a picker of the Occasions it doesn't have yet; and a form to create
+ * a new one on the spot.
  */
 export function MemoryOccasionsSection({ memory, occasions }: Props) {
   const own = occasionsOfMemory(memory, occasions);
@@ -34,6 +36,7 @@ export function MemoryOccasionsSection({ memory, occasions }: Props) {
       ) : (
         <p className={`${quietText} mt-3`}>{occasions.length ? t.occasions.pickNoneLeft : t.occasions.pickListEmpty}</p>
       )}
+      <NewMemoryOccasionForm memoryId={memory.id} />
     </section>
   );
 }

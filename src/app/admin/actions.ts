@@ -8,6 +8,7 @@ import {
   chooseMainOccasion,
   createMemory,
   createOccasion,
+  createOccasionOnMemory,
   deleteMedia,
   deleteMemory,
   deleteOccasion,
@@ -121,6 +122,11 @@ export async function deleteOccasionAction(id: string): Promise<void> {
 /** Adds the Occasion picked in the form (`occasionId`) to a Memory. */
 export async function addOccasionToMemoryAction(memoryId: string, _state: FormState, form: FormData): Promise<FormState> {
   return save(() => addOccasionToMemory(storage(), memoryId, String(form.get("occasionId") ?? "")));
+}
+
+/** Creates a new Occasion from the form (name and Theme) and adds it to a Memory in one step. */
+export async function createOccasionOnMemoryAction(memoryId: string, _state: FormState, form: FormData): Promise<FormState> {
+  return save(() => createOccasionOnMemory(storage(), memoryId, readOccasionForm(form)));
 }
 
 export async function removeOccasionFromMemoryAction(memoryId: string, occasionId: string): Promise<void> {

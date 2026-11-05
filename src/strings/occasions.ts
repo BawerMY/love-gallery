@@ -1,6 +1,6 @@
 /** Occasions: their badges, the "Occasioni" section of the Admin page and a Memory's Occasions. */
 export const occasions = {
-  badgesLabel: "Ricorrenze",
+  badgesLabel: "Occasioni",
   heading: "Occasioni",
   none: "Non hai ancora aggiunto nessuna occasione.",
   newOccasion: "Nuova occasione",

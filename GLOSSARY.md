@@ -38,8 +38,12 @@ _Avoid_: Event, special day, holiday, badge (a badge is how an Occasion is shown
 A small visual style that an Occasion carries, such as its colours and decorations, picked from a fixed set. A Memory takes the Theme of its Main occasion.
 _Avoid_: Skin, template, style
 
+**Badge order**:
+The order of a Memory's Occasions, set by the Curator by dragging them. Its badges are shown in this order, and the first counts the most.
+_Avoid_: Occasion order, ranking, priority
+
 **Main occasion**:
-The Occasion whose Theme a Memory takes, chosen by the Curator when the Memory has several Occasions with a Theme other than Neutro.
+The Occasion whose Theme a Memory takes, chosen by the Curator when the Memory has several Occasions with a Theme other than Neutro. Left on "Automatica", or when the chosen one is taken off the Memory, deleted or turned Neutro, it is the first Occasion in Badge order whose Theme isn't Neutro; with none, the Memory keeps the default look.
 _Avoid_: Primary event, featured occasion
 
 ## Access

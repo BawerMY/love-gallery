@@ -13,11 +13,11 @@ import { OccasionForm } from "./OccasionForm";
 type Props = {
   occasion: Occasion;
   /** How many Memories have it: what the delete confirmation names. */
-  uses: number;
+  memoryCount: number;
 };
 
 /** One Occasion in the Admin page's list, with its edit form and a delete that says how many Memories use it. */
-export function OccasionItem({ occasion, uses }: Props) {
+export function OccasionItem({ occasion, memoryCount }: Props) {
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
   const theme = THEMES[occasion.theme];
 
@@ -45,7 +45,7 @@ export function OccasionItem({ occasion, uses }: Props) {
           <ConfirmDeleteButton
             label={t.occasions.delete}
             name={t.occasions.deleteLabel(occasion.name)}
-            question={t.occasions.deleteConfirm(occasion.name, uses)}
+            question={t.occasions.deleteConfirm(occasion.name, memoryCount)}
             action={deleteOccasionAction.bind(null, occasion.id)}
             onConfirmingChange={(confirming) => setMode(confirming ? "delete" : "view")}
           />

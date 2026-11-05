@@ -49,7 +49,7 @@ test("the Curator manages the list of Occasions in the Admin page", async ({ pag
   await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Anniversario"]);
 
   await page.goto("/");
-  await expect(page.getByRole("list", { name: "Ricorrenze" })).toHaveCount(0);
+  await expect(page.getByRole("list", { name: "Occasioni", exact: true })).toHaveCount(0);
 });
 
 test("the Curator picks Occasions for a Memory and removes one, and the badges follow the order", async ({
@@ -82,7 +82,7 @@ test("the Curator picks Occasions for a Memory and removes one, and the badges f
   for (const path of ["/", "/memories/estate"]) {
     await page.goto(path);
     // On the Timeline, the summer Memory comes first.
-    const badges = page.getByRole("list", { name: "Ricorrenze" }).first().getByRole("listitem");
+    const badges = page.getByRole("list", { name: "Occasioni", exact: true }).first().getByRole("listitem");
     await expect(badges).toHaveText(["Natale", "Primo tuffo", "Cena sul molo"]);
     await expect(badges.first()).toHaveAttribute("data-theme", "natale");
   }
@@ -100,9 +100,9 @@ test("the Curator picks Occasions for a Memory and removes one, and the badges f
   await expect(picker.getByRole("option", { name: "Primo tuffo" })).toHaveCount(1);
 
   await page.goto("/memories/estate");
-  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText(["Natale", "Cena sul molo"]);
+  await expect(page.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem")).toHaveText(["Natale", "Cena sul molo"]);
   await page.goto("/memories/autunno");
-  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText(["Primo tuffo"]);
+  await expect(page.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem")).toHaveText(["Primo tuffo"]);
 });
 
 test("the Curator creates an Occasion from a Memory's Admin page, adding it to that Memory and the list", async ({
@@ -129,7 +129,7 @@ test("the Curator creates an Occasion from a Memory's Admin page, adding it to t
   await expect(section.getByRole("listitem")).toHaveCount(2);
 
   await page.goto("/memories/napoli");
-  await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText([
+  await expect(page.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem")).toHaveText([
     "Natale",
     "Prima pizza insieme",
   ]);

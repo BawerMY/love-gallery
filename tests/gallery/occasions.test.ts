@@ -10,6 +10,7 @@ import {
   getMemory,
   listOccasions,
   listTimeline,
+  occasionsNotOnMemory,
   occasionsOfMemory,
   openStorage,
   removeOccasionFromMemory,
@@ -144,6 +145,19 @@ describe("Occasions on a Memory", () => {
     expect(await readDatabaseFile(dataDir)).toMatchObject({
       memories: [{ id: memory.id, occasionIds: [viaggio.id, natale.id] }],
     });
+  });
+
+  it("leave the picker offering only the Occasions in the list the Memory doesn't have, alphabetically", async () => {
+    const storage = openStorage(await makeDataDir());
+    const memory = await createMemory(storage, { cities: ["Torino"], startDay: "2025-06-01", endDay: "2025-06-03" });
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    await createOccasion(storage, { name: "Viaggio insieme" });
+    await createOccasion(storage, { name: "Anniversario" });
+    await addOccasionToMemory(storage, memory.id, natale.id);
+
+    const available = occasionsNotOnMemory((await getMemory(storage, memory.id))!, await listOccasions(storage));
+
+    expect(available.map(({ name }) => name)).toEqual(["Anniversario", "Viaggio insieme"]);
   });
 
   it("refuse, in Italian, an Occasion the Memory already has or that isn't in the list", async () => {

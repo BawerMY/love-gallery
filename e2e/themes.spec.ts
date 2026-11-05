@@ -37,7 +37,7 @@ test("the Curator gives Occasions a Theme in the Admin page and each badge shows
   ];
   for (const path of ["/", "/memories/inverno"]) {
     await page.goto(path);
-    const badges = page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem");
+    const badges = page.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem");
     await expect(badges).toHaveText(expected.map(([name]) => name));
     for (const [index, [, theme]] of expected.entries()) {
       await expect(badges.nth(index)).toHaveAttribute("data-theme", theme);
@@ -85,6 +85,6 @@ test("the Pasqua, Viaggio and Escursione Themes show on badges, Timeline entries
 
     await page.goto(`/memories/${id}`);
     await expect(memoryTitlePage(page)).toHaveAttribute("data-theme", theme);
-    await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveAttribute("data-theme", theme);
+    await expect(page.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem")).toHaveAttribute("data-theme", theme);
   }
 });

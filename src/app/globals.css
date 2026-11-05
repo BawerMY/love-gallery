@@ -12,7 +12,7 @@
   --color-heart: #c8374d; /* the wordmark heart */
   --color-danger: var(--color-heart); /* errors and deletes reuse the heart red: no other red */
   --color-white: #ffffff;
-  --color-black: #000000; /* behind magnified Media */
+  --color-black: #000000; /* shades over Media, such as the unmute button */
 
   --radius-card: 16px;
   --radius-tile: 12px;
@@ -21,6 +21,15 @@
   --shadow-soft: 0 10px 30px -14px rgb(59 42 47 / 0.28), 0 2px 6px -2px rgb(59 42 47 / 0.08);
 
   --animate-heart-pulse: heart-pulse 2.6s ease-in-out infinite;
+  --animate-magnify-in: magnify-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* The magnify modal's soft zoom. */
+  @keyframes magnify-in {
+    from {
+      opacity: 0;
+      scale: 0.94;
+    }
+  }
 
   @keyframes heart-pulse {
     0%,
@@ -55,5 +64,18 @@
   h2,
   h3 {
     font-family: var(--font-display);
+  }
+}
+
+/* Fade and slide up on first scroll into view (see RevealOnScroll). Off under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal-ready] [data-reveal] {
+    transition:
+      opacity 0.7s ease,
+      translate 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  [data-reveal-ready] [data-reveal]:not([data-shown]) {
+    opacity: 0;
+    translate: 0 14px;
   }
 }

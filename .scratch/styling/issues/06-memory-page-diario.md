@@ -4,7 +4,7 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Playwright: the title page exposes the `data-theme` of its Main occasion.
-- [ ] The existing playback, magnify, media and layout e2e tests stay green.
+- [x] Playwright: the title page exposes the `data-theme` of its Main occasion.
+- [x] The existing playback, magnify, media and layout e2e tests stay green.

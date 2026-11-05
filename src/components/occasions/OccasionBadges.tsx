@@ -9,11 +9,11 @@ import { Motif } from "../themes/Motif";
  * badge carries its kind in `data-kind` and its Theme in `data-theme`.
  * Shows nothing when there are none.
  */
-export function OccasionBadges({ occasions }: { occasions: Occasion[] }) {
+export function OccasionBadges({ occasions, className = "" }: { occasions: Occasion[]; className?: string }) {
   if (!occasions.length) return null;
 
   return (
-    <ul className="mt-2 flex flex-wrap gap-1.5" aria-label={t.occasions.badgesLabel}>
+    <ul className={`mt-2 flex flex-wrap gap-1.5 ${className}`} aria-label={t.occasions.badgesLabel}>
       {occasions.map((occasion) => {
         const theme = THEMES[occasion.theme];
         return (

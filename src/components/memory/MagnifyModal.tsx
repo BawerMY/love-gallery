@@ -81,7 +81,7 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
     <dialog
       ref={dialog}
       // Fills the screen over a dark backdrop, and takes every touch for the swipe down.
-      className="fixed inset-0 m-0 size-full max-h-none max-w-none touch-none overflow-hidden overscroll-contain border-0 bg-transparent p-0 text-white select-none [-webkit-touch-callout:none] backdrop:bg-black/92"
+      className="fixed inset-0 m-0 size-full max-h-none max-w-none touch-none overflow-hidden overscroll-contain border-0 bg-transparent p-0 text-white select-none [-webkit-touch-callout:none] backdrop:bg-cocoa/95"
       aria-label={label}
       onCancel={(event) => {
         event.preventDefault();
@@ -92,7 +92,7 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
     >
       <div
         ref={stage}
-        className="grid size-full place-items-center px-3 pt-14 pb-6"
+        className="grid size-full place-items-center px-3 pt-14 pb-6 motion-safe:animate-magnify-in"
         onClick={(event) => {
           if (event.target === event.currentTarget && pressedBackdrop.current) close();
         }}
@@ -101,7 +101,7 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
           <MagnifiedVideo ref={video} memoryId={memoryId} item={item} position={position} start={start} />
         ) : (
           <img
-            className="block h-auto max-h-[calc(100dvh_-_80px)] w-auto max-w-full object-contain [-webkit-user-drag:none]"
+            className="block h-auto max-h-[calc(100dvh_-_80px)] w-auto max-w-full rounded-tile object-contain [-webkit-user-drag:none]"
             src={mediaPath(memoryId, MEDIA_KINDS[item.kind].still(item.files))}
             alt={MEDIA_KINDS[item.kind].alt(position)}
             width={item.width}
@@ -157,7 +157,7 @@ function MagnifiedVideo({ ref, memoryId, item, position, start }: VideoProps) {
     <div className="flex max-w-full flex-col items-stretch gap-2">
       <video
         ref={ref}
-        className="block h-auto max-h-[calc(100dvh_-_140px)] w-auto max-w-full object-contain [-webkit-user-drag:none]"
+        className="block h-auto max-h-[calc(100dvh_-_140px)] w-auto max-w-full rounded-tile object-contain [-webkit-user-drag:none]"
         src={mediaPath(memoryId, item.files.display)}
         poster={poster && mediaPath(memoryId, poster)}
         aria-label={MEDIA_KINDS[item.kind].alt(position)}

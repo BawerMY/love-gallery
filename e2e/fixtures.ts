@@ -67,4 +67,9 @@ export async function seedMemories(memories: SeedMemory[], yearlyOccasions: Seed
   );
 }
 
+/** The title page at the top of a Memory page: the element carrying its Theme in `data-theme` around the title. */
+export function memoryTitlePage(page: Page) {
+  return page.locator("[data-theme]").filter({ has: page.getByRole("heading", { level: 1 }) });
+}
+
 export { expect };

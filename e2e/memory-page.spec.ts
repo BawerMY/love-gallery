@@ -1,12 +1,9 @@
 import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Locator, Page } from "@playwright/test";
-import { dataDir, expect, test } from "./fixtures";
+import type { Locator } from "@playwright/test";
+import { dataDir, expect, memoryTitlePage, test } from "./fixtures";
 
 const FIXTURES = path.join(import.meta.dirname, "..", "tests", "fixtures");
-
-/** The title page at the top of a Memory page. */
-const titlePage = (page: Page) => page.locator("header").filter({ has: page.getByRole("heading", { level: 1 }) });
 
 /** Seeds a Christmas Memory, with a Capodanno and a Natale Occasion and one ready photo. */
 async function seedChristmasMemory() {
@@ -53,7 +50,7 @@ test("a Memory opens with a title page in the Theme of its Main occasion", async
   await seedChristmasMemory();
   await page.goto("/memories/inverno");
 
-  const header = titlePage(page);
+  const header = memoryTitlePage(page);
   await expect(header).toHaveAttribute("data-theme", "natale");
   await expect(header.getByRole("heading", { level: 1 })).toHaveText("Natale a Torino");
   await expect(header).toContainText("Torino · Asti");

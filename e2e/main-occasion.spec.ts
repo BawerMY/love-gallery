@@ -1,12 +1,8 @@
 import type { Page } from "@playwright/test";
-import { expect, seedMemories, test } from "./fixtures";
+import { expect, memoryTitlePage, seedMemories, test } from "./fixtures";
 
 /** The Memory's entry on the Timeline. */
 const timelineEntry = (page: Page, title: string) => page.getByRole("link").filter({ hasText: title });
-
-/** The title page at the top of a Memory page. */
-const memoryHeader = (page: Page) =>
-  page.locator("header").filter({ has: page.getByRole("heading", { level: 1 }) });
 
 test("the Curator picks a Main occasion when a Memory has two or more, and it sets the Memory's Theme", async ({
   pageWithSession: page,
@@ -44,7 +40,7 @@ test("the Curator picks a Main occasion when a Memory has two or more, and it se
   // Automatic: the first non-Neutro Occasion by day.
   await expect(timelineEntry(page, "Natale e Capodanno")).toHaveAttribute("data-theme", "natale");
   await page.goto("/memories/inverno");
-  await expect(memoryHeader(page)).toHaveAttribute("data-theme", "natale");
+  await expect(memoryTitlePage(page)).toHaveAttribute("data-theme", "natale");
 
   await page.goto("/admin/memories/inverno");
   const main = page.getByLabel("Occasione principale");
@@ -59,12 +55,12 @@ test("the Curator picks a Main occasion when a Memory has two or more, and it se
   await page.goto("/");
   await expect(timelineEntry(page, "Natale e Capodanno")).toHaveAttribute("data-theme", "capodanno");
   await page.goto("/memories/inverno");
-  await expect(memoryHeader(page)).toHaveAttribute("data-theme", "capodanno");
+  await expect(memoryTitlePage(page)).toHaveAttribute("data-theme", "capodanno");
 
   // Back to automatic.
   await page.goto("/admin/memories/inverno");
   await page.getByLabel("Occasione principale").selectOption({ label: "Automatica" });
   await expect(page.getByText("Occasione principale salvata.")).toBeVisible();
   await page.goto("/memories/inverno");
-  await expect(memoryHeader(page)).toHaveAttribute("data-theme", "natale");
+  await expect(memoryTitlePage(page)).toHaveAttribute("data-theme", "natale");
 });

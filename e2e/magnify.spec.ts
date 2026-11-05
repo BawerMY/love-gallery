@@ -156,12 +156,14 @@ test("a magnified video goes on from the grid's moment with its mute state, seek
 test("unmuting a magnified video holds even when its grid tile is mostly off screen", async ({ pageWithSession: page }) => {
   await seedPhotoAndVideo();
   await page.goto("/memories/milano");
-  // Room to scroll, so the grid video can sit with only its bottom quarter on screen.
+  // Room to scroll, so the grid video can sit with only a sliver of its
+  // bottom showing below the top bar.
   await page.addStyleTag({ content: "body { padding-bottom: 200vh; }" });
   const grid = page.getByLabel("Video 2", { exact: true }).first();
   await expect.poll(async () => (await state(grid)).paused, { timeout: 10_000 }).toBe(false);
   const box = (await grid.boundingBox())!;
-  await page.evaluate((y) => window.scrollBy(0, y), box.y + box.height * 0.75);
+  const bar = (await page.getByRole("banner").boundingBox())!;
+  await page.evaluate((y) => window.scrollBy(0, y), box.y + box.height - 12 - (bar.y + bar.height));
   await expect.poll(async () => (await state(grid)).paused).toBe(true);
 
   const visible = (await grid.boundingBox())!;

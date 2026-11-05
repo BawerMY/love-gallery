@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Playwright: tapping the top bar on the Timeline scrolls to the bottom; tapping it on a Memory page lands on the Timeline at the bottom.
-- [ ] The bar is absent on the password screen and the Admin page.
+- [x] Playwright: tapping the top bar on the Timeline scrolls to the bottom; tapping it on a Memory page lands on the Timeline at the bottom.
+- [x] The bar is absent on the password screen and the Admin page.

@@ -31,23 +31,15 @@ _Avoid_: Feed, list, home
 ## Occasions
 
 **Occasion**:
-An important day that falls within a Memory's Date range. A Memory may have none or several.
-_Avoid_: Event, special day, holiday
-
-**Yearly occasion**:
-An Occasion that repeats on the same day every year, such as an anniversary, a birthday or Valentine's Day. It belongs to every Memory whose Date range includes that day.
-_Avoid_: Recurring event, predefined date
-
-**One-off occasion**:
-An Occasion that exists only on the Memory where the Curator added it.
-_Avoid_: Custom event, ad-hoc date
+Something special about a Memory, such as a birthday, Christmas or a trip together. The Curator keeps one list of Occasions and adds them to Memories by hand. A Memory may have none or several, and one Occasion can belong to many Memories.
+_Avoid_: Event, special day, holiday, badge (a badge is how an Occasion is shown), Yearly occasion, One-off occasion (both replaced by this single kind)
 
 **Theme**:
-A small visual style that an Occasion carries, such as its colours and decorations. A Memory takes the Theme of its Main occasion.
+A small visual style that an Occasion carries, such as its colours and decorations, picked from a fixed set. A Memory takes the Theme of its Main occasion.
 _Avoid_: Skin, template, style
 
 **Main occasion**:
-The Occasion whose Theme a Memory takes, when the Memory has several.
+The Occasion whose Theme a Memory takes, chosen by the Curator when the Memory has several Occasions with a Theme other than Neutro.
 _Avoid_: Primary event, featured occasion
 
 ## Access
@@ -65,5 +57,5 @@ The single password that opens the whole gallery, Admin page included.
 _Avoid_: Login, passphrase, PIN
 
 **Admin page**:
-The part of the gallery where the Curator manages Memories, their Layouts and the Yearly occasions.
+The part of the gallery where the Curator manages Memories, their Layouts and the list of Occasions.
 _Avoid_: Dashboard, backoffice, CMS, admin panel

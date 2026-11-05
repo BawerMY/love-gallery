@@ -1,6 +1,5 @@
 import type { Occasion } from "@/gallery";
 import { t } from "@/strings";
-import styles from "./occasions.module.css";
 
 /**
  * A Memory's Occasions as badges, in the order given (by day, see
@@ -11,11 +10,11 @@ export function OccasionBadges({ occasions }: { occasions: Occasion[] }) {
   if (!occasions.length) return null;
 
   return (
-    <ul className={styles.badges} aria-label={t.occasions.badgesLabel}>
+    <ul className="mt-2 flex flex-wrap gap-1.5" aria-label={t.occasions.badgesLabel}>
       {occasions.map((occasion) => (
         <li
           key={`${occasion.kind}:${occasion.id}:${occasion.day}`}
-          className={styles.badge}
+          className="rounded-full bg-butter px-2.5 py-0.5 text-sm font-bold text-amber"
           data-kind={occasion.kind}
         >
           {t.occasions.badge(occasion.name, occasion.number)}

@@ -5,7 +5,7 @@ import { chooseCoverAction, saveLayoutAction, type FormState } from "@/app/admin
 import { cellsBelowLayout, layoutBottom, layoutProblem } from "@/gallery/layout";
 import type { MediaCell } from "@/gallery/types";
 import { t } from "@/strings";
-import styles from "./layout-editor.module.css";
+import { button, errorText, quietText, secondaryButton } from "../ui";
 import { useCellGesture } from "./useCellGesture";
 
 /** One Media item as the editor needs it. */
@@ -28,6 +28,12 @@ type Props = {
 };
 
 const GAP = 4;
+/**
+ * The round ✥, ☆ and ◢ handles on a tile. The drag handles also take
+ * `touch-none`, so dragging them never scrolls the page; the rest of the tile
+ * still scrolls as usual.
+ */
+const handle = "absolute size-9 rounded-full border-0 bg-white/85 p-0 text-lg leading-none text-cocoa";
 /** Empty rows kept below the bottom of the Layout, so items can be dragged further down. */
 const SPARE_ROWS = 2;
 
@@ -76,18 +82,19 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
   const rows = layoutBottom(Object.values(cells)) + SPARE_ROWS;
 
   return (
-    <div className={styles.editor}>
-      <p className={styles.hint}>{t.layout.hint}</p>
-      <div className={styles.frame}>
+    <div className="flex flex-col gap-3">
+      <p className="text-sm text-cocoa-soft">{t.layout.hint}</p>
+      <div className="@container">
         <div
           ref={gridRef}
-          className={styles.grid}
+          // Square cells, as on the Memory page: a row is as tall as a column is wide.
+          className="grid grid-cols-3 gap-(--grid-gap) [--cell:calc((100cqi_-_2_*_var(--grid-gap))_/_3)]"
           style={{ "--grid-gap": `${GAP}px`, gridTemplateRows: `repeat(${rows}, var(--cell))` } as CSSProperties}
         >
           {Array.from({ length: rows * 3 }, (_, index) => (
             <div
               key={index}
-              className={styles.emptyCell}
+              className="rounded-sm border border-dashed border-cocoa/20"
               aria-hidden="true"
               style={cellStyle({ column: index % 3, row: Math.floor(index / 3), width: 1, height: 1 })}
             />
@@ -100,18 +107,18 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
                 key={item.id}
                 role="group"
                 aria-label={t.layout.tile(item.position, cell)}
-                className={styles.tile}
+                className="relative overflow-hidden rounded-sm bg-butter ring-2 ring-white"
                 style={cellStyle(cell)}
               >
                 {item.thumbnail ? (
                   // A plain <img>: Media comes from the session-protected Media route, not next/image.
-                  <img src={item.thumbnail} alt="" className={styles.image} draggable={false} />
+                  <img src={item.thumbnail} alt="" className="pointer-events-none block size-full object-cover select-none" draggable={false} />
                 ) : (
-                  <span className={styles.notReady}>{t.layout.notReady}</span>
+                  <span className="absolute inset-0 grid place-items-center text-center text-xs text-cocoa-soft">{t.layout.notReady}</span>
                 )}
                 <button
                   type="button"
-                  className={`${styles.handle} ${styles.move}`}
+                  className={`${handle} top-1 left-1 cursor-grab touch-none active:cursor-grabbing`}
                   aria-label={t.layout.move(item.position)}
                   {...handlers(item.id, "move")}
                 >
@@ -120,7 +127,7 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
                 {item.thumbnail ? (
                   <button
                     type="button"
-                    className={`${styles.handle} ${styles.cover}`}
+                    className={`${handle} top-1 right-1 text-amber aria-pressed:bg-honey aria-pressed:text-white`}
                     aria-label={t.layout.makeCover(item.position)}
                     aria-pressed={isCover}
                     disabled={pending}
@@ -131,7 +138,7 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
                 ) : null}
                 <button
                   type="button"
-                  className={`${styles.handle} ${styles.resize}`}
+                  className={`${handle} right-1 bottom-1 cursor-nwse-resize touch-none`}
                   aria-label={t.layout.resize(item.position)}
                   {...handlers(item.id, "resize")}
                 >
@@ -142,16 +149,16 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
           })}
         </div>
       </div>
-      <div className={styles.actions}>
-        <button type="button" onClick={save} disabled={pending || !dirty}>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" className={button} onClick={save} disabled={pending || !dirty}>
           {pending ? t.layout.saving : t.layout.save}
         </button>
         {coverChosen ? (
-          <button type="button" className="secondary" onClick={() => chooseCover(undefined)} disabled={pending}>
+          <button type="button" className={secondaryButton} onClick={() => chooseCover(undefined)} disabled={pending}>
             {t.layout.defaultCover}
           </button>
         ) : null}
-        <p role="status" className={state.error ? styles.error : styles.status}>
+        <p role="status" className={`text-sm ${state.error ? errorText : quietText}`}>
           {state.error ?? (state.saved ? t.layout.saved : dirty ? t.layout.unsaved : "")}
         </p>
       </div>

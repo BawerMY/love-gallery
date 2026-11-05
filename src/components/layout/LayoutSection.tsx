@@ -1,6 +1,7 @@
 import { coverOf, readingOrder, type Memory } from "@/gallery";
 import { mediaPath } from "@/routes";
 import { t } from "@/strings";
+import { adminHeading, emptyText } from "../ui";
 import { LayoutEditor, type EditorItem } from "./LayoutEditor";
 
 /**
@@ -18,7 +19,7 @@ export function LayoutSection({ memory }: { memory: Memory }) {
 
   return (
     <section aria-labelledby="layout-heading">
-      <h2 id="layout-heading">{t.layout.heading}</h2>
+      <h2 id="layout-heading" className={adminHeading}>{t.layout.heading}</h2>
       {items.length ? (
         <LayoutEditor
           // Never keyed on the Media: the editor keeps its unsaved changes while
@@ -30,7 +31,7 @@ export function LayoutSection({ memory }: { memory: Memory }) {
           coverChosen={memory.coverMediaId !== undefined && cover?.id === memory.coverMediaId}
         />
       ) : (
-        <p className="empty">{t.layout.noMedia}</p>
+        <p className={emptyText}>{t.layout.noMedia}</p>
       )}
     </section>
   );

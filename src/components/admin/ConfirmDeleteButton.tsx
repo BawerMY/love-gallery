@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { t } from "@/strings";
+import { dangerButton, secondaryButton } from "../ui";
 
 type Props = {
   /** The text of the button that asks to delete. */
@@ -31,19 +32,19 @@ export function ConfirmDeleteButton({ label, name = label, question, action, var
 
   if (!confirming) {
     return (
-      <button type="button" className={variant} aria-label={name === label ? undefined : name} onClick={() => show(true)}>
+      <button type="button" className={variant === "danger" ? dangerButton : secondaryButton} aria-label={name === label ? undefined : name} onClick={() => show(true)}>
         {label}
       </button>
     );
   }
 
   return (
-    <form className="delete-confirm" action={action} role="alertdialog" aria-label={name}>
-      <p>{question}</p>
-      <button type="submit" className="danger">
+    <form className="flex basis-full flex-wrap gap-2" action={action} role="alertdialog" aria-label={name}>
+      <p className="mb-1 basis-full">{question}</p>
+      <button type="submit" className={dangerButton}>
         {t.admin.deleteYes}
       </button>
-      <button type="button" className="secondary" onClick={() => show(false)}>
+      <button type="button" className={secondaryButton} onClick={() => show(false)}>
         {t.admin.deleteNo}
       </button>
     </form>

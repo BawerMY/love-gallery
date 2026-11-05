@@ -8,7 +8,10 @@ import {
 } from "@/app/admin/actions";
 import type { YearlyOccasion } from "@/gallery";
 import { t } from "@/strings";
-import styles from "./occasions.module.css";
+import { button, errorText, field, formStack, quietText, secondaryButton } from "../ui";
+
+/** One of the side-by-side day and month fields. */
+const fieldColumn = "flex min-w-0 flex-1 flex-col gap-2";
 
 type Props = {
   /** The Yearly occasion being edited, or nothing when adding one. */
@@ -52,7 +55,7 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
 
   return (
     <form
-      className={styles.form}
+      className={formStack}
       aria-label={occasion ? t.occasions.editYearly(occasion.name) : t.occasions.newYearly}
       action={(form) => {
         setEdited(false);
@@ -60,13 +63,14 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
       }}
     >
       <label htmlFor={`${id}-name`}>{t.occasions.nameLabel}</label>
-      <input id={`${id}-name`} name="name" required value={name} onChange={change(setName)} />
+      <input id={`${id}-name`} className={field} name="name" required value={name} onChange={change(setName)} />
 
-      <div className={styles.fields}>
-        <div>
+      <div className="flex gap-3">
+        <div className={fieldColumn}>
           <label htmlFor={`${id}-day`}>{t.occasions.dayLabel}</label>
           <input
             id={`${id}-day`}
+            className={field}
             name="day"
             type="number"
             inputMode="numeric"
@@ -77,9 +81,9 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
             onChange={change(setDay)}
           />
         </div>
-        <div>
+        <div className={fieldColumn}>
           <label htmlFor={`${id}-month`}>{t.occasions.monthLabel}</label>
-          <select id={`${id}-month`} name="month" value={month} onChange={change(setMonth)}>
+          <select className={field} id={`${id}-month`} name="month" value={month} onChange={change(setMonth)}>
             {t.occasions.monthNames.map((monthName, index) => (
               <option key={monthName} value={index + 1}>
                 {monthName}
@@ -90,10 +94,11 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
       </div>
 
       <label htmlFor={`${id}-first-year`}>
-        {t.occasions.firstYearLabel} <small>({t.occasions.firstYearHint})</small>
+        {t.occasions.firstYearLabel} <small className="text-cocoa-soft">({t.occasions.firstYearHint})</small>
       </label>
       <input
         id={`${id}-first-year`}
+        className={field}
         name="firstYear"
         type="number"
         inputMode="numeric"
@@ -104,22 +109,22 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
       />
 
       {state.error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={errorText}>
           {state.error}
         </p>
       ) : null}
       {state.saved && !edited && !pending && !occasion ? (
-        <p role="status" className={styles.saved}>
+        <p role="status" className={quietText}>
           {t.occasions.saved}
         </p>
       ) : null}
 
-      <div className={styles.buttons}>
-        <button type="submit" disabled={pending}>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className={button} disabled={pending}>
           {pending ? t.occasions.saving : occasion ? t.occasions.save : t.occasions.add}
         </button>
         {occasion ? (
-          <button type="button" className="secondary" onClick={onDone}>
+          <button type="button" className={secondaryButton} onClick={onDone}>
             {t.occasions.cancel}
           </button>
         ) : null}

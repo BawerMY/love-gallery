@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { uploadPath } from "@/routes";
 import { t } from "@/strings";
+import { button, errorText } from "../ui";
 
 type Progress = { phase: "idle" } | { phase: "uploading"; percent: number } | { phase: "processing" };
 
@@ -14,6 +15,8 @@ type Progress = { phase: "idle" } | { phase: "uploading"; percent: number } | { 
  * list shows their state.
  * Uses XMLHttpRequest because fetch can't report upload progress.
  */
+const progressRow = "flex items-center gap-2 text-sm text-cocoa-soft";
+
 export function MediaUpload({ memoryId }: { memoryId: string }) {
   const router = useRouter();
   const [progress, setProgress] = useState<Progress>({ phase: "idle" });
@@ -52,8 +55,8 @@ export function MediaUpload({ memoryId }: { memoryId: string }) {
 
   const busy = progress.phase !== "idle";
   return (
-    <div className="media-upload">
-      <label className={`button${busy ? " disabled" : ""}`}>
+    <div className="flex flex-col items-end gap-2">
+      <label className={`${button} ${busy ? "pointer-events-none opacity-60" : ""}`}>
         {t.media.addPhotos}
         <input
           type="file"
@@ -68,19 +71,19 @@ export function MediaUpload({ memoryId }: { memoryId: string }) {
         />
       </label>
       {progress.phase === "uploading" ? (
-        <div role="status" className="upload-progress">
+        <div role="status" className={progressRow}>
           <progress max={100} value={progress.percent} />
           <span>{t.media.uploading(progress.percent)}</span>
         </div>
       ) : null}
       {progress.phase === "processing" ? (
-        <div role="status" className="upload-progress">
+        <div role="status" className={progressRow}>
           <progress />
           <span>{t.media.processing}</span>
         </div>
       ) : null}
       {error ? (
-        <p role="alert" className="error">
+        <p role="alert" className={errorText}>
           {error}
         </p>
       ) : null}

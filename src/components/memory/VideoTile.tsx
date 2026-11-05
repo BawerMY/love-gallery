@@ -51,7 +51,7 @@ export function VideoTile({ memoryId, item, position }: Props) {
     <>
       <video
         ref={ref}
-        className="media-tile"
+        className="block size-full object-cover"
         src={near ? mediaPath(memoryId, item.files.display) : undefined}
         poster={near ? mediaPath(memoryId, item.files.thumbnail) : undefined}
         aria-label={t.media.videoAlt(position)}
@@ -64,7 +64,7 @@ export function VideoTile({ memoryId, item, position }: Props) {
       />
       <button
         type="button"
-        className="video-sound"
+        className="absolute right-1.5 bottom-1.5 grid size-8 cursor-pointer place-items-center rounded-full bg-black/50 text-white"
         aria-label={label}
         title={label}
         onClick={() => setUnmuted(unmuted ? null : item.id)}

@@ -4,7 +4,7 @@ import { useActionState, useId, useState } from "react";
 import { addOneOffOccasionAction, type FormState } from "@/app/admin/actions";
 import type { Memory } from "@/gallery";
 import { t } from "@/strings";
-import styles from "./occasions.module.css";
+import { button, errorText, field, formStack, quietText } from "../ui";
 
 /** The name and day of a new One-off occasion. The day picker stays inside the Date range. */
 export function OneOffOccasionForm({ memory }: { memory: Memory }) {
@@ -31,7 +31,7 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
 
   return (
     <form
-      className={styles.form}
+      className={formStack}
       aria-label={t.occasions.newOneOff}
       action={(form) => {
         setEdited(false);
@@ -39,11 +39,12 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
       }}
     >
       <label htmlFor={`${id}-name`}>{t.occasions.nameLabel}</label>
-      <input id={`${id}-name`} name="name" required value={name} onChange={change(setName)} />
+      <input id={`${id}-name`} className={field} name="name" required value={name} onChange={change(setName)} />
 
       <label htmlFor={`${id}-day`}>{t.occasions.oneOffDayLabel}</label>
       <input
         id={`${id}-day`}
+        className={field}
         name="day"
         type="date"
         required
@@ -54,18 +55,18 @@ export function OneOffOccasionForm({ memory }: { memory: Memory }) {
       />
 
       {state.error ? (
-        <p role="alert" className={styles.error}>
+        <p role="alert" className={errorText}>
           {state.error}
         </p>
       ) : null}
       {state.saved && !edited && !pending ? (
-        <p role="status" className={styles.saved}>
+        <p role="status" className={quietText}>
           {t.occasions.saved}
         </p>
       ) : null}
 
-      <div className={styles.buttons}>
-        <button type="submit" disabled={pending}>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className={button} disabled={pending}>
           {pending ? t.occasions.saving : t.occasions.add}
         </button>
       </div>

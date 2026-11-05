@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { t } from "@/strings";
+import { fontVariables } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,8 +15,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="it">
-      <body>{children}</body>
+    <html lang="it" className={fontVariables}>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

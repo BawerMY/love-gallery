@@ -2,6 +2,7 @@ import { isOutsideDateRange, readingOrder, type MediaItem, type Memory } from "@
 import { mediaPath } from "@/routes";
 import { t } from "@/strings";
 import { MEDIA_KINDS } from "../media-kinds";
+import { emptyText } from "../ui";
 import { DeleteMediaButton } from "./DeleteMediaButton";
 import { RefreshWhileProcessing } from "./RefreshWhileProcessing";
 
@@ -12,15 +13,15 @@ import { RefreshWhileProcessing } from "./RefreshWhileProcessing";
  * until they are done); a failed conversion shows as failed.
  */
 export function AdminMediaList({ memory }: { memory: Memory }) {
-  if (!memory.media.length) return <p className="empty">{t.media.noMedia}</p>;
+  if (!memory.media.length) return <p className={emptyText}>{t.media.noMedia}</p>;
 
   return (
     <>
-      <ul className="admin-media-list">
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
         {readingOrder(memory.media).map((item, index) => (
-          <li key={item.id}>
+          <li key={item.id} className="flex flex-col gap-1.5">
             <Preview memoryId={memory.id} item={item} position={index + 1} />
-            {isOutsideDateRange(memory, item) ? <p className="warning">{t.media.outsideDateRange}</p> : null}
+            {isOutsideDateRange(memory, item) ? <p className="text-sm text-amber">{t.media.outsideDateRange}</p> : null}
             <DeleteMediaButton memoryId={memory.id} mediaId={item.id} kind={item.kind} />
           </li>
         ))}
@@ -30,10 +31,13 @@ export function AdminMediaList({ memory }: { memory: Memory }) {
   );
 }
 
+/** The square box of a Media preview, ready or not. */
+const previewBox = "aspect-square rounded-lg bg-butter";
+
 function Preview({ memoryId, item, position }: { memoryId: string; item: MediaItem; position: number }) {
   if (item.status !== "ready") {
     return (
-      <div role="status" className={`admin-media-status ${item.status}`}>
+      <div role="status" className={`${previewBox} flex items-center justify-center p-2 text-center text-sm ${item.status === "failed" ? "text-danger" : "text-cocoa-soft"}`}>
         {item.status === "processing" ? t.media.itemProcessing : t.media.itemFailed}
       </div>
     );
@@ -43,6 +47,7 @@ function Preview({ memoryId, item, position }: { memoryId: string; item: MediaIt
     <img
       src={mediaPath(memoryId, item.files.thumbnail)}
       alt={MEDIA_KINDS[item.kind].alt(position)}
+      className={`${previewBox} w-full object-cover`}
       loading="lazy"
       decoding="async"
     />

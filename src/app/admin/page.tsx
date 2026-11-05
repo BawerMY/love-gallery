@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminMemoryList } from "@/components/admin/AdminMemoryList";
 import { YearlyOccasionsSection } from "@/components/occasions/YearlyOccasionsSection";
+import { adminHeading, adminPage, adminTitle, backLink, button } from "@/components/ui";
 import { getGallery, listTimeline, listYearlyOccasions } from "@/gallery";
 import { t } from "@/strings";
 
@@ -15,15 +16,15 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <main className="admin">
-      <Link href="/" className="back-link">
+    <main className={adminPage}>
+      <Link href="/" className={backLink}>
         ← {t.admin.backToTimeline}
       </Link>
-      <h1>{t.admin.title}</h1>
+      <h1 className={adminTitle}>{t.admin.title}</h1>
       <section>
-        <div className="section-heading">
-          <h2>{t.admin.memoriesHeading}</h2>
-          <Link href="/admin/memories/new" className="button">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className={adminHeading}>{t.admin.memoriesHeading}</h2>
+          <Link href="/admin/memories/new" className={button}>
             {t.admin.newMemory}
           </Link>
         </div>

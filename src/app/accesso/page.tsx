@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/Wordmark";
 import { safeNextPath } from "@/routes";
 import { t } from "@/strings";
 
@@ -16,26 +17,36 @@ export default async function PasswordScreenPage({
       : undefined;
 
   return (
-    <main className="password-screen">
-      <h1>{t.passwordScreen.title}</h1>
-      <p>{t.passwordScreen.intro}</p>
-      <form method="post" action="/api/session">
+    <main className="mx-auto flex min-h-dvh max-w-[360px] flex-col items-center justify-center gap-2 p-4 text-center">
+      <Wordmark className="text-6xl" />
+      <h1 className="mt-4 text-xl font-semibold">{t.passwordScreen.title}</h1>
+      <p className="text-cocoa-soft">{t.passwordScreen.intro}</p>
+      <form method="post" action="/api/session" className="mt-4 flex w-full flex-col gap-3">
         <input type="hidden" name="next" value={safeNextPath(next)} />
-        <label htmlFor="password">{t.passwordScreen.passwordLabel}</label>
+        <label htmlFor="password" className="sr-only">
+          {t.passwordScreen.passwordLabel}
+        </label>
         <input
           id="password"
           name="password"
           type="password"
           autoComplete="current-password"
+          placeholder={t.passwordScreen.passwordLabel}
           required
           autoFocus
+          className="rounded-full border border-cocoa/20 bg-white px-5 py-3 text-center text-cocoa placeholder:text-cocoa-soft focus:border-honey focus:outline-2 focus:outline-honey"
         />
         {message ? (
-          <p role="alert" className="error">
+          <p role="alert" className="text-danger">
             {message}
           </p>
         ) : null}
-        <button type="submit">{t.passwordScreen.submit}</button>
+        <button
+          type="submit"
+          className="cursor-pointer rounded-full bg-honey px-5 py-3 font-bold text-cocoa shadow-soft"
+        >
+          {t.passwordScreen.submit}
+        </button>
       </form>
     </main>
   );

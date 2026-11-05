@@ -16,7 +16,7 @@ export function Timeline({
 }) {
   return (
     <>
-      <ol className="timeline-chain">
+      <ol className="mx-auto max-w-[520px] pb-6">
         {memories.map((memory, index) => (
           <li key={memory.id}>
             {index > 0 ? <TimelineGap days={daysApart(memories[index - 1], memory)} /> : null}

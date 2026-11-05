@@ -6,6 +6,7 @@ import { LayoutSection } from "@/components/layout/LayoutSection";
 import { MediaUpload } from "@/components/admin/MediaUpload";
 import { MemoryForm } from "@/components/admin/MemoryForm";
 import { OneOffOccasionsSection } from "@/components/occasions/OneOffOccasionsSection";
+import { adminHeading, adminPage, adminTitle, backLink } from "@/components/ui";
 import { getGallery, getMemory, suggestCities, suggestDateRange } from "@/gallery";
 import { t } from "@/strings";
 import { updateMemoryAction } from "../../actions";
@@ -31,11 +32,11 @@ export default async function EditMemoryPage({
   const citySuggestions = await suggestCities(storage);
 
   return (
-    <main className="admin">
-      <Link href="/admin" className="back-link">
+    <main className={adminPage}>
+      <Link href="/admin" className={backLink}>
         ← {t.admin.backToAdmin}
       </Link>
-      <h1>{t.admin.editMemory}</h1>
+      <h1 className={adminTitle}>{t.admin.editMemory}</h1>
       <section>
         <MemoryForm
           key={memory.id}
@@ -46,16 +47,16 @@ export default async function EditMemoryPage({
           suggestedRange={suggestDateRange(memory.media)}
         />
       </section>
-      <section className="admin-media">
-        <div className="section-heading">
-          <h2>{t.media.heading}</h2>
+      <section className="mt-8">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className={adminHeading}>{t.media.heading}</h2>
           <MediaUpload memoryId={memory.id} />
         </div>
         <AdminMediaList memory={memory} />
       </section>
       <LayoutSection memory={memory} />
       <OneOffOccasionsSection memory={memory} />
-      <section className="danger-zone">
+      <section className="mt-8 border-t border-cocoa/15 pt-4">
         <DeleteMemoryButton memoryId={memory.id} />
       </section>
     </main>

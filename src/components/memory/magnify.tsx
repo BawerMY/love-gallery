@@ -55,7 +55,11 @@ export function Magnifiable({ item, position, children }: Target & { children: R
   if (!open) throw new Error("Magnifiable must be used inside MagnifyProvider");
   const press = useLongPress(() => open({ item, position }));
   return (
-    <div className="magnifiable" {...press}>
+    // No text selection, drag or iOS callout; touch-action stays default so the page still scrolls.
+    <div
+      className="size-full cursor-zoom-in select-none [-webkit-touch-callout:none] [&_:is(img,video)]:[-webkit-user-drag:none]"
+      {...press}
+    >
       {children}
     </div>
   );

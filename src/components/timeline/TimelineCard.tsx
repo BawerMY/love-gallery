@@ -10,12 +10,12 @@ import { TimelineCardCover } from "./TimelineCardCover";
  */
 export function TimelineCard({ memory, occasions }: { memory: Memory; occasions: Occasion[] }) {
   return (
-    <Link href={`/memories/${memory.id}`} className="timeline-card">
+    <Link href={`/memories/${memory.id}`} className="block overflow-hidden rounded-card bg-white no-underline shadow-soft">
       <TimelineCardCover memory={memory} />
-      <div className="timeline-card-body">
-        <h2>{memory.title ?? t.timeline.untitled}</h2>
-        <p className="cities">{formatCities(memory.cities)}</p>
-        <p className="date-range">{formatDateRange(memory.startDay, memory.endDay)}</p>
+      <div className="px-4 pt-3 pb-4">
+        <h2 className="mb-1 text-xl font-semibold italic">{memory.title ?? t.timeline.untitled}</h2>
+        <p className="font-bold text-amber">{formatCities(memory.cities)}</p>
+        <p className="text-cocoa-soft">{formatDateRange(memory.startDay, memory.endDay)}</p>
         <OccasionBadges occasions={occasions} />
       </div>
     </Link>

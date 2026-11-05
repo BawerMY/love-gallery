@@ -5,7 +5,7 @@ import { deleteYearlyOccasionAction } from "@/app/admin/actions";
 import type { YearlyOccasion } from "@/gallery";
 import { t } from "@/strings";
 import { ConfirmDeleteButton } from "../admin/ConfirmDeleteButton";
-import styles from "./occasions.module.css";
+import { occasionItem, occasionSummary, secondaryButton } from "../ui";
 import { YearlyOccasionForm } from "./YearlyOccasionForm";
 
 /** One Yearly occasion on the Admin page, with its edit form and a confirmed delete. */
@@ -13,11 +13,11 @@ export function YearlyOccasionItem({ occasion }: { occasion: YearlyOccasion }) {
   const [mode, setMode] = useState<"view" | "edit" | "delete">("view");
 
   return (
-    <li className={styles.item}>
-      <div className={styles.summary}>
-        <span>
+    <li className={occasionItem}>
+      <div className={occasionSummary}>
+        <span className="flex min-w-0 flex-1 flex-col">
           <strong>{occasion.name}</strong>
-          <small>
+          <small className="text-cocoa-soft">
             {t.occasions.dayMonth(occasion.month, occasion.day)}
             {occasion.firstYear ? ` · ${t.occasions.sinceYear(occasion.firstYear)}` : null}
           </small>
@@ -25,7 +25,7 @@ export function YearlyOccasionItem({ occasion }: { occasion: YearlyOccasion }) {
         {mode === "view" ? (
           <button
             type="button"
-            className="secondary"
+            className={secondaryButton}
             aria-label={t.occasions.editYearly(occasion.name)}
             onClick={() => setMode("edit")}
           >

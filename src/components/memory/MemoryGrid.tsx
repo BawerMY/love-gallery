@@ -14,11 +14,14 @@ export function MemoryGrid({ memory }: { memory: Memory }) {
   if (!items.length) return null;
 
   return (
-    <div className="memory-grid">
+    <div className="@container [--grid-gap:4px]">
       <MagnifyProvider memoryId={memory.id}>
-        <ol className="memory-grid-cells">
+        <ol
+          // Square cells: a row is as tall as a column is wide.
+          className="grid auto-rows-[calc((100cqi_-_2_*_var(--grid-gap))_/_3)] grid-cols-3 gap-(--grid-gap)"
+        >
           {items.map((item, index) => (
-            <li key={item.id} className="memory-grid-cell" style={cellStyle(item.cell)}>
+            <li key={item.id} className="relative overflow-hidden rounded-sm bg-butter" style={cellStyle(item.cell)}>
               <Magnifiable item={item} position={index + 1}>
                 <MediaTile memoryId={memory.id} item={item} position={index + 1} />
               </Magnifiable>

@@ -13,7 +13,7 @@ export function PhotoTile({ memoryId, item, position }: Props) {
   return (
     // A plain <img>: Media comes from the session-protected Media route, not next/image.
     <img
-      className="media-tile"
+      className="block size-full object-cover"
       src={mediaPath(memoryId, small ? item.files.thumbnail : item.files.display)}
       alt={t.media.photoAlt(position)}
       width={item.width}

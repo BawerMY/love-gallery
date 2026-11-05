@@ -1,6 +1,7 @@
 "use client";
 
 import { t } from "@/strings";
+import { field, secondaryButton } from "../ui";
 
 type Props = {
   cities: string[];
@@ -22,17 +23,18 @@ export function CityList({ cities, onChange, suggestions }: Props) {
   }
 
   return (
-    <fieldset className="city-list">
-      <legend>{t.admin.citiesLabel}</legend>
+    <fieldset className="my-2 flex flex-col gap-2">
+      <legend className="mb-2">{t.admin.citiesLabel}</legend>
       <datalist id="city-suggestions">
         {suggestions.map((city) => (
           <option key={city} value={city} />
         ))}
       </datalist>
-      <ol>
+      <ol className="flex flex-col gap-2">
         {cities.map((city, index) => (
-          <li key={index}>
+          <li key={index} className="flex gap-2">
             <input
+              className={`${field} flex-1`}
               name="city"
               list="city-suggestions"
               aria-label={t.admin.cityLabel(index + 1)}
@@ -44,6 +46,7 @@ export function CityList({ cities, onChange, suggestions }: Props) {
             {index > 0 ? (
               <button
                 type="button"
+                className={secondaryButton}
                 aria-label={t.admin.moveCityUp(index + 1)}
                 title={t.admin.moveCityUp(index + 1)}
                 onClick={() => moveUp(index)}
@@ -54,6 +57,7 @@ export function CityList({ cities, onChange, suggestions }: Props) {
             {cities.length > 1 ? (
               <button
                 type="button"
+                className={secondaryButton}
                 aria-label={t.admin.removeCity(index + 1)}
                 title={t.admin.removeCity(index + 1)}
                 onClick={() => onChange(cities.filter((_, i) => i !== index))}
@@ -64,7 +68,7 @@ export function CityList({ cities, onChange, suggestions }: Props) {
           </li>
         ))}
       </ol>
-      <button type="button" className="secondary" onClick={() => onChange([...cities, ""])}>
+      <button type="button" className={`${secondaryButton} self-start`} onClick={() => onChange([...cities, ""])}>
         {t.admin.addCity}
       </button>
     </fieldset>

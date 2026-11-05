@@ -1,5 +1,6 @@
 import { Timeline } from "@/components/timeline/Timeline";
 import { getGallery, listTimeline, listYearlyOccasions } from "@/gallery";
+import { page } from "@/components/ui";
 import { t } from "@/strings";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +14,9 @@ export default async function TimelinePage() {
   ]);
 
   return (
-    <main className="timeline">
+    <main className={page}>
       {memories.length === 0 ? (
-        <p className="empty">{t.timeline.empty}</p>
+        <p className="mt-[40vh] text-center text-cocoa-soft">{t.timeline.empty}</p>
       ) : (
         <Timeline memories={memories} yearlyOccasions={yearlyOccasions} />
       )}

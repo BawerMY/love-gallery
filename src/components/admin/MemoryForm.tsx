@@ -4,7 +4,11 @@ import { useActionState, useState } from "react";
 import type { FormState } from "@/app/admin/actions";
 import type { Memory } from "@/gallery";
 import { t } from "@/strings";
+import { button, errorText, field, formStack, quietText, secondaryButton } from "../ui";
 import { CityList } from "./CityList";
+
+/** One of the side-by-side start and end day fields. */
+const dateColumn = "flex min-w-0 flex-1 flex-col gap-2";
 
 type Props = {
   /** The Memory being edited, or nothing when creating one. */
@@ -41,16 +45,17 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
 
   return (
     <form
-      className="memory-form"
+      className={formStack}
       action={(form) => {
         setEdited(false);
         return formAction(form);
       }}
     >
       <label htmlFor="memory-title">
-        {t.admin.titleLabel} <small>({t.admin.titleHint})</small>
+        {t.admin.titleLabel} <small className="text-cocoa-soft">({t.admin.titleHint})</small>
       </label>
       <input
+        className={field}
         id="memory-title"
         name="title"
         value={title}
@@ -59,10 +64,11 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
 
       <CityList cities={cities} onChange={change(setCities)} suggestions={citySuggestions} />
 
-      <div className="date-fields">
-        <div>
+      <div className="flex gap-3">
+        <div className={dateColumn}>
           <label htmlFor="memory-start">{t.admin.startDayLabel}</label>
           <input
+            className={field}
             id="memory-start"
             name="startDay"
             type="date"
@@ -71,9 +77,10 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
             onChange={(event) => changeStartDay(event.target.value)}
           />
         </div>
-        <div>
+        <div className={dateColumn}>
           <label htmlFor="memory-end">{t.admin.endDayLabel}</label>
           <input
+            className={field}
             id="memory-end"
             name="endDay"
             type="date"
@@ -87,11 +94,11 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
 
       {suggestedRange &&
       (suggestedRange.startDay !== startDay || suggestedRange.endDay !== endDay) ? (
-        <p className="date-suggestion">
+        <p className="flex flex-wrap items-center gap-2 text-cocoa-soft">
           <span>{t.media.suggestedDateRange(suggestedRange.startDay, suggestedRange.endDay)}</span>
           <button
             type="button"
-            className="secondary"
+            className={secondaryButton}
             onClick={() => {
               change(setStartDay)(suggestedRange.startDay);
               setEndDay(suggestedRange.endDay);
@@ -103,9 +110,10 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
       ) : null}
 
       <label htmlFor="memory-note">
-        {t.admin.noteLabel} <small>({t.admin.titleHint})</small>
+        {t.admin.noteLabel} <small className="text-cocoa-soft">({t.admin.titleHint})</small>
       </label>
       <textarea
+        className={field}
         id="memory-note"
         name="note"
         rows={4}
@@ -114,17 +122,17 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
       />
 
       {state.error ? (
-        <p role="alert" className="error">
+        <p role="alert" className={errorText}>
           {state.error}
         </p>
       ) : null}
       {state.saved && !edited && !pending ? (
-        <p role="status" className="saved">
+        <p role="status" className={quietText}>
           {t.admin.saved}
         </p>
       ) : null}
 
-      <button type="submit" disabled={pending}>
+      <button type="submit" className={button} disabled={pending}>
         {pending ? t.admin.saving : t.admin.save}
       </button>
     </form>

@@ -68,6 +68,21 @@ test("tells search engines not to index any response", async ({ request, page })
   expect(timeline!.headers()["x-robots-tag"]).toBe("noindex");
 });
 
+test("shows the Giulia ♥ Bawer wordmark in handwriting on the password screen", async ({ page }) => {
+  await page.goto("/accesso");
+
+  const wordmark = page.getByText("Giulia ♥ Bawer");
+  await expect(wordmark).toBeVisible();
+  // The handwriting font has loaded and is the one in use, not a fallback.
+  const font = await wordmark.evaluate(async (element) => {
+    await document.fonts.ready;
+    const family = getComputedStyle(element).fontFamily.split(",")[0].trim();
+    return { family, loaded: document.fonts.check(`1em ${family}`) };
+  });
+  expect(font.family).toMatch(/Caveat/);
+  expect(font.loaded).toBe(true);
+});
+
 test("makes a client wait after too many wrong passwords, even for the right one", async ({ page }) => {
   // Its own address, so the wait doesn't hold up the other tests.
   await page.setExtraHTTPHeaders({ "X-Real-IP": "203.0.113.42" });

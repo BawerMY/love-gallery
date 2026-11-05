@@ -10,6 +10,9 @@ import { SoundOffIcon, SoundOnIcon } from "./VideoTile";
 
 type Props = { memoryId: string; item: MediaItem; position: number; onClose: () => void };
 
+/** The round ✕ and sound buttons over the dark backdrop. */
+const roundButton = "grid size-10 cursor-pointer place-items-center rounded-full bg-white/15 p-0 text-white";
+
 /** How far down, in CSS pixels, a swipe must travel to close the modal. */
 const SWIPE_CLOSE = 80;
 
@@ -77,7 +80,8 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
   return (
     <dialog
       ref={dialog}
-      className="magnify"
+      // Fills the screen over a dark backdrop, and takes every touch for the swipe down.
+      className="fixed inset-0 m-0 size-full max-h-none max-w-none touch-none overflow-hidden overscroll-contain border-0 bg-transparent p-0 text-white select-none [-webkit-touch-callout:none] backdrop:bg-black/92"
       aria-label={label}
       onCancel={(event) => {
         event.preventDefault();
@@ -88,7 +92,7 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
     >
       <div
         ref={stage}
-        className="magnify-stage"
+        className="grid size-full place-items-center px-3 pt-14 pb-6"
         onClick={(event) => {
           if (event.target === event.currentTarget && pressedBackdrop.current) close();
         }}
@@ -97,7 +101,7 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
           <MagnifiedVideo ref={video} memoryId={memoryId} item={item} position={position} start={start} />
         ) : (
           <img
-            className="magnify-media"
+            className="block h-auto max-h-[calc(100dvh_-_80px)] w-auto max-w-full object-contain [-webkit-user-drag:none]"
             src={mediaPath(memoryId, MEDIA_KINDS[item.kind].still(item.files))}
             alt={MEDIA_KINDS[item.kind].alt(position)}
             width={item.width}
@@ -106,7 +110,7 @@ export function MagnifyModal({ memoryId, item, position, onClose }: Props) {
           />
         )}
       </div>
-      <button type="button" className="magnify-close" aria-label={t.magnify.close} title={t.magnify.close} onClick={close}>
+      <button type="button" className={`${roundButton} absolute top-2.5 right-2.5`} aria-label={t.magnify.close} title={t.magnify.close} onClick={close}>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M6 6l12 12M18 6 6 18" />
         </svg>
@@ -150,10 +154,10 @@ function MagnifiedVideo({ ref, memoryId, item, position, start }: VideoProps) {
   const poster = MEDIA_KINDS[item.kind].poster(item.files);
   const soundLabel = unmuted ? t.media.mute(position) : t.media.unmute(position);
   return (
-    <div className="magnify-video">
+    <div className="flex max-w-full flex-col items-stretch gap-2">
       <video
         ref={ref}
-        className="magnify-media"
+        className="block h-auto max-h-[calc(100dvh_-_140px)] w-auto max-w-full object-contain [-webkit-user-drag:none]"
         src={mediaPath(memoryId, item.files.display)}
         poster={poster && mediaPath(memoryId, poster)}
         aria-label={MEDIA_KINDS[item.kind].alt(position)}
@@ -167,10 +171,10 @@ function MagnifiedVideo({ ref, memoryId, item, position, start }: VideoProps) {
         onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
         onDurationChange={(event) => setDuration(event.currentTarget.duration)}
       />
-      <div className="magnify-controls">
+      <div className="flex items-center gap-2.5">
         <input
           type="range"
-          className="magnify-progress"
+          className="m-0 h-8 min-w-0 flex-1 accent-honey"
           aria-label={t.magnify.progress}
           min={0}
           max={Number.isFinite(duration) ? duration : 0}
@@ -184,7 +188,7 @@ function MagnifiedVideo({ ref, memoryId, item, position, start }: VideoProps) {
         />
         <button
           type="button"
-          className="magnify-sound"
+          className={roundButton}
           aria-label={soundLabel}
           title={soundLabel}
           onClick={() => setUnmuted(unmuted ? null : item.id)}

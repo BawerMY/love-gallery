@@ -4,8 +4,8 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest: Themes are stored on Yearly and One-off occasions; Neutro is the default; unknown keys are rejected.
-- [ ] Vitest: a `database.json` from before this change loads with every Occasion treated as Neutro.
-- [ ] Playwright: setting a Theme on an Occasion in the Admin page shows the badge with that `data-theme`.
+- [x] Vitest: Themes are stored on Yearly and One-off occasions; Neutro is the default; unknown keys are rejected.
+- [x] Vitest: a `database.json` from before this change loads with every Occasion treated as Neutro.
+- [x] Playwright: setting a Theme on an Occasion in the Admin page shows the badge with that `data-theme`.

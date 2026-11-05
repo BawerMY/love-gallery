@@ -22,12 +22,12 @@ function memory(startDay: string, endDay: string): Memory {
   return { id: "m", cities: ["Roma"], startDay: parseDay(startDay), endDay: parseDay(endDay), oneOffOccasions: [], media: [] };
 }
 
-const capodanno: YearlyOccasion = { id: "capodanno", name: "Capodanno", month: 1, day: 1 };
+const capodanno: YearlyOccasion = { id: "capodanno", name: "Capodanno", month: 1, day: 1, theme: "neutro" };
 
 describe("Yearly occasions of a Memory", () => {
   it("match a Date range that crosses the new year", () => {
     expect(occasionsOfMemory(memory("2024-12-30", "2025-01-02"), [capodanno])).toEqual([
-      { id: "capodanno", kind: "yearly", name: "Capodanno", day: "2025-01-01" },
+      { id: "capodanno", kind: "yearly", name: "Capodanno", day: "2025-01-01", theme: "neutro" },
     ]);
   });
 
@@ -36,16 +36,16 @@ describe("Yearly occasions of a Memory", () => {
   });
 
   it("on 29 February match only in leap years", () => {
-    const bisestile: YearlyOccasion = { id: "bisestile", name: "Giorno bisestile", month: 2, day: 29 };
+    const bisestile: YearlyOccasion = { id: "bisestile", name: "Giorno bisestile", month: 2, day: 29, theme: "neutro" };
     expect(occasionsOfMemory(memory("2025-02-27", "2025-03-02"), [bisestile])).toEqual([]);
     expect(occasionsOfMemory(memory("2024-02-27", "2024-03-02"), [bisestile])).toEqual([
-      { id: "bisestile", kind: "yearly", name: "Giorno bisestile", day: "2024-02-29" },
+      { id: "bisestile", kind: "yearly", name: "Giorno bisestile", day: "2024-02-29", theme: "neutro" },
     ]);
   });
 
   it("are listed by day, whatever order they were added in", () => {
-    const natale: YearlyOccasion = { id: "natale", name: "Natale", month: 12, day: 25 };
-    const vigilia: YearlyOccasion = { id: "vigilia", name: "Vigilia", month: 12, day: 24 };
+    const natale: YearlyOccasion = { id: "natale", name: "Natale", month: 12, day: 25, theme: "neutro" };
+    const vigilia: YearlyOccasion = { id: "vigilia", name: "Vigilia", month: 12, day: 24, theme: "neutro" };
     const occasions = occasionsOfMemory(memory("2024-12-23", "2025-01-02"), [capodanno, natale, vigilia]);
     expect(occasions.map((occasion) => occasion.day)).toEqual(["2024-12-24", "2024-12-25", "2025-01-01"]);
   });
@@ -57,6 +57,7 @@ describe("Yearly occasions of a Memory", () => {
       month: 6,
       day: 14,
       firstYear: 2023,
+      theme: "neutro",
     };
 
     it("are not matched before the first year", () => {
@@ -65,13 +66,13 @@ describe("Yearly occasions of a Memory", () => {
 
     it("are not numbered on the very first year", () => {
       expect(occasionsOfMemory(memory("2023-06-14", "2023-06-14"), [anniversario])).toEqual([
-        { id: "anniversario", kind: "yearly", name: "anniversario", day: "2023-06-14" },
+        { id: "anniversario", kind: "yearly", name: "anniversario", day: "2023-06-14", theme: "neutro" },
       ]);
     });
 
     it("are numbered by the years since the first year", () => {
       expect(occasionsOfMemory(memory("2025-06-13", "2025-06-15"), [anniversario])).toEqual([
-        { id: "anniversario", kind: "yearly", name: "anniversario", day: "2025-06-14", number: 2 },
+        { id: "anniversario", kind: "yearly", name: "anniversario", day: "2025-06-14", number: 2, theme: "neutro" },
       ]);
     });
   });
@@ -88,12 +89,12 @@ describe("managing Yearly occasions", () => {
     expect(await listYearlyOccasions(storage)).toEqual([valentino]);
     const saved = (await getMemory(storage, san.id))!;
     expect(occasionsOfMemory(saved, await listYearlyOccasions(storage))).toEqual([
-      { id: valentino.id, kind: "yearly", name: "San Valentino", day: "2024-02-14" },
+      { id: valentino.id, kind: "yearly", name: "San Valentino", day: "2024-02-14", theme: "neutro" },
     ]);
     expect(await readDatabaseFile(dataDir)).toEqual({
       version: 1,
       memories: [{ ...san }],
-      yearlyOccasions: [{ id: valentino.id, name: "San Valentino", month: 2, day: 14 }],
+      yearlyOccasions: [{ id: valentino.id, name: "San Valentino", month: 2, day: 14, theme: "neutro" }],
     });
   });
 
@@ -109,7 +110,7 @@ describe("managing Yearly occasions", () => {
     expect((await listYearlyOccasions(storage)).map((o) => o.name)).toEqual(["anniversario", "Natale"]);
 
     const edited = await updateYearlyOccasion(storage, anniversario.id, { name: "anniversario", month: 6, day: 15 });
-    expect(edited).toEqual({ id: anniversario.id, name: "anniversario", month: 6, day: 15 });
+    expect(edited).toEqual({ id: anniversario.id, name: "anniversario", month: 6, day: 15, theme: "neutro" });
 
     await deleteYearlyOccasion(storage, natale.id);
     expect(await listYearlyOccasions(storage)).toEqual([edited]);
@@ -144,12 +145,12 @@ describe("One-off occasions", () => {
     const laurea = await addOneOffOccasion(storage, viaggio.id, { name: " Laurea di Anna ", day: "2025-01-02" });
     const primo = await addOneOffOccasion(storage, viaggio.id, { name: "Primo bagno", day: "2024-12-30" });
 
-    expect(laurea).toEqual({ id: laurea.id, name: "Laurea di Anna", day: "2025-01-02" });
+    expect(laurea).toEqual({ id: laurea.id, name: "Laurea di Anna", day: "2025-01-02", theme: "neutro" });
     const saved = (await getMemory(storage, viaggio.id))!;
     expect(occasionsOfMemory(saved, [capodanno])).toEqual([
-      { id: primo.id, kind: "one-off", name: "Primo bagno", day: "2024-12-30" },
-      { id: "capodanno", kind: "yearly", name: "Capodanno", day: "2025-01-01" },
-      { id: laurea.id, kind: "one-off", name: "Laurea di Anna", day: "2025-01-02" },
+      { id: primo.id, kind: "one-off", name: "Primo bagno", day: "2024-12-30", theme: "neutro" },
+      { id: "capodanno", kind: "yearly", name: "Capodanno", day: "2025-01-01", theme: "neutro" },
+      { id: laurea.id, kind: "one-off", name: "Laurea di Anna", day: "2025-01-02", theme: "neutro" },
     ]);
     expect(await readDatabaseFile(dataDir)).toMatchObject({
       memories: [{ id: viaggio.id, oneOffOccasions: [laurea, primo] }],

@@ -7,7 +7,9 @@ import {
   type FormState,
 } from "@/app/admin/actions";
 import type { YearlyOccasion } from "@/gallery";
+import { DEFAULT_THEME, type ThemeKey } from "@/gallery/themes";
 import { t } from "@/strings";
+import { ThemeSelect } from "../themes/ThemeSelect";
 import { button, errorText, field, formStack, quietText, secondaryButton } from "../ui";
 
 /** One of the side-by-side day and month fields. */
@@ -20,13 +22,14 @@ type Props = {
   onDone?: () => void;
 };
 
-/** The name, day, month and optional first year of a Yearly occasion. */
+/** The name, day, month, optional first year and Theme of a Yearly occasion. */
 export function YearlyOccasionForm({ occasion, onDone }: Props) {
   const id = useId();
   const [name, setName] = useState(occasion?.name ?? "");
   const [day, setDay] = useState(occasion ? String(occasion.day) : "");
   const [month, setMonth] = useState(occasion ? String(occasion.month) : "1");
   const [firstYear, setFirstYear] = useState(occasion?.firstYear ? String(occasion.firstYear) : "");
+  const [theme, setTheme] = useState<ThemeKey>(occasion?.theme ?? DEFAULT_THEME);
   const [edited, setEdited] = useState(false);
 
   const [state, formAction, pending] = useActionState(
@@ -40,6 +43,7 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
         setDay("");
         setMonth("1");
         setFirstYear("");
+        setTheme(DEFAULT_THEME);
       }
       return result;
     },
@@ -107,6 +111,8 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
         value={firstYear}
         onChange={change(setFirstYear)}
       />
+
+      <ThemeSelect id={`${id}-theme`} value={theme} onChange={change((value) => setTheme(value as ThemeKey))} />
 
       {state.error ? (
         <p role="alert" className={errorText}>

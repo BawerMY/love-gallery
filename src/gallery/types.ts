@@ -4,6 +4,7 @@
  */
 
 import type { Day } from "./days";
+import type { ThemeKey } from "./themes";
 
 export type { Day };
 
@@ -11,6 +12,8 @@ export type OneOffOccasion = {
   id: string;
   name: string;
   day: Day;
+  /** Neutro when missing from `database.json` (see `openStorage`). */
+  theme: ThemeKey;
 };
 
 export type MediaCell = {
@@ -66,6 +69,8 @@ export type YearlyOccasion = {
   month: number;
   day: number;
   firstYear?: number;
+  /** Neutro when missing from `database.json` (see `openStorage`). */
+  theme: ThemeKey;
 };
 
 export const DATABASE_VERSION = 1;

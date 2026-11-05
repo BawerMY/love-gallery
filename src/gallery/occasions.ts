@@ -4,6 +4,7 @@ import { dayOf, isDay } from "./days";
 import { GalleryError } from "./errors";
 import { findMemory } from "./find-memory";
 import type { Storage } from "./storage";
+import { cleanThemeKey, type ThemeKey } from "./themes";
 import type { Day, Memory, OneOffOccasion, YearlyOccasion } from "./types";
 
 /** What the Curator fills in for a Yearly occasion on the Admin page. */
@@ -12,6 +13,8 @@ export type YearlyOccasionInput = {
   month: number;
   day: number;
   firstYear?: number;
+  /** A Theme key; Neutro when left out. */
+  theme?: string;
 };
 
 /** Every Yearly occasion, in calendar order (January first), then by name. */
@@ -60,7 +63,7 @@ export async function deleteYearlyOccasion(storage: Storage, id: string): Promis
   });
 }
 
-/** Trims the name and checks the day, month and first year. 29 February is allowed. */
+/** Trims the name and checks the day, month, first year and Theme. 29 February is allowed. */
 function cleanYearlyInput(input: YearlyOccasionInput): Omit<YearlyOccasion, "id"> {
   const name = input.name.trim();
   const { month, day, firstYear } = input;
@@ -72,7 +75,8 @@ function cleanYearlyInput(input: YearlyOccasionInput): Omit<YearlyOccasion, "id"
   if (firstYear !== undefined && (!Number.isInteger(firstYear) || firstYear < 1 || firstYear > 9999)) {
     throw new GalleryError(t.occasions.invalidFirstYear);
   }
-  return { name, month, day, ...(firstYear !== undefined && { firstYear }) };
+  const theme = cleanThemeKey(input.theme);
+  return { name, month, day, ...(firstYear !== undefined && { firstYear }), theme };
 }
 
 /** What the Curator fills in for a One-off occasion on a Memory's Admin page. */
@@ -80,6 +84,8 @@ export type OneOffOccasionInput = {
   name: string;
   /** As typed: checked here. */
   day: string;
+  /** A Theme key; Neutro when left out. */
+  theme?: string;
 };
 
 /** Adds a One-off occasion to a Memory. Its day must be inside the Memory's Date range. */
@@ -91,12 +97,13 @@ export async function addOneOffOccasion(
   const name = input.name.trim();
   const day = input.day.trim();
   if (!name) throw new GalleryError(t.occasions.noName);
+  const theme = cleanThemeKey(input.theme);
   return storage.update((db) => {
     const memory = findMemory(db, memoryId);
     if (!isDay(day) || day < memory.startDay || day > memory.endDay) {
       throw new GalleryError(t.occasions.oneOffOutsideRange);
     }
-    const occasion: OneOffOccasion = { id: randomUUID(), name, day };
+    const occasion: OneOffOccasion = { id: randomUUID(), name, day, theme };
     memory.oneOffOccasions.push(occasion);
     return occasion;
   });
@@ -129,6 +136,7 @@ export type Occasion = {
   day: Day;
   /** For a Yearly occasion with a first year: how many years since then (1 or more). */
   number?: number;
+  theme: ThemeKey;
 };
 
 /**
@@ -138,11 +146,12 @@ export type Occasion = {
  * One-off occasions are merged into the same list before sorting.
  */
 export function occasionsOfMemory(memory: Memory, yearlyOccasions: YearlyOccasion[]): Occasion[] {
-  const occasions: Occasion[] = memory.oneOffOccasions.map(({ id, name, day }) => ({
+  const occasions: Occasion[] = memory.oneOffOccasions.map(({ id, name, day, theme }) => ({
     id,
     kind: "one-off",
     name,
     day,
+    theme,
   }));
   const firstYear = Number(memory.startDay.slice(0, 4));
   const lastYear = Number(memory.endDay.slice(0, 4));
@@ -158,6 +167,7 @@ export function occasionsOfMemory(memory: Memory, yearlyOccasions: YearlyOccasio
         name: yearly.name,
         day,
         ...(number > 0 && { number }),
+        theme: yearly.theme,
       });
     }
   }

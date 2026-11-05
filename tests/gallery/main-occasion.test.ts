@@ -94,6 +94,40 @@ describe("a Memory's Main occasion and Theme", () => {
     expect(await effective(storage, memory.id)).toEqual({ main: "Capodanno", theme: "capodanno" });
   });
 
+  it("forgets the choice when the chosen one is removed from the Memory, so adding it back doesn't bring the choice back", async () => {
+    const { storage, memory, capodanno } = await inverno();
+    await chooseMainOccasion(storage, memory.id, capodanno.id);
+
+    await removeOccasionFromMemory(storage, memory.id, capodanno.id);
+    await addOccasionToMemory(storage, memory.id, capodanno.id);
+
+    expect(await effective(storage, memory.id)).toEqual({ main: "Natale", theme: "natale" });
+    expect((await getMemory(storage, memory.id))!.mainOccasionId).toBeUndefined();
+  });
+
+  it("forgets the choice on every Memory when the chosen one is turned Neutro, so giving it a Theme again doesn't bring the choice back", async () => {
+    const { storage, memory, natale, capodanno } = await inverno();
+    const other = await createMemory(storage, { cities: ["Roma"], startDay: "2024-12-24", endDay: "2025-01-02" });
+    for (const occasion of [natale, capodanno]) await addOccasionToMemory(storage, other.id, occasion.id);
+    await chooseMainOccasion(storage, memory.id, capodanno.id);
+    await chooseMainOccasion(storage, other.id, capodanno.id);
+
+    await updateOccasion(storage, capodanno.id, { name: "Capodanno", theme: "neutro" });
+    await updateOccasion(storage, capodanno.id, { name: "Capodanno", theme: "capodanno" });
+
+    expect(await effective(storage, memory.id)).toEqual({ main: "Natale", theme: "natale" });
+    expect(await effective(storage, other.id)).toEqual({ main: "Natale", theme: "natale" });
+  });
+
+  it("keeps the choice when the chosen one is renamed or given another Theme that isn't Neutro", async () => {
+    const { storage, memory, capodanno } = await inverno();
+    await chooseMainOccasion(storage, memory.id, capodanno.id);
+
+    await updateOccasion(storage, capodanno.id, { name: "Fine anno", theme: "anniversario" });
+
+    expect(await effective(storage, memory.id)).toEqual({ main: "Fine anno", theme: "anniversario" });
+  });
+
   it("gives the default look, with no Main occasion, when no Occasion is themed", async () => {
     const storage = openStorage(await makeDataDir());
     const memory = await createMemory(storage, { cities: ["Roma"], startDay: "2025-05-01", endDay: "2025-05-03" });

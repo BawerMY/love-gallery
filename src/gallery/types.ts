@@ -64,8 +64,8 @@ export type Memory = {
   occasionIds: string[];
   /**
    * The id of the Occasion the Curator chose as Main occasion, if any; missing
-   * means "not chosen" (see `themeOfMemory`). It is ignored, not removed,
-   * while it doesn't apply, e.g. after its Occasion turned Neutro.
+   * means "not chosen" (see `themeOfMemory`). It is removed when its Occasion
+   * is taken off the Memory, deleted from the list or turned Neutro.
    */
   mainOccasionId?: string;
   media: MediaItem[];

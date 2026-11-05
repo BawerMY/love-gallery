@@ -3,7 +3,7 @@ import { LOCALE, t } from "../strings";
 import { GalleryError } from "./errors";
 import { findMemory } from "./find-memory";
 import type { Storage } from "./storage";
-import { cleanThemeKey } from "./themes";
+import { cleanThemeKey, DEFAULT_THEME } from "./themes";
 import type { Database, Memory, Occasion } from "./types";
 
 /** What the Curator fills in for an Occasion on the Admin page. */
@@ -30,13 +30,20 @@ export async function createOccasion(storage: Storage, input: OccasionInput): Pr
   });
 }
 
-/** Renames an Occasion or changes its Theme; every Memory that has it shows the change. A Theme left out is Neutro. */
+/**
+ * Renames an Occasion or changes its Theme; every Memory that has it shows the
+ * change. A Theme left out is Neutro. Turned Neutro, it stops being the Main
+ * occasion of any Memory that chose it, as it has no Theme left to give.
+ */
 export async function updateOccasion(storage: Storage, id: string, input: OccasionInput): Promise<Occasion> {
   const fields = cleanOccasionInput(input);
   return storage.update((db) => {
     const occasion = findOccasion(db, id);
     refuseTakenName(db, fields.name, id);
     Object.assign(occasion, fields);
+    if (occasion.theme === DEFAULT_THEME) {
+      for (const memory of db.memories) forgetMainOccasion(memory, id);
+    }
     return { ...occasion };
   });
 }
@@ -51,7 +58,7 @@ export async function deleteOccasion(storage: Storage, id: string): Promise<numb
     const uses = countOccasionUses(db.memories, id);
     for (const memory of db.memories) {
       memory.occasionIds = memory.occasionIds.filter((occasionId) => occasionId !== id);
-      if (memory.mainOccasionId === id) delete memory.mainOccasionId;
+      forgetMainOccasion(memory, id);
     }
     return uses;
   });
@@ -88,13 +95,17 @@ export async function createOccasionOnMemory(storage: Storage, memoryId: string,
   });
 }
 
-/** Takes an Occasion off a Memory. It stays in the list and on every other Memory. */
+/**
+ * Takes an Occasion off a Memory (dropping it as its Main occasion too). It
+ * stays in the list and on every other Memory.
+ */
 export async function removeOccasionFromMemory(storage: Storage, memoryId: string, occasionId: string): Promise<void> {
   await storage.update((db) => {
     const memory = findMemory(db, memoryId);
     const index = memory.occasionIds.indexOf(occasionId);
     if (index < 0) throw new GalleryError(t.occasions.notOnMemory);
     memory.occasionIds.splice(index, 1);
+    forgetMainOccasion(memory, occasionId);
   });
 }
 
@@ -123,6 +134,11 @@ export async function setOccasionOrder(storage: Storage, memoryId: string, occas
 export function occasionsOfMemory(memory: Memory, occasions: Occasion[]): Occasion[] {
   const byId = new Map(occasions.map((occasion) => [occasion.id, occasion]));
   return memory.occasionIds.flatMap((id) => byId.get(id) ?? []);
+}
+
+/** Goes back to choosing the Memory's Main occasion automatically if it had chosen this Occasion. */
+function forgetMainOccasion(memory: Memory, occasionId: string) {
+  if (memory.mainOccasionId === occasionId) delete memory.mainOccasionId;
 }
 
 function findOccasion(db: Database, id: string): Occasion {

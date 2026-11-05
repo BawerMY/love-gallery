@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { readingOrder, type Memory } from "@/gallery";
-import { RevealOnScroll } from "../motion/RevealOnScroll";
+import { Reveal } from "../motion/Reveal";
 import { Magnifiable, MagnifyProvider } from "./magnify";
 import { MediaTile } from "./MediaTile";
 
@@ -16,7 +16,7 @@ export function MemoryGrid({ memory }: { memory: Memory }) {
   if (!items.length) return null;
 
   return (
-    <RevealOnScroll className="@container [--grid-gap:6px]">
+    <Reveal className="@container [--grid-gap:6px]">
       <MagnifyProvider memoryId={memory.id}>
         <ol
           // Square cells: a row is as tall as a column is wide.
@@ -37,7 +37,7 @@ export function MemoryGrid({ memory }: { memory: Memory }) {
           ))}
         </ol>
       </MagnifyProvider>
-    </RevealOnScroll>
+    </Reveal>
   );
 }
 

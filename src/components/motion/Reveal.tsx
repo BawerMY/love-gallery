@@ -24,7 +24,12 @@ export function Reveal({ children, className }: { children: ReactNode; className
       },
       { threshold: 0.12 },
     );
-    root.querySelectorAll("[data-reveal]").forEach((element) => observer.observe(element));
+    for (const element of root.querySelectorAll<HTMLElement>("[data-reveal]")) {
+      // Already on screen: shown at once, so it doesn't flicker out and back in.
+      const box = element.getBoundingClientRect();
+      if (box.top < window.innerHeight && box.bottom > 0) element.dataset.revealed = "";
+      else observer.observe(element);
+    }
     // Only now hide what hasn't been seen yet, so nothing stays hidden if this never runs.
     root.dataset.revealReady = "";
     return () => observer.disconnect();

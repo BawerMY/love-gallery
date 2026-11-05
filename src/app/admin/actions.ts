@@ -8,6 +8,7 @@ import {
   chooseMainOccasion,
   createMemory,
   createYearlyOccasion,
+  decodeMainOccasion,
   deleteMedia,
   deleteMemory,
   deleteOneOffOccasion,
@@ -17,7 +18,6 @@ import {
   saveLayout,
   updateMemory,
   updateYearlyOccasion,
-  type MainOccasionRef,
   type MediaCell,
   type MemoryInput,
   type YearlyOccasionInput,
@@ -136,15 +136,11 @@ export async function addOneOffOccasionAction(memoryId: string, _state: FormStat
 }
 
 /**
- * Chooses a Memory's Main occasion from the selector's value, `kind:id`
- * (e.g. `yearly:natale`); an empty value goes back to automatic.
+ * Chooses a Memory's Main occasion from the selector's value (see
+ * `encodeMainOccasion`); an empty value goes back to automatic.
  */
 export async function chooseMainOccasionAction(memoryId: string, value: string): Promise<FormState> {
-  const separator = value.indexOf(":");
-  const kind = value.slice(0, separator);
-  const ref: MainOccasionRef | undefined =
-    kind === "yearly" || kind === "one-off" ? { kind, id: value.slice(separator + 1) } : undefined;
-  return save(() => chooseMainOccasion(storage(), memoryId, ref));
+  return save(() => chooseMainOccasion(storage(), memoryId, decodeMainOccasion(value)));
 }
 
 export async function deleteOneOffOccasionAction(memoryId: string, occasionId: string): Promise<void> {

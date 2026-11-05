@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { chooseMainOccasionAction, type FormState } from "@/app/admin/actions";
 import type { Memory, Occasion } from "@/gallery";
+import { encodeMainOccasion } from "@/gallery/types";
 import { t } from "@/strings";
 import { errorText, field, formStack, quietText } from "../ui";
 
@@ -12,9 +13,6 @@ type Props = {
   occasions: Occasion[];
 };
 
-/** How an Occasion is sent to `chooseMainOccasionAction`: `kind:id`. */
-const valueOf = (ref: Pick<Occasion, "kind" | "id">) => `${ref.kind}:${ref.id}`;
-
 /**
  * The "Occasione principale" selector of a Memory's Admin page: "Automatica"
  * first, then each Occasion once, by day. Saved as soon as it changes.
@@ -22,14 +20,14 @@ const valueOf = (ref: Pick<Occasion, "kind" | "id">) => `${ref.kind}:${ref.id}`;
  */
 export function MainOccasionSelect({ memory, occasions }: Props) {
   // A Yearly occasion can fall more than once in a long Date range: list it once.
-  const options = [...new Map(occasions.map((occasion) => [valueOf(occasion), occasion])).values()];
-  const [value, setValue] = useState(memory.mainOccasion ? valueOf(memory.mainOccasion) : "");
+  const options = [...new Map(occasions.map((occasion) => [encodeMainOccasion(occasion), occasion])).values()];
+  const [value, setValue] = useState(memory.mainOccasion ? encodeMainOccasion(memory.mainOccasion) : "");
   const [state, setState] = useState<FormState>({});
   const [pending, startTransition] = useTransition();
 
   if (options.length < 2) return null;
   // A choice that no longer applies (its Occasion was deleted) counts as automatic, as in `themeOfMemory`.
-  const shown = options.some((occasion) => valueOf(occasion) === value) ? value : "";
+  const shown = options.some((occasion) => encodeMainOccasion(occasion) === value) ? value : "";
 
   function change(next: string) {
     setValue(next);
@@ -51,7 +49,7 @@ export function MainOccasionSelect({ memory, occasions }: Props) {
       >
         <option value="">{t.occasions.mainOccasionAutomatic}</option>
         {options.map((occasion) => (
-          <option key={valueOf(occasion)} value={valueOf(occasion)}>
+          <option key={encodeMainOccasion(occasion)} value={encodeMainOccasion(occasion)}>
             {occasion.name}
           </option>
         ))}

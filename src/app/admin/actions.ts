@@ -105,6 +105,7 @@ function readYearlyOccasionForm(form: FormData): YearlyOccasionInput {
     month: Number(form.get("month")),
     day: Number(form.get("day")),
     ...(firstYear && { firstYear: Number(firstYear) }),
+    theme: String(form.get("theme") ?? ""),
   };
 }
 
@@ -127,6 +128,7 @@ export async function addOneOffOccasionAction(memoryId: string, _state: FormStat
     addOneOffOccasion(storage(), memoryId, {
       name: String(form.get("name") ?? ""),
       day: String(form.get("day") ?? ""),
+      theme: String(form.get("theme") ?? ""),
     }),
   );
 }

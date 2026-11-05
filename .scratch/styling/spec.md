@@ -44,7 +44,7 @@ Occasions get **Themes**: built-in looks such as San Valentino, Natale or Annive
 15. As the Partner, I want each entry to show its Theme as a thick coloured stripe on its left edge and a soft background tint, so that special Memories stand out as I scroll.
 
 ### Memory page
-16. As the Partner, I want a Memory to open with a centred title page: the dates in small amber capitals, the title in large serif, the Cities in italic, the badges, and the note in handwriting as a quote, so that each Memory begins like a chapter.
+16. As the Partner, I want a Memory to open with a centred title page: the dates in small capitals in the Theme's accent colour (amber for Neutro), the title in large serif, the Cities in italic, the badges, and the note in handwriting as a quote, so that each Memory begins like a chapter.
 17. As the Partner, I want the title page decorated by its Theme, with motif dividers, a coloured edge at the top and bottom, and faint motifs in the corners, so that a Christmas Memory feels like Christmas.
 18. As the Partner, I want Media tiles with small 6px gaps and 12px rounded corners, so that the grid looks soft and tidy.
 19. As the Partner, I want photos never tinted or covered by a Theme, so that they always look as they were taken.
@@ -70,11 +70,11 @@ Occasions get **Themes**: built-in looks such as San Valentino, Natale or Annive
 
 - **Tailwind CSS v4, full migration.** The global stylesheet and both CSS modules become Tailwind utility classes, with design tokens defined in `@theme`. The colour palette is limited to the project's tokens (the default palette is cleared), so stray colours can't creep in. When the migration is done, there's only one way of styling in the codebase.
 - **Tokens** (from the prototype):
-  - colours: cream `#FBF6EF` (page), cocoa `#3B2A2F` (text), a softer cocoa for secondary text, butter `#FBEFCF` (surfaces), honey `#E9B44C` (shapes only), amber `#9A6A12` (yellow as text), and the heart red `#C8374D` (wordmark heart only)
+  - colours: cream `#FBF6EF` (page), cocoa `#3B2A2F` (text), a softer cocoa for secondary text, butter `#FBEFCF` (surfaces), honey `#E9B44C` (shapes only), amber `#9A6A12` (yellow as text), the heart red `#C8374D` (the wordmark heart, and errors and delete buttons through a `danger` token), and plain white (Admin surfaces) and black (video controls)
   - radii: 16px for cards, 12px for tiles
   - one soft shadow
   - a heart-pulse animation
-- **Fonts** through `next/font/google`: Fraunces (display: titles, italic on the Timeline), Caveat (hand: the wordmark, rail markers, days apart, notes) and Nunito (body). They're exposed as Tailwind font tokens.
+- **Fonts** through `next/font/google`: Fraunces (display: titles, italic on the Timeline), Caveat (hand: the wordmark, rail markers, days apart, notes) and Nunito (body). They're exposed as Tailwind font tokens and use `display: block`, so text never shows in a fallback font that then changes.
 - **Themes are built into the code, not data.** A single module defines the six Themes: Neutro, Anniversario, San Valentino, Natale, Capodanno and Compleanno. Adding a Theme is a code change. Each Theme defines:
   - its Italian label and its motif (heart, snowflake, star or confetti) with motif colours
   - the entry stripe (a colour or gradient) and the entry tint
@@ -142,4 +142,4 @@ Occasions get **Themes**: built-in looks such as San Valentino, Natale or Annive
 
 - Prototype C's screenshots are on disk (`timeline-C.png` and `memory-natale-C.png`) in the session scratchpad. The code is on branch `prototype/styling`.
 - In the prototype, the global stylesheet wasn't in a CSS layer, so it overrode Tailwind. The full migration removes that conflict.
-- The only red in the palette outside the San Valentino and Natale Themes is the wordmark heart.
+- The only red in the palette outside the San Valentino and Natale Themes is the heart red, used for the wordmark heart and for errors.

@@ -1,52 +1,43 @@
-import { LOCALE } from "./format";
-
-const dayMonth = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "long", timeZone: "UTC" });
-
-/** Occasions: their badges and the Yearly occasions section of the Admin page. */
+/** Occasions: their badges, the "Occasioni" section of the Admin page and a Memory's Occasions. */
 export const occasions = {
-  /** E.g. "14 febbraio". 2024 is a leap year, so 29 February works too. */
-  dayMonth: (month: number, day: number) => dayMonth.format(Date.UTC(2024, month - 1, day)),
-  /** A badge: the name, numbered when the Yearly occasion has passed its first year. */
-  badge: (name: string, number?: number) => (number ? `${number}° ${name}` : name),
   badgesLabel: "Ricorrenze",
-  yearlyHeading: "Ricorrenze annuali",
-  noYearly: "Non hai ancora aggiunto nessuna ricorrenza annuale.",
-  newYearly: "Nuova ricorrenza annuale",
-  editYearly: (name: string) => `Modifica «${name}»`,
+  heading: "Occasioni",
+  none: "Non hai ancora aggiunto nessuna occasione.",
+  newOccasion: "Nuova occasione",
+  editOccasion: (name: string) => `Modifica «${name}»`,
   nameLabel: "Nome",
-  dayLabel: "Giorno",
-  monthLabel: "Mese",
-  firstYearLabel: "Primo anno",
-  firstYearHint: "Facoltativo: per numerarla, es. «2° anniversario»",
   add: "Aggiungi",
   save: "Salva",
   saving: "Salvataggio…",
-  saved: "Ricorrenza salvata.",
+  saved: "Occasione salvata.",
   edit: "Modifica",
   cancel: "Annulla",
   delete: "Elimina",
-  deleteConfirm: (name: string) => `Eliminare la ricorrenza «${name}» da tutti i ricordi?`,
-  sinceYear: (year: number) => `dal ${year}`,
   deleteLabel: (name: string) => `Elimina «${name}»`,
-  noName: "Dai un nome alla ricorrenza.",
-  invalidDay: "Scegli un giorno e un mese che esistono.",
-  invalidFirstYear: "Il primo anno non è valido.",
-  notFound: "Questa ricorrenza non esiste più.",
+  /** The confirmation before deleting an Occasion from the list, naming how many Memories have it. */
+  deleteConfirm: (name: string, memories: number) =>
+    memories === 0
+      ? `Eliminare l'occasione «${name}»? Nessun ricordo la usa.`
+      : memories === 1
+        ? `Eliminare l'occasione «${name}»? Verrà tolta da 1 ricordo.`
+        : `Eliminare l'occasione «${name}»? Verrà tolta da ${memories} ricordi.`,
+  noName: "Dai un nome all'occasione.",
+  duplicateName: (name: string) => `C'è già un'occasione chiamata «${name}».`,
+  notFound: "Questa occasione non esiste più.",
+  notOnMemory: "Questo ricordo non ha questa occasione.",
+  alreadyOnMemory: "Questo ricordo ha già questa occasione.",
   themeLabel: "Tema",
   unknownTheme: "Scegli uno dei temi della lista.",
-  oneOffHeading: "Ricorrenze di questo ricordo",
+  memoryHeading: "Occasioni di questo ricordo",
+  memoryNone: "Questo ricordo non ha ancora occasioni.",
+  pickLabel: "Aggiungi un'occasione",
+  pickPlaceholder: "Scegli un'occasione…",
+  pickNoneLeft: "Questo ricordo ha già tutte le occasioni della lista.",
+  remove: "Togli",
+  removeLabel: (name: string) => `Togli «${name}»`,
   mainOccasionLabel: "Occasione principale",
   mainOccasionHint: "Dà il suo tema al ricordo",
   mainOccasionAutomatic: "Automatica",
   mainOccasionSaved: "Occasione principale salvata.",
-  /** Beside a Neutro Occasion in the selector, which can't be chosen. */
-  mainOccasionNeutro: (name: string) => `${name} (tema Neutro)`,
-  mainOccasionNeutroRefused: "Una ricorrenza con tema Neutro non può dare il tema al ricordo.",
-  noOneOff: "Questo ricordo non ha ricorrenze proprie.",
-  newOneOff: "Nuova ricorrenza del ricordo",
-  oneOffDayLabel: "Data",
-  oneOffDeleteConfirm: (name: string) => `Eliminare la ricorrenza «${name}» da questo ricordo?`,
-  oneOffOutsideRange: "Scegli un giorno compreso nelle date del ricordo.",
-  rangeExcludesOneOff: (name: string) =>
-    `La ricorrenza «${name}» resterebbe fuori dalle nuove date. Spostala o eliminala prima.`,
+  mainOccasionNeutroRefused: "Un'occasione con tema Neutro non può dare il tema al ricordo.",
 };

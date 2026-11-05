@@ -1,9 +1,8 @@
-import { removeOccasionFromMemoryAction } from "@/app/admin/actions";
-import { occasionsOfMemory, THEMES, type Memory, type Occasion } from "@/gallery";
+import { occasionsOfMemory, type Memory, type Occasion } from "@/gallery";
 import { t } from "@/strings";
-import { Motif } from "../themes/Motif";
-import { adminHeading, emptyText, list, occasionItem, occasionSummary, quietText, secondaryButton } from "../ui";
+import { adminHeading, emptyText, quietText } from "../ui";
 import { OccasionPicker } from "./OccasionPicker";
+import { SortableOccasionList } from "./SortableOccasionList";
 
 type Props = {
   memory: Memory;
@@ -13,8 +12,8 @@ type Props = {
 
 /**
  * The section of a Memory's Admin page with its Occasions, in badge order,
- * each with a button to take it off this Memory only, and a picker of the
- * Occasions it doesn't have yet.
+ * to reorder by drag and drop, each with a button to take it off this Memory
+ * only, and a picker of the Occasions it doesn't have yet.
  */
 export function MemoryOccasionsSection({ memory, occasions }: Props) {
   const own = occasionsOfMemory(memory, occasions);
@@ -26,23 +25,7 @@ export function MemoryOccasionsSection({ memory, occasions }: Props) {
         {t.occasions.memoryHeading}
       </h2>
       {own.length ? (
-        <ul className={list}>
-          {own.map((occasion) => (
-            <li key={occasion.id} className={occasionItem} data-theme={occasion.theme}>
-              <div className={occasionSummary}>
-                <span className="flex min-w-0 flex-1 items-center gap-2">
-                  <Motif theme={THEMES[occasion.theme]} size={12} />
-                  <strong>{occasion.name}</strong>
-                </span>
-                <form action={removeOccasionFromMemoryAction.bind(null, memory.id, occasion.id)}>
-                  <button type="submit" className={secondaryButton} aria-label={t.occasions.removeLabel(occasion.name)}>
-                    {t.occasions.remove}
-                  </button>
-                </form>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <SortableOccasionList memoryId={memory.id} occasions={own} />
       ) : (
         <p className={emptyText}>{t.occasions.memoryNone}</p>
       )}

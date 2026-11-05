@@ -15,6 +15,7 @@ import {
   getGallery,
   removeOccasionFromMemory,
   saveLayout,
+  setOccasionOrder,
   updateMemory,
   updateOccasion,
   type MediaCell,
@@ -124,6 +125,11 @@ export async function addOccasionToMemoryAction(memoryId: string, _state: FormSt
 
 export async function removeOccasionFromMemoryAction(memoryId: string, occasionId: string): Promise<void> {
   await remove(() => removeOccasionFromMemory(storage(), memoryId, occasionId));
+}
+
+/** Sets a Memory's badge order: every one of its Occasion ids, in the new order. */
+export async function setOccasionOrderAction(memoryId: string, occasionIds: string[]): Promise<FormState> {
+  return save(() => setOccasionOrder(storage(), memoryId, occasionIds));
 }
 
 /** Chooses a Memory's Main occasion by its Occasion id; an empty value goes back to automatic. */

@@ -5,16 +5,24 @@ import { DeleteMemoryButton } from "@/components/admin/DeleteMemoryButton";
 import { LayoutSection } from "@/components/layout/LayoutSection";
 import { MediaUpload } from "@/components/admin/MediaUpload";
 import { MemoryForm } from "@/components/admin/MemoryForm";
+import { MainOccasionSelect } from "@/components/occasions/MainOccasionSelect";
 import { OneOffOccasionsSection } from "@/components/occasions/OneOffOccasionsSection";
 import { adminHeading, adminPage, adminTitle, backLink } from "@/components/ui";
-import { getGallery, getMemory, suggestCities, suggestDateRange } from "@/gallery";
+import {
+  getGallery,
+  getMemory,
+  listYearlyOccasions,
+  occasionsOfMemory,
+  suggestCities,
+  suggestDateRange,
+} from "@/gallery";
 import { t } from "@/strings";
 import { updateMemoryAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
 /**
- * The Admin page for one Memory. Its details come first, then its Media,
+ * The Admin page for one Memory. Its details (and its Main occasion) come first, then its Media,
  * then its Layout (with the cover) and its One-off occasions.
  */
 export default async function EditMemoryPage({
@@ -29,7 +37,7 @@ export default async function EditMemoryPage({
   const { storage } = getGallery();
   const memory = await getMemory(storage, id);
   if (!memory) notFound();
-  const citySuggestions = await suggestCities(storage);
+  const [citySuggestions, yearlyOccasions] = await Promise.all([suggestCities(storage), listYearlyOccasions(storage)]);
 
   return (
     <main className={adminPage}>
@@ -45,6 +53,12 @@ export default async function EditMemoryPage({
           citySuggestions={citySuggestions}
           saved={salvato === "1"}
           suggestedRange={suggestDateRange(memory.media)}
+        />
+        {/* Keyed by the Date range, so it restarts when the Occasions that apply change. */}
+        <MainOccasionSelect
+          key={`${memory.startDay}:${memory.endDay}`}
+          memory={memory}
+          occasions={occasionsOfMemory(memory, yearlyOccasions)}
         />
       </section>
       <section className="mt-8">

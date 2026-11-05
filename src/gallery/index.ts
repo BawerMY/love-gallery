@@ -24,3 +24,4 @@ export * from "./uploads";
 export * from "./serving";
 export * from "./themes";
 export * from "./occasions";
+export * from "./main-occasion";

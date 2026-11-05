@@ -60,8 +60,17 @@ export type Memory = {
   endDay: Day;
   coverMediaId?: string;
   oneOffOccasions: OneOffOccasion[];
+  /**
+   * The Occasion the Curator chose as Main occasion, if any; missing means
+   * "not chosen" (see `themeOfMemory`). It may no longer apply, e.g. after a
+   * Date range edit: it is then ignored, not removed.
+   */
+  mainOccasion?: MainOccasionRef;
   media: MediaItem[];
 };
+
+/** Points at an Occasion: a Yearly occasion by its id, a One-off occasion by its id within the Memory. */
+export type MainOccasionRef = { kind: "yearly" | "one-off"; id: string };
 
 export type YearlyOccasion = {
   id: string;

@@ -47,16 +47,22 @@ type SeedMemory = {
   cities: string[];
   startDay: string;
   endDay: string;
+  oneOffOccasions?: { id: string; name: string; day: string; theme?: string }[];
 };
 
-/** Writes these Memories (with no Media or Occasions) straight into `database.json`. */
-export async function seedMemories(memories: SeedMemory[]) {
+type SeedYearlyOccasion = { id: string; name: string; month: number; day: number; theme?: string };
+
+/**
+ * Writes these Memories (with no Media, and no One-off occasions unless
+ * given) and Yearly occasions straight into `database.json`.
+ */
+export async function seedMemories(memories: SeedMemory[], yearlyOccasions: SeedYearlyOccasion[] = []) {
   await writeFile(
     path.join(dataDir, "database.json"),
     JSON.stringify({
       version: 1,
-      memories: memories.map((memory) => ({ ...memory, oneOffOccasions: [], media: [] })),
-      yearlyOccasions: [],
+      memories: memories.map((memory) => ({ oneOffOccasions: [], ...memory, media: [] })),
+      yearlyOccasions,
     }),
   );
 }

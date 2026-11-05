@@ -1,4 +1,4 @@
-import { daysApart, occasionsOfMemory, type Memory, type YearlyOccasion } from "@/gallery";
+import { daysApart, occasionsOfMemory, themeOfMemory, type Memory, type YearlyOccasion } from "@/gallery";
 import { ScrollToBottom } from "./ScrollToBottom";
 import { TimelineCard } from "./TimelineCard";
 import { TimelineGap } from "./TimelineGap";
@@ -20,7 +20,11 @@ export function Timeline({
         {memories.map((memory, index) => (
           <li key={memory.id}>
             {index > 0 ? <TimelineGap days={daysApart(memories[index - 1], memory)} /> : null}
-            <TimelineCard memory={memory} occasions={occasionsOfMemory(memory, yearlyOccasions)} />
+            <TimelineCard
+              memory={memory}
+              occasions={occasionsOfMemory(memory, yearlyOccasions)}
+              theme={themeOfMemory(memory, yearlyOccasions).theme}
+            />
           </li>
         ))}
       </ol>

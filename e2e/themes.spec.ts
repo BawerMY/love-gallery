@@ -24,12 +24,12 @@ test("the Curator gives Occasions a Theme in the Admin page and each badge shows
   await oneOff.getByLabel("Nome").fill("Cena coi nonni");
   await oneOff.getByLabel("Data").fill("2025-12-26");
   await oneOff.getByRole("button", { name: "Aggiungi" }).click();
-  await expect(page.getByText("Cena coi nonni", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText("Cena coi nonni", { exact: true })).toBeVisible();
   await oneOff.getByLabel("Nome").fill("Compleanno di Giulia");
   await oneOff.getByLabel("Data").fill("2025-12-27");
   await oneOff.getByLabel("Tema").selectOption({ label: "Compleanno" });
   await oneOff.getByRole("button", { name: "Aggiungi" }).click();
-  await expect(page.getByText("Compleanno di Giulia", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText("Compleanno di Giulia", { exact: true })).toBeVisible();
 
   const expected = [
     ["Natale", "natale"],

@@ -71,7 +71,7 @@ test("the Curator adds and removes One-off occasions on a Memory, shown by day w
     await form.getByLabel("Nome").fill(name);
     await form.getByLabel("Data").fill(day);
     await form.getByRole("button", { name: "Aggiungi" }).click();
-    await expect(page.getByText(name, { exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText(name, { exact: true })).toBeVisible();
   }
   await expect(page.getByText("15 giugno 2025")).toBeVisible();
 
@@ -98,7 +98,7 @@ test("the Curator adds and removes One-off occasions on a Memory, shown by day w
   await page.goto("/admin/memories/estate");
   await page.getByRole("button", { name: "Elimina «Cena sul molo»" }).click();
   await page.getByRole("button", { name: "Sì, elimina" }).click();
-  await expect(page.getByText("Cena sul molo", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Ricorrenze di questo ricordo" }).getByText("Cena sul molo", { exact: true })).toHaveCount(0);
 
   await page.goto("/memories/estate");
   await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveText([

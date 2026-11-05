@@ -1,4 +1,4 @@
-import { daysApart, isSameMonth, occasionsOfMemory, themeOfMemory, type Memory, type YearlyOccasion } from "@/gallery";
+import { daysApart, isSameMonth, occasionsOfMemory, themeOfMemory, type Memory, type Occasion } from "@/gallery";
 import { Reveal } from "../motion/Reveal";
 import { rail, railLine } from "./rail";
 import { ScrollToBottom } from "./ScrollToBottom";
@@ -13,10 +13,10 @@ import { TimelineMonthMarker } from "./TimelineMonthMarker";
  */
 export function Timeline({
   memories,
-  yearlyOccasions,
+  occasions,
 }: {
   memories: Memory[];
-  yearlyOccasions: YearlyOccasion[];
+  occasions: Occasion[];
 }) {
   return (
     <>
@@ -33,8 +33,8 @@ export function Timeline({
                   <div className="pt-1 text-center">{newMonth ? <TimelineMonthMarker day={memory.startDay} /> : null}</div>
                   <TimelineCard
                     memory={memory}
-                    occasions={occasionsOfMemory(memory, yearlyOccasions)}
-                    themeKey={themeOfMemory(memory, yearlyOccasions).theme}
+                    occasions={occasionsOfMemory(memory, occasions)}
+                    themeKey={themeOfMemory(memory, occasions).theme}
                   />
                 </div>
               </li>

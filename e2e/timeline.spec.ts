@@ -20,10 +20,13 @@ test("the Timeline reads like a journal: month markers, themed entries and their
         cities: ["Torino"],
         startDay: "2025-12-24",
         endDay: "2025-12-27",
-        oneOffOccasions: [{ id: "cena", name: "Cena coi nonni", day: "2025-12-24" }],
+        occasionIds: ["cena", "natale"],
       },
     ],
-    [{ id: "natale", name: "Natale", month: 12, day: 25, theme: "natale" }],
+    [
+      { id: "natale", name: "Natale", theme: "natale" },
+      { id: "cena", name: "Cena coi nonni" },
+    ],
   );
   await page.goto("/");
 

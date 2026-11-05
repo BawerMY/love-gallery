@@ -5,7 +5,7 @@ import { MemoryHeader } from "@/components/memory/MemoryHeader";
 import { VideoPlaybackProvider } from "@/components/memory/playback";
 import { TopBar } from "@/components/TopBar";
 import { backLink, page } from "@/components/ui";
-import { getGallery, getMemory, listYearlyOccasions, occasionsOfMemory, themeOfMemory } from "@/gallery";
+import { getGallery, getMemory, listOccasions, occasionsOfMemory, themeOfMemory } from "@/gallery";
 import { t } from "@/strings";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +16,9 @@ export default async function MemoryPage({ params }: { params: Promise<{ id: str
   const { storage } = getGallery();
   const memory = await getMemory(storage, id);
   if (!memory) notFound();
-  const yearlyOccasions = await listYearlyOccasions(storage);
-  const occasions = occasionsOfMemory(memory, yearlyOccasions);
-  const { theme: themeKey } = themeOfMemory(memory, yearlyOccasions);
+  const allOccasions = await listOccasions(storage);
+  const occasions = occasionsOfMemory(memory, allOccasions);
+  const { theme: themeKey } = themeOfMemory(memory, allOccasions);
 
   return (
     <>

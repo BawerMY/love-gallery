@@ -3,24 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  addOneOffOccasion,
+  addOccasionToMemory,
   chooseCover,
   chooseMainOccasion,
   createMemory,
-  createYearlyOccasion,
-  decodeMainOccasion,
+  createOccasion,
   deleteMedia,
   deleteMemory,
-  deleteOneOffOccasion,
-  deleteYearlyOccasion,
+  deleteOccasion,
   GalleryError,
   getGallery,
+  removeOccasionFromMemory,
   saveLayout,
   updateMemory,
-  updateYearlyOccasion,
+  updateOccasion,
   type MediaCell,
   type MemoryInput,
-  type YearlyOccasionInput,
+  type OccasionInput,
 } from "@/gallery";
 import { t } from "@/strings";
 import { requireSession } from "../require-session";
@@ -98,53 +97,38 @@ export async function deleteMediaAction(memoryId: string, mediaId: string): Prom
   await remove(() => deleteMedia(storage(), memoryId, mediaId));
 }
 
-// Yearly occasions
+// Occasions
 
-function readYearlyOccasionForm(form: FormData): YearlyOccasionInput {
-  const firstYear = String(form.get("firstYear") ?? "").trim();
-  return {
-    name: String(form.get("name") ?? ""),
-    month: Number(form.get("month")),
-    day: Number(form.get("day")),
-    ...(firstYear && { firstYear: Number(firstYear) }),
-    theme: String(form.get("theme") ?? ""),
-  };
+function readOccasionForm(form: FormData): OccasionInput {
+  return { name: String(form.get("name") ?? ""), theme: String(form.get("theme") ?? "") };
 }
 
-export async function createYearlyOccasionAction(_state: FormState, form: FormData): Promise<FormState> {
-  return save(() => createYearlyOccasion(storage(), readYearlyOccasionForm(form)));
+export async function createOccasionAction(_state: FormState, form: FormData): Promise<FormState> {
+  return save(() => createOccasion(storage(), readOccasionForm(form)));
 }
 
-export async function updateYearlyOccasionAction(id: string, _state: FormState, form: FormData): Promise<FormState> {
-  return save(() => updateYearlyOccasion(storage(), id, readYearlyOccasionForm(form)));
+export async function updateOccasionAction(id: string, _state: FormState, form: FormData): Promise<FormState> {
+  return save(() => updateOccasion(storage(), id, readOccasionForm(form)));
 }
 
-export async function deleteYearlyOccasionAction(id: string): Promise<void> {
-  await remove(() => deleteYearlyOccasion(storage(), id));
+export async function deleteOccasionAction(id: string): Promise<void> {
+  await remove(() => deleteOccasion(storage(), id));
 }
 
-// One-off occasions
+// A Memory's Occasions
 
-export async function addOneOffOccasionAction(memoryId: string, _state: FormState, form: FormData): Promise<FormState> {
-  return save(() =>
-    addOneOffOccasion(storage(), memoryId, {
-      name: String(form.get("name") ?? ""),
-      day: String(form.get("day") ?? ""),
-      theme: String(form.get("theme") ?? ""),
-    }),
-  );
+/** Adds the Occasion picked in the form (`occasionId`) to a Memory. */
+export async function addOccasionToMemoryAction(memoryId: string, _state: FormState, form: FormData): Promise<FormState> {
+  return save(() => addOccasionToMemory(storage(), memoryId, String(form.get("occasionId") ?? "")));
 }
 
-/**
- * Chooses a Memory's Main occasion from the selector's value (see
- * `encodeMainOccasion`); an empty value goes back to automatic.
- */
-export async function chooseMainOccasionAction(memoryId: string, value: string): Promise<FormState> {
-  return save(() => chooseMainOccasion(storage(), memoryId, decodeMainOccasion(value)));
+export async function removeOccasionFromMemoryAction(memoryId: string, occasionId: string): Promise<void> {
+  await remove(() => removeOccasionFromMemory(storage(), memoryId, occasionId));
 }
 
-export async function deleteOneOffOccasionAction(memoryId: string, occasionId: string): Promise<void> {
-  await remove(() => deleteOneOffOccasion(storage(), memoryId, occasionId));
+/** Chooses a Memory's Main occasion by its Occasion id; an empty value goes back to automatic. */
+export async function chooseMainOccasionAction(memoryId: string, occasionId: string): Promise<FormState> {
+  return save(() => chooseMainOccasion(storage(), memoryId, occasionId || undefined));
 }
 
 // Layout and cover

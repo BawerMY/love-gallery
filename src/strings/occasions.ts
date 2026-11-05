@@ -33,6 +33,7 @@ export const occasions = {
   pickLabel: "Aggiungi un'occasione",
   pickPlaceholder: "Scegli un'occasione…",
   pickNoneLeft: "Questo ricordo ha già tutte le occasioni della lista.",
+  pickListEmpty: "La lista delle occasioni è vuota: aggiungine una nella pagina Admin.",
   remove: "Togli",
   removeLabel: (name: string) => `Togli «${name}»`,
   mainOccasionLabel: "Occasione principale",

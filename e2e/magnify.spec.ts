@@ -35,11 +35,11 @@ async function seedPhotoAndVideo() {
   await writeFile(
     path.join(dataDir, "database.json"),
     JSON.stringify({
-      version: 1,
+      version: 2,
       memories: [
-        { id: "milano", title: "Milano", cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-16", oneOffOccasions: [], media },
+        { id: "milano", title: "Milano", cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-16", occasionIds: [], media },
       ],
-      yearlyOccasions: [],
+      occasions: [],
     }),
   );
 }

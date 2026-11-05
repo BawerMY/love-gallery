@@ -4,33 +4,30 @@ import { useState, useTransition } from "react";
 import { chooseMainOccasionAction, type FormState } from "@/app/admin/actions";
 import type { Memory, Occasion } from "@/gallery";
 import { DEFAULT_THEME } from "@/gallery/themes";
-import { encodeMainOccasion } from "@/gallery/types";
 import { t } from "@/strings";
 import { errorText, field, formStack, quietText } from "../ui";
 
 type Props = {
   memory: Memory;
-  /** The Memory's Occasions, by day (see `occasionsOfMemory`). */
+  /** The Memory's Occasions, in badge order (see `occasionsOfMemory`). */
   occasions: Occasion[];
 };
 
 /**
  * The "Occasione principale" selector of a Memory's Admin page: "Automatica"
- * first, then each Occasion once, by day. Saved as soon as it changes.
- * Shown only when two or more Occasions apply. A Neutro Occasion is listed
- * but can't be chosen: it has no Theme to give (see `chooseMainOccasion`).
+ * first, then each non-Neutro Occasion in badge order (a Neutro one has no
+ * Theme to give). Saved as soon as it changes. Shown only when there's a real
+ * choice: two or more non-Neutro Occasions.
  */
 export function MainOccasionSelect({ memory, occasions }: Props) {
-  // A Yearly occasion can fall more than once in a long Date range: list it once.
-  const options = [...new Map(occasions.map((occasion) => [encodeMainOccasion(occasion), occasion])).values()];
-  const [value, setValue] = useState(memory.mainOccasion ? encodeMainOccasion(memory.mainOccasion) : "");
+  const options = occasions.filter((occasion) => occasion.theme !== DEFAULT_THEME);
+  const [value, setValue] = useState(memory.mainOccasionId ?? "");
   const [state, setState] = useState<FormState>({});
   const [pending, startTransition] = useTransition();
 
   if (options.length < 2) return null;
-  const isNeutro = (occasion: Occasion) => occasion.theme === DEFAULT_THEME;
-  // A choice that no longer applies (its Occasion was deleted, or is now Neutro) counts as automatic, as in `themeOfMemory`.
-  const shown = options.some((occasion) => !isNeutro(occasion) && encodeMainOccasion(occasion) === value) ? value : "";
+  // A choice that no longer applies (taken off the Memory, or now Neutro) counts as automatic, as in `themeOfMemory`.
+  const shown = options.some((occasion) => occasion.id === value) ? value : "";
 
   function change(next: string) {
     setValue(next);
@@ -52,8 +49,8 @@ export function MainOccasionSelect({ memory, occasions }: Props) {
       >
         <option value="">{t.occasions.mainOccasionAutomatic}</option>
         {options.map((occasion) => (
-          <option key={encodeMainOccasion(occasion)} value={encodeMainOccasion(occasion)} disabled={isNeutro(occasion)}>
-            {isNeutro(occasion) ? t.occasions.mainOccasionNeutro(occasion.name) : occasion.name}
+          <option key={occasion.id} value={occasion.id}>
+            {occasion.name}
           </option>
         ))}
       </select>

@@ -52,5 +52,28 @@ export function Motif({ theme, size = 14, color = theme.motifColors[0] }: Props)
           <rect x="16" y="17" width="5" height="3" rx="1" fill={pick(4)} transform="rotate(-35 18.5 18.5)" />
         </svg>
       );
+    case "egg":
+      return (
+        <svg {...svg}>
+          <path d="M12 2.5c-3.9 0-7 6.1-7 11 0 4.4 3 8 7 8s7-3.6 7-8c0-4.9-3.1-11-7-11Z" fill={color} />
+          <path d="M5.6 12.2 8.3 14l2.4-2 2.6 2 2.4-2 3.1 2" fill="none" stroke={pick(1)} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="17.6" r="1.2" fill={pick(1)} />
+        </svg>
+      );
+    case "paper-plane":
+      return (
+        <svg {...svg} fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round">
+          <path d="M21.5 3 2.5 10.6l7.1 3.2L21.5 3Z" fill={color} fillOpacity="0.25" />
+          <path d="M21.5 3 9.6 13.8l1.6 7.2 3.2-4.6L21.5 3Z" fill={color} fillOpacity="0.5" />
+          <path d="m9.6 13.8 4.8 2.6" />
+        </svg>
+      );
+    case "mountain":
+      return (
+        <svg {...svg}>
+          <path d="M1.5 20.5 9 7l4.2 7.2 2.3-3.7 7 10H1.5Z" fill={color} />
+          <path d="M9 7 6.6 11.3l1.3-.6 1.1 1 1.2-1 1.2.6L9 7Z" fill="#FFFFFF" fillOpacity="0.85" />
+        </svg>
+      );
   }
 }

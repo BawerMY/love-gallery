@@ -8,4 +8,7 @@ export const themes: Record<ThemeKey, string> = {
   natale: "Natale",
   capodanno: "Capodanno",
   compleanno: "Compleanno",
+  pasqua: "Pasqua",
+  viaggio: "Viaggio",
+  escursione: "Escursione",
 };

@@ -1,4 +1,4 @@
-import { expect, seedMemories, test } from "./fixtures";
+import { expect, memoryTitlePage, seedMemories, test } from "./fixtures";
 
 test("the Curator gives Occasions a Theme in the Admin page and each badge shows its own", async ({
   pageWithSession: page,
@@ -56,4 +56,42 @@ test("the Curator gives Occasions a Theme in the Admin page and each badge shows
 
   await page.goto("/memories/inverno");
   await expect(page.getByRole("listitem").filter({ hasText: "Natale" })).toHaveAttribute("data-theme", "capodanno");
+});
+
+test("the Pasqua, Viaggio and Escursione Themes show on badges, Timeline entries and title pages", async ({
+  pageWithSession: page,
+}) => {
+  const memories = [
+    { id: "aprile", title: "Aprile a Firenze", day: "2025-04-20", name: "Pasqua", theme: "pasqua" },
+    { id: "luglio", title: "Luglio a Lisbona", day: "2025-07-01", name: "Viaggio insieme", theme: "viaggio" },
+    { id: "settembre", title: "Settembre in Valle d'Aosta", day: "2025-09-01", name: "Escursione insieme", theme: "escursione" },
+  ];
+  await seedMemories(
+    memories.map(({ id, title, day }) => ({ id, title, cities: ["Torino"], startDay: day, endDay: day })),
+    memories.map(({ id, name, day, theme }) => ({
+      id,
+      name,
+      month: Number(day.slice(5, 7)),
+      day: Number(day.slice(8, 10)),
+      theme,
+    })),
+  );
+
+  await page.goto("/admin");
+  await expect(page.getByRole("form", { name: "Nuova ricorrenza annuale" }).getByLabel("Tema").getByRole("option")).toContainText([
+    "Pasqua",
+    "Viaggio",
+    "Escursione",
+  ]);
+
+  for (const { id, title, name, theme } of memories) {
+    await page.goto("/");
+    const entry = page.getByRole("link").filter({ hasText: title });
+    await expect(entry).toHaveAttribute("data-theme", theme);
+    await expect(entry.getByRole("listitem").filter({ hasText: name })).toHaveAttribute("data-theme", theme);
+
+    await page.goto(`/memories/${id}`);
+    await expect(memoryTitlePage(page)).toHaveAttribute("data-theme", theme);
+    await expect(page.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem")).toHaveAttribute("data-theme", theme);
+  }
 });

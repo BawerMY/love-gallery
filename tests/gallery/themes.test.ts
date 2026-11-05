@@ -42,9 +42,28 @@ describe("Themes on Yearly occasions", () => {
     expect((await listYearlyOccasions(storage))[0].theme).toBe("neutro");
   });
 
+  it("accept the Pasqua, Viaggio and Escursione Themes", async () => {
+    const dataDir = await makeDataDir();
+    const storage = openStorage(dataDir);
+
+    const pasqua = await createYearlyOccasion(storage, { name: "Pasqua", month: 4, day: 20, theme: "pasqua" });
+    const viaggio = await createYearlyOccasion(storage, { name: "Viaggio insieme", month: 7, day: 1, theme: "viaggio" });
+    const escursione = await createYearlyOccasion(storage, { name: "Escursione insieme", month: 9, day: 1 });
+    await updateYearlyOccasion(storage, escursione.id, { name: "Escursione insieme", month: 9, day: 1, theme: "escursione" });
+
+    expect([pasqua.theme, viaggio.theme]).toEqual(["pasqua", "viaggio"]);
+    expect(await readDatabaseFile(dataDir)).toMatchObject({
+      yearlyOccasions: [
+        { name: "Pasqua", theme: "pasqua" },
+        { name: "Viaggio insieme", theme: "viaggio" },
+        { name: "Escursione insieme", theme: "escursione" },
+      ],
+    });
+  });
+
   it("refuse, in Italian, a Theme that doesn't exist", async () => {
     const storage = openStorage(await makeDataDir());
-    await expect(createYearlyOccasion(storage, { name: "Pasqua", month: 4, day: 20, theme: "pasqua" })).rejects.toThrow(
+    await expect(createYearlyOccasion(storage, { name: "Ferragosto", month: 8, day: 15, theme: "ferragosto" })).rejects.toThrow(
       new GalleryError("Scegli uno dei temi della lista."),
     );
     const natale = await createYearlyOccasion(storage, { name: "Natale", month: 12, day: 25, theme: "natale" });

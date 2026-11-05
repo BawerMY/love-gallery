@@ -6,7 +6,7 @@ import { GalleryError } from "./errors";
  * `database.json`: adding a Theme is a code change. An Occasion stores only
  * the Theme's key.
  */
-export const THEME_KEYS = ["neutro", "anniversario", "san-valentino", "natale", "capodanno", "compleanno"] as const;
+export const THEME_KEYS = ["neutro", "anniversario", "san-valentino", "natale", "capodanno", "compleanno", "pasqua", "viaggio", "escursione"] as const;
 
 export type ThemeKey = (typeof THEME_KEYS)[number];
 
@@ -14,7 +14,7 @@ export type ThemeKey = (typeof THEME_KEYS)[number];
 export const DEFAULT_THEME: ThemeKey = "neutro";
 
 /** The small decoration a Theme repeats on badges, dividers and corners. */
-export type Motif = "heart" | "snowflake" | "star" | "confetti";
+export type Motif = "heart" | "snowflake" | "star" | "confetti" | "egg" | "paper-plane" | "mountain";
 
 export type Theme = {
   key: ThemeKey;
@@ -87,6 +87,33 @@ export const THEMES: Record<ThemeKey, Theme> = {
     tint: "#FCF9F3",
     titlePage: { background: "linear-gradient(160deg, #FBEFCF, #E7EEF8 70%, #E6F2EE)", text: "#3B2A2F", accent: "#5B3E99" },
     badge: { background: "#ECE5F8", text: "#563A93" },
+  },
+  pasqua: {
+    key: "pasqua",
+    motif: "egg",
+    motifColors: ["#8DBF7A", "#F2CF5B", "#F4E6A6"],
+    stripe: "linear-gradient(135deg, #A9D18E, #F2CF5B)",
+    tint: "#F7FAEE",
+    titlePage: { background: "linear-gradient(160deg, #EEF6E3, #FBF1C8)", text: "#2F3A26", accent: "#5E8A3E" },
+    badge: { background: "#E4F1D6", text: "#456B2C" },
+  },
+  viaggio: {
+    key: "viaggio",
+    motif: "paper-plane",
+    motifColors: ["#4F8FC9", "#A9CDEB"],
+    stripe: "linear-gradient(135deg, #7DB4E3, #3F7FBF)",
+    tint: "#F1F7FC",
+    titlePage: { background: "linear-gradient(160deg, #E6F1FA, #C9E1F4)", text: "#1F3247", accent: "#2F6CA8" },
+    badge: { background: "#DCEBF8", text: "#2A5F94" },
+  },
+  escursione: {
+    key: "escursione",
+    motif: "mountain",
+    motifColors: ["#3D6B45", "#8DAF7E"],
+    stripe: "linear-gradient(135deg, #3D6B45 60%, #8DAF7E)",
+    tint: "#F2F6F0",
+    titlePage: { background: "linear-gradient(160deg, #E5EEE1, #C9DBC3)", text: "#1F2E22", accent: "#33603B" },
+    badge: { background: "#3D6B45", text: "#F6F1E4" },
   },
 };
 

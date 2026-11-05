@@ -18,8 +18,6 @@ export type Motif = "heart" | "snowflake" | "star" | "confetti";
 
 export type Theme = {
   key: ThemeKey;
-  /** The Italian name shown in the Admin page's Theme selector. */
-  label: string;
   motif: Motif;
   /** The motif's colours: the first is the main one; confetti uses them all. */
   motifColors: string[];
@@ -38,7 +36,6 @@ const solid = (color: string) => `linear-gradient(${color}, ${color})`;
 export const THEMES: Record<ThemeKey, Theme> = {
   neutro: {
     key: "neutro",
-    label: "Neutro",
     motif: "heart",
     motifColors: ["#E9B44C"],
     stripe: solid("#F1E3C2"),
@@ -48,7 +45,6 @@ export const THEMES: Record<ThemeKey, Theme> = {
   },
   anniversario: {
     key: "anniversario",
-    label: "Anniversario",
     motif: "heart",
     motifColors: ["#E9B44C", "#C48E24"],
     stripe: "linear-gradient(135deg, #F2C866, #C48E24)",
@@ -58,7 +54,6 @@ export const THEMES: Record<ThemeKey, Theme> = {
   },
   "san-valentino": {
     key: "san-valentino",
-    label: "San Valentino",
     motif: "heart",
     motifColors: ["#C8374D", "#E58C9C"],
     stripe: solid("#C8374D"),
@@ -68,7 +63,6 @@ export const THEMES: Record<ThemeKey, Theme> = {
   },
   natale: {
     key: "natale",
-    label: "Natale",
     motif: "snowflake",
     motifColors: ["#2E6B4E", "#B3312E"],
     stripe: "linear-gradient(135deg, #2E6B4E 60%, #B3312E)",
@@ -78,7 +72,6 @@ export const THEMES: Record<ThemeKey, Theme> = {
   },
   capodanno: {
     key: "capodanno",
-    label: "Capodanno",
     motif: "star",
     motifColors: ["#D4A23A", "#F3D27A"],
     stripe: "linear-gradient(135deg, #1E2B55 55%, #D4A23A)",
@@ -88,7 +81,6 @@ export const THEMES: Record<ThemeKey, Theme> = {
   },
   compleanno: {
     key: "compleanno",
-    label: "Compleanno",
     motif: "confetti",
     motifColors: ["#E9B44C", "#E07A3A", "#8A6BC9", "#4F86C6", "#5BA89A"],
     stripe: "linear-gradient(90deg, #E9B44C, #E07A3A, #8A6BC9, #4F86C6, #5BA89A)",

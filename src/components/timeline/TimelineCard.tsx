@@ -11,17 +11,25 @@ import { TimelineCardCover } from "./TimelineCardCover";
  * `themeOfMemory`) as a thick left stripe and a soft tint, and carries it in
  * `data-theme`. It fades in the first time it's seen (see `Reveal`).
  */
-export function TimelineCard({ memory, occasions, theme }: { memory: Memory; occasions: Occasion[]; theme: ThemeKey }) {
-  const look = THEMES[theme];
+export function TimelineCard({
+  memory,
+  occasions,
+  themeKey,
+}: {
+  memory: Memory;
+  occasions: Occasion[];
+  themeKey: ThemeKey;
+}) {
+  const theme = THEMES[themeKey];
   return (
     <Link
       href={`/memories/${memory.id}`}
       className="relative block overflow-hidden rounded-card pl-2 text-cocoa no-underline shadow-soft"
-      style={{ backgroundColor: look.tint }}
-      data-theme={theme}
+      style={{ backgroundColor: theme.tint }}
+      data-theme={themeKey}
       data-reveal
     >
-      <span className="absolute inset-y-0 left-0 w-2" style={{ backgroundImage: look.stripe }} aria-hidden="true" />
+      <span className="absolute inset-y-0 left-0 w-2" style={{ backgroundImage: theme.stripe }} aria-hidden="true" />
       <TimelineCardCover memory={memory} />
       <div className="flex flex-col gap-1 px-4 pt-3 pb-4">
         <p className="m-0 text-[0.72rem] font-extrabold tracking-[0.14em] text-amber uppercase">

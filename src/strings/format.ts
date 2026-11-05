@@ -14,6 +14,10 @@ const dayMonthYear = new Intl.DateTimeFormat(LOCALE, {
 });
 const dayMonth = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "long", timeZone: "UTC" });
 const dayOnly = new Intl.DateTimeFormat(LOCALE, { day: "numeric", timeZone: "UTC" });
+const monthOnly = new Intl.DateTimeFormat(LOCALE, { month: "long", timeZone: "UTC" });
+
+/** "gennaio" to "dicembre": `MONTH_NAMES[month - 1]` for months 1 to 12. */
+export const MONTH_NAMES = Array.from({ length: 12 }, (_, index) => monthOnly.format(Date.UTC(2024, index, 1)));
 
 function toDate(day: string): Date {
   return new Date(`${day}T00:00:00Z`);

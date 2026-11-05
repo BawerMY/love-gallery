@@ -34,3 +34,18 @@ export function dayOf(year: number, month: number, day: number): Day | undefined
 function pad(value: number): string {
   return String(value).padStart(2, "0");
 }
+
+/** The year of `day`, e.g. 2025. */
+export function yearOf(day: Day): number {
+  return Number(day.slice(0, 4));
+}
+
+/** The month of `day`, 1 (January) to 12 (December). */
+export function monthOf(day: Day): number {
+  return Number(day.slice(5, 7));
+}
+
+/** Whether two Days fall in the same month of the same year. */
+export function isSameMonth(a: Day, b: Day): boolean {
+  return a.slice(0, 7) === b.slice(0, 7);
+}

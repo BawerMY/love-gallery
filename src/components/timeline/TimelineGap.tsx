@@ -13,7 +13,7 @@ export function TimelineGap({ days }: { days: number }) {
     <div className={`${rail} items-center py-3`}>
       <span className="mx-auto grid size-7 place-items-center rounded-full bg-cream" aria-hidden="true">
         <span className="inline-flex motion-safe:animate-heart-pulse">
-          <Motif kind="heart" size={15} colors={THEMES.neutro.motifColors} />
+          <Motif theme={THEMES.neutro} size={15} />
         </span>
       </span>
       <span className="font-hand text-[1.35rem] leading-none text-amber">{t.timeline.daysApart(days)}</span>

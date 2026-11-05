@@ -1,4 +1,4 @@
-import { daysApart, occasionsOfMemory, themeOfMemory, type Memory, type YearlyOccasion } from "@/gallery";
+import { daysApart, isSameMonth, occasionsOfMemory, themeOfMemory, type Memory, type YearlyOccasion } from "@/gallery";
 import { Reveal } from "../motion/Reveal";
 import { rail, railLine } from "./rail";
 import { ScrollToBottom } from "./ScrollToBottom";
@@ -25,7 +25,7 @@ export function Timeline({
         <ol className="relative m-0 list-none p-0">
           {memories.map((memory, index) => {
             const previous = memories[index - 1];
-            const newMonth = !previous || previous.startDay.slice(0, 7) !== memory.startDay.slice(0, 7);
+            const newMonth = !previous || !isSameMonth(previous.startDay, memory.startDay);
             return (
               <li key={memory.id}>
                 {previous ? <TimelineGap days={daysApart(previous, memory)} /> : null}
@@ -34,7 +34,7 @@ export function Timeline({
                   <TimelineCard
                     memory={memory}
                     occasions={occasionsOfMemory(memory, yearlyOccasions)}
-                    theme={themeOfMemory(memory, yearlyOccasions).theme}
+                    themeKey={themeOfMemory(memory, yearlyOccasions).theme}
                   />
                 </div>
               </li>

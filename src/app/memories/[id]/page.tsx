@@ -18,7 +18,7 @@ export default async function MemoryPage({ params }: { params: Promise<{ id: str
   if (!memory) notFound();
   const yearlyOccasions = await listYearlyOccasions(storage);
   const occasions = occasionsOfMemory(memory, yearlyOccasions);
-  const { theme } = themeOfMemory(memory, yearlyOccasions);
+  const { theme: themeKey } = themeOfMemory(memory, yearlyOccasions);
 
   return (
     <>
@@ -27,7 +27,7 @@ export default async function MemoryPage({ params }: { params: Promise<{ id: str
         <Link href="/" className={backLink}>
           ← {t.memory.backToTimeline}
         </Link>
-        <MemoryHeader memory={memory} occasions={occasions} theme={theme} />
+        <MemoryHeader memory={memory} occasions={occasions} themeKey={themeKey} />
         <VideoPlaybackProvider>
           <MemoryGrid memory={memory} />
         </VideoPlaybackProvider>

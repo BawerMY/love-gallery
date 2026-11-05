@@ -12,6 +12,7 @@ import { memory } from "./memory";
 import { memories } from "./memories";
 import { occasions } from "./occasions";
 import { passwordScreen } from "./password-screen";
+import { themes } from "./themes";
 import { timeline } from "./timeline";
 
 export const t = {
@@ -24,6 +25,7 @@ export const t = {
   memories,
   occasions,
   passwordScreen,
+  themes,
   timeline,
 };
 

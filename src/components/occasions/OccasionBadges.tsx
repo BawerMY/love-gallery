@@ -25,11 +25,7 @@ export function OccasionBadges({ occasions, className = "" }: { occasions: Occas
             data-theme={occasion.theme}
           >
             {/* A single-colour motif takes the badge's text colour, so it always stands out. */}
-            <Motif
-              kind={theme.motif}
-              size={11}
-              colors={theme.motif === "confetti" ? theme.motifColors : [theme.badge.text]}
-            />
+            <Motif theme={theme} size={11} color={theme.badge.text} />
             {t.occasions.badge(occasion.name, occasion.number)}
           </li>
         );

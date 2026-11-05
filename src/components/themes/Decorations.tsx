@@ -5,9 +5,7 @@ import { Motif } from "./Motif";
 /** A thin rule with three of the Theme's motifs in the middle, framing a title page. */
 export function MotifDivider({ theme, color }: { theme: Theme; color: string }) {
   const [first, second = first] = theme.motifColors;
-  const motif = (size: number, main: string) => (
-    <Motif kind={theme.motif} size={size} colors={theme.motif === "confetti" ? theme.motifColors : [main]} />
-  );
+  const motif = (size: number, main: string) => <Motif theme={theme} size={size} color={main} />;
   return (
     <div className="flex items-center justify-center gap-2.5" aria-hidden="true">
       <span className="h-px w-14 opacity-40" style={{ backgroundColor: color }} />
@@ -42,11 +40,7 @@ export function CornerMotifs({ theme }: { theme: Theme }) {
     <div key={index} className="pointer-events-none absolute h-14 w-[70px] opacity-30" style={corner} aria-hidden="true">
       {CLUSTER.map((motif, motifIndex) => (
         <span key={motifIndex} className="absolute" style={{ left: motif.left, top: motif.top }}>
-          <Motif
-            kind={theme.motif}
-            size={motif.size}
-            colors={theme.motif === "confetti" ? colors : [colors[motif.color % colors.length]]}
-          />
+          <Motif theme={theme} size={motif.size} color={colors[motif.color % colors.length]} />
         </span>
       ))}
     </div>

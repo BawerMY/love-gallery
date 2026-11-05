@@ -8,7 +8,7 @@ import {
 } from "@/app/admin/actions";
 import type { YearlyOccasion } from "@/gallery";
 import { DEFAULT_THEME, type ThemeKey } from "@/gallery/themes";
-import { t } from "@/strings";
+import { MONTH_NAMES, t } from "@/strings";
 import { ThemeSelect } from "../themes/ThemeSelect";
 import { button, errorText, field, formStack, quietText, secondaryButton } from "../ui";
 
@@ -88,7 +88,7 @@ export function YearlyOccasionForm({ occasion, onDone }: Props) {
         <div className={fieldColumn}>
           <label htmlFor={`${id}-month`}>{t.occasions.monthLabel}</label>
           <select className={field} id={`${id}-month`} name="month" value={month} onChange={change(setMonth)}>
-            {t.occasions.monthNames.map((monthName, index) => (
+            {MONTH_NAMES.map((monthName, index) => (
               <option key={monthName} value={index + 1}>
                 {monthName}
               </option>

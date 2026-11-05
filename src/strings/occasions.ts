@@ -1,12 +1,9 @@
 import { LOCALE } from "./format";
 
-const monthName = new Intl.DateTimeFormat(LOCALE, { month: "long", timeZone: "UTC" });
 const dayMonth = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "long", timeZone: "UTC" });
 
 /** Occasions: their badges and the Yearly occasions section of the Admin page. */
 export const occasions = {
-  /** "gennaio" to "dicembre", for months 1 to 12. */
-  monthNames: Array.from({ length: 12 }, (_, index) => monthName.format(Date.UTC(2024, index, 1))),
   /** E.g. "14 febbraio". 2024 is a leap year, so 29 February works too. */
   dayMonth: (month: number, day: number) => dayMonth.format(Date.UTC(2024, month - 1, day)),
   /** A badge: the name, numbered when the Yearly occasion has passed its first year. */

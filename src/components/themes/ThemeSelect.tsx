@@ -1,4 +1,4 @@
-import { THEME_KEYS, THEMES, type ThemeKey } from "@/gallery/themes";
+import { THEME_KEYS, type ThemeKey } from "@/gallery/themes";
 import { t } from "@/strings";
 import { field } from "../ui";
 
@@ -16,7 +16,7 @@ export function ThemeSelect({ id, value, onChange }: Props) {
       <select className={field} id={id} name="theme" value={value} onChange={onChange}>
         {THEME_KEYS.map((key) => (
           <option key={key} value={key}>
-            {THEMES[key].label}
+            {t.themes[key]}
           </option>
         ))}
       </select>

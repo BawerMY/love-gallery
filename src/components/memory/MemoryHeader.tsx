@@ -10,19 +10,27 @@ import { CornerMotifs, MotifDivider } from "../themes/Decorations";
  * above and below, the Theme's edge at the top and bottom, faint motifs in the
  * corners. It carries the Theme in `data-theme`.
  */
-export function MemoryHeader({ memory, occasions, theme }: { memory: Memory; occasions: Occasion[]; theme: ThemeKey }) {
-  const look = THEMES[theme];
-  const { background, text, accent } = look.titlePage;
+export function MemoryHeader({
+  memory,
+  occasions,
+  themeKey,
+}: {
+  memory: Memory;
+  occasions: Occasion[];
+  themeKey: ThemeKey;
+}) {
+  const theme = THEMES[themeKey];
+  const { background, text, accent } = theme.titlePage;
   return (
     <header
       className="relative mb-6 flex min-h-[56svh] flex-col items-center justify-center gap-4 overflow-hidden rounded-card px-8 py-14 text-center"
       style={{ background, color: text }}
-      data-theme={theme}
+      data-theme={themeKey}
     >
-      <span className="absolute inset-x-0 top-0 h-1.5" style={{ backgroundImage: look.stripe }} aria-hidden="true" />
-      <span className="absolute inset-x-0 bottom-0 h-1.5" style={{ backgroundImage: look.stripe }} aria-hidden="true" />
-      <CornerMotifs theme={look} />
-      <MotifDivider theme={look} color={accent} />
+      <span className="absolute inset-x-0 top-0 h-1.5" style={{ backgroundImage: theme.stripe }} aria-hidden="true" />
+      <span className="absolute inset-x-0 bottom-0 h-1.5" style={{ backgroundImage: theme.stripe }} aria-hidden="true" />
+      <CornerMotifs theme={theme} />
+      <MotifDivider theme={theme} color={accent} />
       <p className="text-xs font-extrabold tracking-[0.16em] text-balance uppercase" style={{ color: accent }}>
         {formatDateRange(memory.startDay, memory.endDay)}
       </p>
@@ -38,7 +46,7 @@ export function MemoryHeader({ memory, occasions, theme }: { memory: Memory; occ
           “{memory.note}”
         </p>
       ) : null}
-      <MotifDivider theme={look} color={accent} />
+      <MotifDivider theme={theme} color={accent} />
     </header>
   );
 }

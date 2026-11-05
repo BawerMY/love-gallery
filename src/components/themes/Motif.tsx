@@ -1,24 +1,28 @@
-import type { Motif as MotifKind } from "@/gallery/themes";
+import type { Theme } from "@/gallery/themes";
 
-/** The heart outline shared by the heart motif. */
-const HEART_PATH =
+/** The heart outline, shared by the heart motif and the Wordmark's heart. */
+export const HEART_PATH =
   "M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21Z";
 
 type Props = {
-  kind: MotifKind;
+  theme: Theme;
   /** Width and height in pixels. */
   size?: number;
-  /** The motif's colours: the first draws a single-colour motif, confetti cycles through them all. */
-  colors: string[];
+  /**
+   * The colour of a single-colour motif; the Theme's main motif colour when
+   * not given. Confetti ignores it and always cycles through all the Theme's
+   * motif colours.
+   */
+  color?: string;
 };
 
 /** One small decorative motif of a Theme, hidden from screen readers. */
-export function Motif({ kind, size = 14, colors }: Props) {
-  const color = colors[0];
+export function Motif({ theme, size = 14, color = theme.motifColors[0] }: Props) {
+  const colors = theme.motifColors;
   const pick = (index: number) => colors[index % colors.length];
   const svg = { viewBox: "0 0 24 24", width: size, height: size, "aria-hidden": true, className: "shrink-0" } as const;
 
-  switch (kind) {
+  switch (theme.motif) {
     case "heart":
       return (
         <svg {...svg}>

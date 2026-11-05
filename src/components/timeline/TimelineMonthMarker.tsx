@@ -1,5 +1,5 @@
-import type { Day } from "@/gallery";
-import { t } from "@/strings";
+import { monthOf, yearOf, type Day } from "@/gallery";
+import { MONTH_NAMES, t } from "@/strings";
 
 /**
  * The month and year on the Timeline's left rail, handwritten, beside the
@@ -7,8 +7,8 @@ import { t } from "@/strings";
  * it whole ("marzo 2025").
  */
 export function TimelineMonthMarker({ day }: { day: Day }) {
-  const month = t.occasions.monthNames[Number(day.slice(5, 7)) - 1];
-  const year = day.slice(0, 4);
+  const month = MONTH_NAMES[monthOf(day) - 1];
+  const year = String(yearOf(day));
   return (
     <p className="m-0 inline-flex flex-col items-center rounded-[10px] bg-cream p-1 font-hand leading-none">
       <span aria-hidden="true" className="text-[1.45rem] text-cocoa sm:text-[1.8rem]">

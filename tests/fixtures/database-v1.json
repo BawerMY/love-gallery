@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "yearlyOccasions": [
+    { "id": "y-anniversario", "name": "Il nostro anniversario", "month": 9, "day": 13, "firstYear": 2024, "theme": "anniversario" },
+    { "id": "y-compleanno-lei", "name": "Compleanno di lei", "month": 7, "day": 3, "theme": "compleanno" },
+    { "id": "y-san-valentino", "name": "San Valentino", "month": 2, "day": 14, "theme": "san-valentino" },
+    { "id": "y-natale", "name": "Natale", "month": 12, "day": 25, "theme": "natale" },
+    { "id": "y-capodanno", "name": "Capodanno", "month": 1, "day": 1, "theme": "capodanno" },
+    { "id": "y-compleanno-lui", "name": "Compleanno di lui", "month": 11, "day": 18, "theme": "compleanno" }
+  ],
+  "memories": [
+    { "id": "m1", "title": "Febbraio 2025", "cities": ["Milano"], "startDay": "2025-02-12", "endDay": "2025-02-16", "oneOffOccasions": [], "media": [] },
+    { "id": "m2", "title": "Aprile 2025", "cities": ["Torino"], "startDay": "2025-04-03", "endDay": "2025-04-06", "oneOffOccasions": [], "media": [] },
+    {
+      "id": "m3",
+      "title": "Giugno 2025",
+      "cities": ["Roma", "Napoli"],
+      "startDay": "2025-06-20",
+      "endDay": "2025-06-27",
+      "oneOffOccasions": [{ "id": "o-pizza", "name": "Prima pizza insieme", "day": "2025-06-24", "theme": "neutro" }],
+      "media": []
+    },
+    { "id": "m4", "cities": ["Bologna"], "startDay": "2025-09-12", "endDay": "2025-09-14", "oneOffOccasions": [], "media": [] },
+    { "id": "m5", "title": "Dicembre 2025", "cities": ["Firenze"], "startDay": "2025-12-23", "endDay": "2026-01-02", "oneOffOccasions": [], "media": [] },
+    { "id": "m6", "title": "Febbraio 2026", "cities": ["Milano"], "startDay": "2026-02-13", "endDay": "2026-02-15", "oneOffOccasions": [], "media": [] },
+    {
+      "id": "m7",
+      "title": "Luglio 2026",
+      "cities": ["Venezia"],
+      "startDay": "2026-07-02",
+      "endDay": "2026-07-05",
+      "oneOffOccasions": [{ "id": "o-gondola", "name": "Giro in gondola", "day": "2026-07-04", "theme": "neutro" }],
+      "media": []
+    },
+    { "id": "m8", "title": "Settembre 2026", "cities": ["Genova", "Camogli"], "startDay": "2026-09-12", "endDay": "2026-09-14", "oneOffOccasions": [], "media": [] }
+  ]
+}

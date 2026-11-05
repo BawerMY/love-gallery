@@ -156,7 +156,7 @@ function photo(id: string, cell: [column: number, row: number], extra: Partial<M
 }
 
 function memoryWith(media: MediaItem[], extra: Partial<Memory> = {}): Memory {
-  return { id: "m", cities: ["Roma"], startDay: parseDay("2025-03-14"), endDay: parseDay("2025-03-16"), oneOffOccasions: [], media, ...extra };
+  return { id: "m", cities: ["Roma"], startDay: parseDay("2025-03-14"), endDay: parseDay("2025-03-16"), occasionIds: [], media, ...extra };
 }
 
 describe("the cover", () => {

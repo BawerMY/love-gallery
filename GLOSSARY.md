@@ -42,6 +42,14 @@ _Avoid_: Recurring event, predefined date
 An Occasion that exists only on the Memory where the Curator added it.
 _Avoid_: Custom event, ad-hoc date
 
+**Theme**:
+A small visual style that an Occasion carries, such as its colours and decorations. A Memory takes the Theme of its Main occasion.
+_Avoid_: Skin, template, style
+
+**Main occasion**:
+The Occasion whose Theme a Memory takes, when the Memory has several.
+_Avoid_: Primary event, featured occasion
+
 ## Access
 
 **Curator**:

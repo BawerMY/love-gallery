@@ -30,6 +30,19 @@ describe("storage", () => {
     expect(await openStorage(dataDir).read()).toEqual(existing);
   });
 
+  it.each([
+    ["a newer version", { version: 3, memories: [], occasions: [] }, "version 3"],
+    ["no version", { memories: [], occasions: [] }, "no version"],
+  ])("refuses a database.json with %s, leaving it untouched", async (_, content, named) => {
+    const dataDir = await makeDataDir();
+    await writeFile(path.join(dataDir, "database.json"), JSON.stringify(content));
+    const storage = openStorage(dataDir);
+
+    await expect(storage.read()).rejects.toThrow(named);
+    await expect(storage.update(() => undefined)).rejects.toThrow(named);
+    expect(await readDatabaseFile(dataDir)).toEqual(content);
+  });
+
   it("applies concurrent writes one at a time without losing any", async () => {
     const dataDir = await makeDataDir();
     const first = openStorage(dataDir);

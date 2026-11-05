@@ -10,10 +10,17 @@ import { DATABASE_VERSION, type Database, type Day, type Memory, type Occasion }
  * A parsed `database.json` as this version writes it, from whatever version
  * wrote it. A file from version 1 is converted (see `convertVersion1`); the
  * converted file is written back on the next save, as any other change.
+ * A file with no version, or one this version doesn't know (say, written by
+ * a newer gallery), is refused rather than read as if it were current.
  */
 export function upgradeDatabase(raw: unknown): Database {
-  const db = raw as { version?: number };
-  return db.version === 1 ? convertVersion1(raw as Version1Database) : (raw as Database);
+  const version = (raw as { version?: unknown } | null)?.version;
+  if (version === DATABASE_VERSION) return raw as Database;
+  if (version === 1) return convertVersion1(raw as Version1Database);
+  const found = version === undefined ? "no version" : `version ${JSON.stringify(version)}`;
+  throw new Error(
+    `database.json has ${found}; this gallery reads versions 1 to ${DATABASE_VERSION}. It was left untouched.`,
+  );
 }
 
 // Version 1: Occasions matched to Memories by date.

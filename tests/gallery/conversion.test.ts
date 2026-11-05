@@ -172,6 +172,40 @@ describe("a database.json from version 1", () => {
     expect((await getMemory(storage, "primavera"))!.mainOccasionId).toBeUndefined();
   });
 
+  it("keeps the Theme an automatic Memory had when two themed Occasions fell on the same day, though badges then go by name", async () => {
+    // Version 1 put One-off occasions before Yearly ones on the same day, and
+    // Yearly ones in list order; the new badge order breaks the tie by name.
+    const storage = await openVersion1({
+      memories: [
+        {
+          id: "natale",
+          startDay: "2025-12-24",
+          endDay: "2025-12-26",
+          oneOffOccasions: [{ id: "zampogne", name: "Zampogne", day: "2025-12-25", theme: "natale" }],
+        },
+        { id: "estate", startDay: "2025-07-01", endDay: "2025-07-02" },
+        { id: "pari", startDay: "2025-03-01", endDay: "2025-03-01" },
+      ],
+      yearlyOccasions: [
+        { id: "auguri", name: "Auguri", month: 12, day: 25, theme: "anniversario" },
+        { id: "zucca", name: "Zucca", month: 7, day: 1, theme: "capodanno" },
+        { id: "arance", name: "Arance", month: 7, day: 1, theme: "compleanno" },
+        { id: "marzo", name: "Marzo", month: 3, day: 1, theme: "san-valentino" },
+      ],
+    });
+
+    const occasions = await listOccasions(storage);
+    const look = async (id: string) => {
+      const memory = (await getMemory(storage, id))!;
+      return [occasionsOfMemory(memory, occasions).map(({ name }) => name), themeOfMemory(memory, occasions).theme];
+    };
+    expect(await look("natale")).toEqual([["Auguri", "Zampogne"], "natale"]);
+    expect(await look("estate")).toEqual([["Arance", "Zucca"], "capodanno"]);
+    expect(await look("pari")).toEqual([["Marzo"], "san-valentino"]);
+    // Only where the look would change is a Main occasion chosen for it.
+    expect((await getMemory(storage, "pari"))!.mainOccasionId).toBeUndefined();
+  });
+
   it("is written back as version 2 on the next save", async () => {
     const storage = await openVersion1({
       memories: [{ id: "inverno", startDay: "2025-12-24", endDay: "2025-12-26" }],

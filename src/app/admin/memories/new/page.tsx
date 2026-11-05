@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MemoryForm } from "@/components/admin/MemoryForm";
-import { adminPage, adminTitle, backLink } from "@/components/ui";
+import { adminCard, adminPage, adminTitle, backLink } from "@/components/ui";
 import { getGallery, suggestCities } from "@/gallery";
 import { t } from "@/strings";
 import { createMemoryAction } from "../../actions";
@@ -16,7 +16,9 @@ export default async function NewMemoryPage() {
         ← {t.admin.backToAdmin}
       </Link>
       <h1 className={adminTitle}>{t.admin.newMemory}</h1>
-      <MemoryForm action={createMemoryAction} citySuggestions={citySuggestions} />
+      <section className={adminCard}>
+        <MemoryForm action={createMemoryAction} citySuggestions={citySuggestions} />
+      </section>
     </main>
   );
 }

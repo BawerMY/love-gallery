@@ -1,6 +1,6 @@
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { dataDir, expect, seedMemories, test } from "./fixtures";
+import { dataDir, expect, saveBar, saveMemoryPage, seedMemories, test } from "./fixtures";
 
 test("the Curator creates a Memory in the Admin page and finds it on the Timeline", async ({
   pageWithSession: page,
@@ -20,7 +20,7 @@ test("the Curator creates a Memory in the Admin page and finds it on the Timelin
   await page.getByLabel("Ultimo giorno").fill("2025-03-16");
   await page.getByLabel("Nota").fill("Pioveva, ma che importa.");
   await page.getByRole("button", { name: "Salva" }).click();
-  await expect(page.getByText("Ricordo salvato.")).toBeVisible();
+  await expect(saveBar(page).getByRole("status")).toHaveText("Salvato");
 
   await page.goto("/");
   const card = page.getByRole("link", { name: /Primo weekend/ });
@@ -64,8 +64,7 @@ test("the Curator edits a Memory, then deletes it after confirming, with its med
   await page.goto("/admin");
   await page.getByRole("link", { name: /Pasqua/ }).click();
   await page.getByLabel("Titolo").fill("Pasqua a Roma");
-  await page.getByRole("button", { name: "Salva" }).click();
-  await expect(page.getByText("Ricordo salvato.")).toBeVisible();
+  await saveMemoryPage(page);
 
   await page.getByRole("button", { name: "Elimina ricordo" }).click();
   await page.getByRole("button", { name: "Annulla" }).click();

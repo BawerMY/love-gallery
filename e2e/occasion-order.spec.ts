@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, memoryTitlePage, seedMemories, test } from "./fixtures";
+import { expect, memoryTitlePage, saveMemoryPage, seedMemories, test } from "./fixtures";
 import { centre, mouseDrag, touchDrag } from "./gestures";
 
 /** The Memory's entry on the Timeline. */
@@ -38,11 +38,11 @@ test("the Curator reorders a Memory's Occasions by drag and drop, with the mouse
   await expect(names).toHaveText(["Natale", "Capodanno", "Pranzo dai nonni"]);
   await expect(page.getByLabel("Occasione principale")).toHaveValue("");
 
-  // With the mouse, Capodanno goes above Natale; dropping saves straight away.
+  // With the mouse, Capodanno goes above Natale; Salva saves the new order.
   const capodanno = section.getByRole("button", { name: "Sposta «Capodanno»" });
   await mouseDrag(page, capodanno, 0, await toward(capodanno, items.first()));
   await expect(names).toHaveText(["Capodanno", "Natale", "Pranzo dai nonni"]);
-  await expect(section.getByText("Ordine salvato")).toBeVisible();
+  await saveMemoryPage(page);
 
   await page.reload();
   await expect(names).toHaveText(["Capodanno", "Natale", "Pranzo dai nonni"]);
@@ -60,13 +60,12 @@ test("the Curator reorders a Memory's Occasions by drag and drop, with the mouse
   const pranzo = section.getByRole("button", { name: "Sposta «Pranzo dai nonni»" });
   await touchDrag(page, pranzo, 0, await toward(pranzo, items.first()));
   await expect(names).toHaveText(["Pranzo dai nonni", "Capodanno", "Natale"]);
-  await expect(section.getByText("Ordine salvato")).toBeVisible();
 
   // By touch again, Natale goes above Capodanno and takes the Theme.
   const natale = section.getByRole("button", { name: "Sposta «Natale»" });
   await touchDrag(page, natale, 0, await toward(natale, items.nth(1)));
   await expect(names).toHaveText(["Pranzo dai nonni", "Natale", "Capodanno"]);
-  await expect(section.getByText("Ordine salvato")).toBeVisible();
+  await saveMemoryPage(page);
 
   await page.reload();
   await expect(names).toHaveText(["Pranzo dai nonni", "Natale", "Capodanno"]);

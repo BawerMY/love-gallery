@@ -120,6 +120,25 @@ export async function setOccasionOrder(storage: Storage, memoryId: string, occas
   });
 }
 
+/** One of a Memory's Occasions as the Curator sets them all at once: one from the list, or a new one to create there. */
+export type OccasionChoice = { id: string } | OccasionInput;
+
+/**
+ * Replaces a Memory's Occasions inside `db` with these, in this badge order,
+ * creating the new ones in the list (refused as `createOccasion` refuses).
+ * Each must be in the list and appear once. A Main occasion taken off is
+ * forgotten. Hands back the Memory's Occasion ids, in badge order.
+ */
+export function placeOccasions(db: Database, memory: Memory, choices: readonly OccasionChoice[]): string[] {
+  const ids = choices.map((choice) =>
+    "id" in choice ? findOccasion(db, choice.id).id : addNewOccasion(db, cleanOccasionInput(choice)).id,
+  );
+  if (new Set(ids).size !== ids.length) throw new GalleryError(t.occasions.alreadyOnMemory);
+  memory.occasionIds = ids;
+  if (memory.mainOccasionId && !ids.includes(memory.mainOccasionId)) delete memory.mainOccasionId;
+  return ids;
+}
+
 /**
  * A Memory's Occasions as its badges show them, in badge order, each with its
  * Theme. An id no longer in the list is skipped.

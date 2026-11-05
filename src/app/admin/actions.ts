@@ -3,23 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  addOccasionToMemory,
-  chooseCover,
-  chooseMainOccasion,
   createMemory,
   createOccasion,
-  createOccasionOnMemory,
   deleteMedia,
   deleteMemory,
   deleteOccasion,
   GalleryError,
   getGallery,
-  removeOccasionFromMemory,
-  saveLayout,
-  setOccasionOrder,
-  updateMemory,
+  saveMemoryEdits,
   updateOccasion,
-  type MediaCell,
+  type MemoryEdits,
   type MemoryInput,
   type OccasionInput,
 } from "@/gallery";
@@ -86,8 +79,12 @@ export async function createMemoryAction(_state: FormState, form: FormData): Pro
   redirect(`/admin/memories/${id}?salvato=1`);
 }
 
-export async function updateMemoryAction(id: string, _state: FormState, form: FormData): Promise<FormState> {
-  return save(() => updateMemory(storage(), id, readMemoryForm(form)));
+/**
+ * Saves every edit of a Memory's Admin page at once (see `saveMemoryEdits`):
+ * all of it, or on any refusal none of it.
+ */
+export async function saveMemoryEditsAction(id: string, edits: MemoryEdits): Promise<FormState> {
+  return save(() => saveMemoryEdits(storage(), id, edits));
 }
 
 export async function deleteMemoryAction(id: string): Promise<void> {
@@ -115,41 +112,4 @@ export async function updateOccasionAction(id: string, _state: FormState, form: 
 
 export async function deleteOccasionAction(id: string): Promise<void> {
   await remove(() => deleteOccasion(storage(), id));
-}
-
-// A Memory's Occasions
-
-/** Adds the Occasion picked in the form (`occasionId`) to a Memory. */
-export async function addOccasionToMemoryAction(memoryId: string, _state: FormState, form: FormData): Promise<FormState> {
-  return save(() => addOccasionToMemory(storage(), memoryId, String(form.get("occasionId") ?? "")));
-}
-
-/** Creates a new Occasion from the form (name and Theme) and adds it to a Memory in one step. */
-export async function createOccasionOnMemoryAction(memoryId: string, _state: FormState, form: FormData): Promise<FormState> {
-  return save(() => createOccasionOnMemory(storage(), memoryId, readOccasionForm(form)));
-}
-
-export async function removeOccasionFromMemoryAction(memoryId: string, occasionId: string): Promise<void> {
-  await remove(() => removeOccasionFromMemory(storage(), memoryId, occasionId));
-}
-
-/** Sets a Memory's badge order: every one of its Occasion ids, in the new order. */
-export async function setOccasionOrderAction(memoryId: string, occasionIds: string[]): Promise<FormState> {
-  return save(() => setOccasionOrder(storage(), memoryId, occasionIds));
-}
-
-/** Chooses a Memory's Main occasion by its Occasion id; an empty value goes back to automatic. */
-export async function chooseMainOccasionAction(memoryId: string, occasionId: string): Promise<FormState> {
-  return save(() => chooseMainOccasion(storage(), memoryId, occasionId || undefined));
-}
-
-// Layout and cover
-
-export async function saveLayoutAction(memoryId: string, cells: Record<string, MediaCell>): Promise<FormState> {
-  return save(() => saveLayout(storage(), memoryId, cells));
-}
-
-/** Chooses the cover, or with no Media id goes back to the default cover. */
-export async function chooseCoverAction(memoryId: string, mediaId: string | undefined): Promise<FormState> {
-  return save(() => chooseCover(storage(), memoryId, mediaId));
 }

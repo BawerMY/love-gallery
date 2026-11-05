@@ -7,7 +7,8 @@ type MediaKind = {
   alt: (position: number) => string;
   /** The accessible name of the item magnified. */
   magnifiedLabel: (position: number) => string;
-  deleteLabel: string;
+  /** The accessible name of the delete button of the item at this 1-based place in the Layout. */
+  deleteLabel: (position: number) => string;
   deleteQuestion: string;
   /** The file to show as a still image when it isn't playing: the photo itself, or a video's poster. */
   still: (files: MediaFiles) => string;

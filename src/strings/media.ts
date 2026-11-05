@@ -12,19 +12,18 @@ export const media = {
   mute: (position: number) => `Disattiva l'audio del video ${position}`,
 
   // Admin page
-  heading: "Foto e video",
   addPhotos: "Aggiungi foto e video",
+  addHere: (column: number, row: number) => `Aggiungi foto e video nella colonna ${column}, riga ${row}`,
   uploading: (percent: number) => `Caricamento… ${percent}%`,
   processing: "Conversione delle foto…",
   uploadFailed: "Il caricamento non è riuscito. Riprova.",
-  noMedia: "Questo ricordo non ha ancora foto né video.",
-  outsideDateRange: "Scattata fuori dalle date del ricordo",
+  outsideDateRange: (item: string) => `${item}: scattata fuori dalle date del ricordo`,
   suggestedDateRange: (startDay: string, endDay: string) =>
     `Date suggerite dalle foto: ${formatDateRange(startDay, endDay)}`,
   useSuggestedDateRange: "Usa queste date",
-  deletePhoto: "Elimina foto",
+  deletePhoto: (position: number) => `Elimina foto ${position}`,
   deleteConfirm: "Eliminare questa foto? Non si può annullare.",
-  deleteVideo: "Elimina video",
+  deleteVideo: (position: number) => `Elimina video ${position}`,
   deleteVideoConfirm: "Eliminare questo video? Non si può annullare.",
   /** A video waiting for its conversion, or being converted, in the background. */
   itemProcessing: "In elaborazione…",

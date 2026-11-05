@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AdminMemoryList } from "@/components/admin/AdminMemoryList";
 import { OccasionsSection } from "@/components/occasions/OccasionsSection";
-import { adminHeading, adminPage, adminTitle, backLink, button } from "@/components/ui";
+import { adminCard, adminHeading, adminPage, adminTitle, backLink, button } from "@/components/ui";
 import { getGallery, listOccasions, listTimeline } from "@/gallery";
 import { t } from "@/strings";
 
@@ -18,9 +18,11 @@ export default async function AdminPage() {
         ← {t.admin.backToTimeline}
       </Link>
       <h1 className={adminTitle}>{t.admin.title}</h1>
-      <section>
+      <section aria-labelledby="memories-heading" className={adminCard}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className={adminHeading}>{t.admin.memoriesHeading}</h2>
+          <h2 id="memories-heading" className={adminHeading}>
+            {t.admin.memoriesHeading}
+          </h2>
           <Link href="/admin/memories/new" className={button}>
             {t.admin.newMemory}
           </Link>

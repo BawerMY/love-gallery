@@ -1,6 +1,6 @@
 import { countOccasionUses, type Memory, type Occasion } from "@/gallery";
 import { t } from "@/strings";
-import { adminHeading, adminSubheading, emptyText, list } from "../ui";
+import { adminCard, adminHeading, adminSubheading, emptyText, list } from "../ui";
 import { OccasionForm } from "./OccasionForm";
 import { OccasionItem } from "./OccasionItem";
 
@@ -14,7 +14,7 @@ type Props = {
 /** The Admin page's "Occasioni" section: the list of Occasions, with a form to add one. */
 export function OccasionsSection({ occasions, memories }: Props) {
   return (
-    <section aria-labelledby="occasions-heading">
+    <section aria-labelledby="occasions-heading" className={adminCard}>
       <h2 id="occasions-heading" className={adminHeading}>
         {t.occasions.heading}
       </h2>

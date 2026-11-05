@@ -2,67 +2,35 @@
 
 import { useActionState, useState } from "react";
 import type { FormState } from "@/app/admin/actions";
-import type { Memory } from "@/gallery";
 import { t } from "@/strings";
-import { button, errorText, field, formStack, quietText, secondaryButton } from "../ui";
+import { button, errorText, formStack, secondaryButton, field } from "../ui";
 import { CityList } from "./CityList";
+import type { DetailsDraft } from "./MemoryDraft";
 
 /** One of the side-by-side start and end day fields. */
 const dateColumn = "flex min-w-0 flex-1 flex-col gap-2";
 
-type Props = {
-  /** The Memory being edited, or nothing when creating one. */
-  memory?: Memory;
-  action: (state: FormState, form: FormData) => Promise<FormState>;
+type FieldsProps = {
+  value: DetailsDraft;
+  onChange: (value: DetailsDraft) => void;
   citySuggestions: string[];
-  /** Show "saved" straight away, e.g. right after creating the Memory. */
-  saved?: boolean;
   /** A Date range suggested from the Media's capture days, offered when it differs. */
   suggestedRange?: { startDay: string; endDay: string };
 };
 
-/** The title, Cities, Date range and note of a Memory, for creating or editing it. */
-export function MemoryForm({ memory, action, citySuggestions, saved = false, suggestedRange }: Props) {
-  const [state, formAction, pending] = useActionState(action, { saved });
-  const [title, setTitle] = useState(memory?.title ?? "");
-  const [cities, setCities] = useState(memory?.cities ?? [""]);
-  const [startDay, setStartDay] = useState(memory?.startDay ?? "");
-  const [endDay, setEndDay] = useState(memory?.endDay ?? "");
-  const [note, setNote] = useState(memory?.note ?? "");
-  const [edited, setEdited] = useState(false);
-
-  function change<T>(set: (value: T) => void) {
-    return (value: T) => {
-      set(value);
-      setEdited(true);
-    };
-  }
-
-  function changeStartDay(value: string) {
-    change(setStartDay)(value);
-    if (!endDay || endDay < value) setEndDay(value);
-  }
+/** The title, Cities, Date range and note of a Memory, as fields sent as `title`, `city`, `startDay`, `endDay` and `note`. */
+export function MemoryFields({ value, onChange, citySuggestions, suggestedRange }: FieldsProps) {
+  const { title, cities, startDay, endDay, note } = value;
+  const set = (change: Partial<DetailsDraft>) => onChange({ ...value, ...change });
 
   return (
-    <form
-      className={formStack}
-      action={(form) => {
-        setEdited(false);
-        return formAction(form);
-      }}
-    >
+    <>
       <label htmlFor="memory-title">
         {t.admin.titleLabel} <small className="text-cocoa-soft">({t.admin.titleHint})</small>
       </label>
-      <input
-        className={field}
-        id="memory-title"
-        name="title"
-        value={title}
-        onChange={(event) => change(setTitle)(event.target.value)}
-      />
+      <input className={field} id="memory-title" name="title" value={title} onChange={(event) => set({ title: event.target.value })} />
 
-      <CityList cities={cities} onChange={change(setCities)} suggestions={citySuggestions} />
+      <CityList cities={cities} onChange={(next) => set({ cities: next })} suggestions={citySuggestions} />
 
       <div className="flex gap-3">
         <div className={dateColumn}>
@@ -74,7 +42,10 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
             type="date"
             required
             value={startDay}
-            onChange={(event) => changeStartDay(event.target.value)}
+            onChange={(event) => {
+              const day = event.target.value;
+              set({ startDay: day, endDay: !endDay || endDay < day ? day : endDay });
+            }}
           />
         </div>
         <div className={dateColumn}>
@@ -87,23 +58,15 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
             required
             min={startDay || undefined}
             value={endDay}
-            onChange={(event) => change(setEndDay)(event.target.value)}
+            onChange={(event) => set({ endDay: event.target.value })}
           />
         </div>
       </div>
 
-      {suggestedRange &&
-      (suggestedRange.startDay !== startDay || suggestedRange.endDay !== endDay) ? (
+      {suggestedRange && (suggestedRange.startDay !== startDay || suggestedRange.endDay !== endDay) ? (
         <p className="flex flex-wrap items-center gap-2 text-cocoa-soft">
           <span>{t.media.suggestedDateRange(suggestedRange.startDay, suggestedRange.endDay)}</span>
-          <button
-            type="button"
-            className={secondaryButton}
-            onClick={() => {
-              change(setStartDay)(suggestedRange.startDay);
-              setEndDay(suggestedRange.endDay);
-            }}
-          >
+          <button type="button" className={secondaryButton} onClick={() => set(suggestedRange)}>
             {t.media.useSuggestedDateRange}
           </button>
         </p>
@@ -112,27 +75,30 @@ export function MemoryForm({ memory, action, citySuggestions, saved = false, sug
       <label htmlFor="memory-note">
         {t.admin.noteLabel} <small className="text-cocoa-soft">({t.admin.titleHint})</small>
       </label>
-      <textarea
-        className={field}
-        id="memory-note"
-        name="note"
-        rows={4}
-        value={note}
-        onChange={(event) => change(setNote)(event.target.value)}
-      />
+      <textarea className={field} id="memory-note" name="note" rows={4} value={note} onChange={(event) => set({ note: event.target.value })} />
+    </>
+  );
+}
 
+type Props = {
+  action: (state: FormState, form: FormData) => Promise<FormState>;
+  citySuggestions: string[];
+};
+
+/** The form of the new-Memory page: its details, and a button that creates it. */
+export function MemoryForm({ action, citySuggestions }: Props) {
+  const [state, formAction, pending] = useActionState(action, {});
+  const [details, setDetails] = useState<DetailsDraft>({ title: "", cities: [""], startDay: "", endDay: "", note: "" });
+
+  return (
+    <form className={formStack} action={formAction}>
+      <MemoryFields value={details} onChange={setDetails} citySuggestions={citySuggestions} />
       {state.error ? (
         <p role="alert" className={errorText}>
           {state.error}
         </p>
       ) : null}
-      {state.saved && !edited && !pending ? (
-        <p role="status" className={quietText}>
-          {t.admin.saved}
-        </p>
-      ) : null}
-
-      <button type="submit" className={button} disabled={pending}>
+      <button type="submit" className={`${button} mt-2`} disabled={pending}>
         {pending ? t.admin.saving : t.admin.save}
       </button>
     </form>

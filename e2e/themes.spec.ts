@@ -1,4 +1,4 @@
-import { expect, memoryTitlePage, seedMemories, test } from "./fixtures";
+import { expect, memoryTitlePage, saveMemoryPage, seedMemories, test } from "./fixtures";
 
 test("the Curator gives Occasions a Theme in the Admin page and each badge shows its own", async ({
   pageWithSession: page,
@@ -29,6 +29,7 @@ test("the Curator gives Occasions a Theme in the Admin page and each badge shows
     await section.getByRole("button", { name: "Aggiungi" }).click();
     await expect(section.getByRole("listitem").filter({ hasText: name })).toBeVisible();
   }
+  await saveMemoryPage(page);
 
   const expected = [
     ["Natale", "natale"],

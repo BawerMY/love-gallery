@@ -52,14 +52,22 @@ export async function updateMemory(
   input: MemoryInput,
 ): Promise<Memory> {
   const fields = cleanInput(input);
-  return storage.update((db) => {
-    const current = findMemory(db, id);
-    refuseOverlap(db, fields, id);
-    const { title: _title, note: _note, ...kept } = current;
-    const memory: Memory = { ...kept, ...fields };
-    db.memories[db.memories.indexOf(current)] = memory;
-    return memory;
-  });
+  return storage.update((db) => ({ ...replaceDetails(db, findMemory(db, id), fields) }));
+}
+
+/**
+ * Replaces a Memory's title, note, Cities and Date range inside `db`, as
+ * `updateMemory` does: for changes that save more than the details at once.
+ */
+export function changeMemoryDetails(db: Database, memory: Memory, input: MemoryInput): void {
+  replaceDetails(db, memory, cleanInput(input));
+}
+
+function replaceDetails(db: Database, memory: Memory, fields: MemoryFields): Memory {
+  refuseOverlap(db, fields, memory.id);
+  delete memory.title;
+  delete memory.note;
+  return Object.assign(memory, fields);
 }
 
 /** The folder inside `media/` that holds a Memory's processed files. */

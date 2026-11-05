@@ -4,7 +4,7 @@ import { findMemory } from "./find-memory";
 import { occasionsOfMemory } from "./occasions";
 import type { Storage } from "./storage";
 import { DEFAULT_THEME, type ThemeKey } from "./themes";
-import type { Memory, Occasion } from "./types";
+import type { Database, Memory, Occasion } from "./types";
 
 /** A Memory's effective Main occasion (none when no Occasion is themed) and the Theme it takes. */
 export type MemoryTheme = { mainOccasion?: Occasion; theme: ThemeKey };
@@ -32,15 +32,17 @@ export async function chooseMainOccasion(
   memoryId: string,
   occasionId: string | undefined,
 ): Promise<void> {
-  await storage.update((db) => {
-    const memory = findMemory(db, memoryId);
-    if (!occasionId) {
-      delete memory.mainOccasionId;
-      return;
-    }
-    const occasion = occasionsOfMemory(memory, db.occasions).find((candidate) => candidate.id === occasionId);
-    if (!occasion) throw new GalleryError(t.occasions.notOnMemory);
-    if (occasion.theme === DEFAULT_THEME) throw new GalleryError(t.occasions.mainOccasionNeutroRefused);
-    memory.mainOccasionId = occasionId;
-  });
+  await storage.update((db) => changeMainOccasion(db, findMemory(db, memoryId), occasionId));
+}
+
+/** Chooses a Memory's Main occasion inside `db`, refusing what `chooseMainOccasion` refuses. */
+export function changeMainOccasion(db: Pick<Database, "occasions">, memory: Memory, occasionId: string | undefined): void {
+  if (!occasionId) {
+    delete memory.mainOccasionId;
+    return;
+  }
+  const occasion = occasionsOfMemory(memory, db.occasions).find((candidate) => candidate.id === occasionId);
+  if (!occasion) throw new GalleryError(t.occasions.notOnMemory);
+  if (occasion.theme === DEFAULT_THEME) throw new GalleryError(t.occasions.mainOccasionNeutroRefused);
+  memory.mainOccasionId = occasionId;
 }

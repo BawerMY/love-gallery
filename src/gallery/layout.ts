@@ -2,7 +2,7 @@ import { t } from "../strings";
 import { GalleryError } from "./errors";
 import { findMemory } from "./find-memory";
 import type { Storage } from "./storage";
-import type { MediaCell } from "./types";
+import type { MediaCell, Memory } from "./types";
 
 /**
  * The Layout: a grid 3 columns wide of square cells, where each Media item
@@ -27,6 +27,29 @@ export function cellsBelowLayout(cells: readonly MediaCell[], count: number): Me
     width: 1,
     height: 1,
   }));
+}
+
+/**
+ * Where `count` new 1×1 items go when the Curator taps a cell: that cell,
+ * then each next cell in reading order (left to right, then the rows below)
+ * that no cell of `taken` covers. A start outside the grid places them below
+ * the Layout instead (see `cellsBelowLayout`).
+ */
+export function cellsFrom(
+  taken: readonly MediaCell[],
+  count: number,
+  start: { column: number; row: number },
+): MediaCell[] {
+  const { column, row } = start;
+  if (![column, row].every(Number.isInteger) || column < 0 || row < 0 || column >= LAYOUT_COLUMNS) {
+    return cellsBelowLayout(taken, count);
+  }
+  const placed: MediaCell[] = [];
+  for (let index = row * LAYOUT_COLUMNS + column; placed.length < count; index++) {
+    const cell = { column: index % LAYOUT_COLUMNS, row: Math.floor(index / LAYOUT_COLUMNS), width: 1, height: 1 };
+    if (![...taken, ...placed].some((other) => overlaps(cell, other))) placed.push(cell);
+  }
+  return placed;
 }
 
 /** The items in reading order: rows top to bottom, then columns left to right. */
@@ -81,17 +104,19 @@ export async function saveLayout(
   memoryId: string,
   cells: Readonly<Record<string, MediaCell>>,
 ): Promise<void> {
-  await storage.update((db) => {
-    const memory = findMemory(db, memoryId);
-    if (Object.keys(cells).some((id) => !memory.media.some((item) => item.id === id))) {
-      throw new GalleryError(t.layout.unknownMedia);
-    }
-    const next = memory.media.map((item) => {
-      const cell = cells[item.id] ?? item.cell;
-      return { ...item, cell: { column: cell.column, row: cell.row, width: cell.width, height: cell.height } };
-    });
-    const problem = layoutProblem(next.map((item) => item.cell));
-    if (problem) throw new GalleryError(problem);
-    memory.media = next;
+  await storage.update((db) => changeLayout(findMemory(db, memoryId), cells));
+}
+
+/** Applies a Layout change to a Memory, refusing what `saveLayout` refuses. */
+export function changeLayout(memory: Memory, cells: Readonly<Record<string, MediaCell>>): void {
+  if (Object.keys(cells).some((id) => !memory.media.some((item) => item.id === id))) {
+    throw new GalleryError(t.layout.unknownMedia);
+  }
+  const next = memory.media.map((item) => {
+    const cell = cells[item.id] ?? item.cell;
+    return { ...item, cell: { column: cell.column, row: cell.row, width: cell.width, height: cell.height } };
   });
+  const problem = layoutProblem(next.map((item) => item.cell));
+  if (problem) throw new GalleryError(problem);
+  memory.media = next;
 }

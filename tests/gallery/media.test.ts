@@ -122,6 +122,44 @@ describe("placing new Media in the Layout", () => {
   });
 });
 
+describe("placing new Media in a chosen cell", () => {
+  it("puts the first item in the tapped cell and the rest in the next free cells in reading order, skipping cells the unsaved Layout takes", async () => {
+    const storage = openStorage(await makeDataDir());
+    const memory = await memoryIn(storage);
+    // Saved: one photo 2×1 across the top-left.
+    const [wide] = await addMedia(storage, memory.id, [await upload(storage, "sample.heic")]);
+    await storage.update((db) => {
+      db.memories[0].media[0].cell = { column: 0, row: 0, width: 2, height: 1 };
+    });
+
+    const added = await addMedia(
+      storage,
+      memory.id,
+      [await upload(storage, "sample.heic"), await upload(storage, "gps-rotated.jpg"), await upload(storage, "sample.heic")],
+      // Tapped: column 3 of row 1. The unsaved Layout holds a cell at column 1 of row 2.
+      { column: 2, row: 0, taken: [{ column: 0, row: 1, width: 1, height: 1 }] },
+    );
+
+    expect(added.map((item) => item.cell)).toEqual([
+      { column: 2, row: 0, width: 1, height: 1 },
+      { column: 1, row: 1, width: 1, height: 1 },
+      { column: 2, row: 1, width: 1, height: 1 },
+    ]);
+    expect((await getMemory(storage, memory.id))!.media[0]).toEqual({ ...wide, cell: { column: 0, row: 0, width: 2, height: 1 } });
+  });
+
+  it("goes on to the next free cell when the tapped one is taken, and below the Layout for a cell outside the grid", async () => {
+    const storage = openStorage(await makeDataDir());
+    const memory = await memoryIn(storage);
+    await addMedia(storage, memory.id, [await upload(storage, "sample.heic")]);
+
+    const [next] = await addMedia(storage, memory.id, [await upload(storage, "sample.heic")], { column: 0, row: 0 });
+    expect(next.cell).toEqual({ column: 1, row: 0, width: 1, height: 1 });
+    const [outside] = await addMedia(storage, memory.id, [await upload(storage, "sample.heic")], { column: 7, row: -1 });
+    expect(outside.cell).toEqual({ column: 0, row: 1, width: 1, height: 1 });
+  });
+});
+
 describe("deleting a Media item", () => {
   it("removes it and its files, leaving the rest of the Memory alone", async () => {
     const storage = openStorage(await makeDataDir());

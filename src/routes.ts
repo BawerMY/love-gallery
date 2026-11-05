@@ -25,9 +25,19 @@ export function safeNextPath(next: string | null | undefined): string {
   return next;
 }
 
-/** Where the Admin page uploads a Memory's Media. Not behind the proxy: the route checks the session. */
-export function uploadPath(memoryId: string): string {
-  return `/api/upload/${encodeURIComponent(memoryId)}`;
+/**
+ * Where the Admin page uploads a Memory's Media, optionally into the cell the
+ * Curator tapped, skipping the cells her unsaved Layout takes. Not behind the
+ * proxy: the route checks the session.
+ */
+export function uploadPath(
+  memoryId: string,
+  at?: { column: number; row: number; taken: readonly { column: number; row: number; width: number; height: number }[] },
+): string {
+  const base = `/api/upload/${encodeURIComponent(memoryId)}`;
+  if (!at) return base;
+  const query = new URLSearchParams({ column: String(at.column), row: String(at.row), taken: JSON.stringify(at.taken) });
+  return `${base}?${query}`;
 }
 
 /** The URL of one processed Media file. */

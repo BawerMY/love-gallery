@@ -5,7 +5,7 @@ import { t } from "../strings";
 import { byCaptureTime } from "./capture-days";
 import { GalleryError } from "./errors";
 import { findMemory } from "./find-memory";
-import { cellsBelowLayout } from "./layout";
+import { cellsBelowLayout, cellsFrom } from "./layout";
 import { memoryMediaDir } from "./memories";
 import { photoHandler } from "./photos";
 import {
@@ -17,7 +17,7 @@ import {
 } from "./processing";
 import { videoHandler } from "./videos";
 import type { Storage } from "./storage";
-import type { MediaItem } from "./types";
+import type { MediaCell, MediaItem } from "./types";
 
 /** A file the Curator uploaded, fully received on disk and not yet processed. */
 export type Upload = {
@@ -55,14 +55,27 @@ export type MediaHandler = {
 const MEDIA_HANDLERS: readonly MediaHandler[] = [photoHandler, videoHandler];
 
 /**
+ * Where the Curator asked new Media to go: the cell she tapped, and the cells
+ * her unsaved Layout already holds, which are skipped as well as the saved
+ * ones (see `cellsFrom`).
+ */
+export type MediaPlacement = { column: number; row: number; taken?: MediaCell[] };
+
+/**
  * Processes uploads into Media items of a Memory and deletes the originals
- * (ADR-0001). The new items go below the bottom of the Layout as 1×1 tiles,
- * left to right in capture-time order.
+ * (ADR-0001). The new items are 1×1 tiles in capture-time order: from the
+ * tapped cell on with a `placement`, otherwise below the bottom of the
+ * Layout, left to right.
  *
  * All or nothing: if any upload can't be read, nothing is added, every
  * original is deleted, and a GalleryError names the file.
  */
-export async function addMedia(storage: Storage, memoryId: string, uploads: Upload[]): Promise<MediaItem[]> {
+export async function addMedia(
+  storage: Storage,
+  memoryId: string,
+  uploads: Upload[],
+  placement?: MediaPlacement,
+): Promise<MediaItem[]> {
   const dir = memoryMediaDir(storage, memoryId);
   const created: string[] = [];
   const background: BackgroundJob[] = [];
@@ -107,7 +120,10 @@ export async function addMedia(storage: Storage, memoryId: string, uploads: Uplo
     const ordered = byCaptureTime(processed);
     const added = await storage.update((db) => {
       const memory = findMemory(db, memoryId);
-      const cells = cellsBelowLayout(memory.media.map((item) => item.cell), ordered.length);
+      const saved = memory.media.map((item) => item.cell);
+      const cells = placement
+        ? cellsFrom([...saved, ...(placement.taken ?? [])], ordered.length, placement)
+        : cellsBelowLayout(saved, ordered.length);
       const items = ordered.map((item, i) => ({ ...item, cell: cells[i] }));
       memory.media.push(...items);
       return items;

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
-import { dataDir, expect, seedMemories, test } from "./fixtures";
+import { addMediaInCell, dataDir, expect, saveBar, saveMemoryPage, seedMemories, test } from "./fixtures";
 import { mouseDrag, touchDrag } from "./gestures";
 
 const PHOTO = path.join(import.meta.dirname, "..", "tests", "fixtures", "gps-rotated.jpg");
@@ -54,18 +54,17 @@ test("the full Admin round trip: create a Memory, upload a photo, make it bigger
   await page.getByLabel("Primo giorno").fill("2025-03-14");
   await page.getByLabel("Ultimo giorno").fill("2025-03-14");
   await page.getByRole("button", { name: "Salva" }).click();
-  await expect(page.getByText("Ricordo salvato.")).toBeVisible();
+  await expect(saveBar(page).getByRole("status")).toHaveText("Salvato");
 
-  await page.getByLabel("Aggiungi foto").setInputFiles([PHOTO]);
-  const editor = page.getByRole("region", { name: "Disposizione" });
+  await addMediaInCell(page, [PHOTO]);
+  const editor = page.getByRole("region", { name: "Galleria" });
   const tile = editor.getByRole("group", { name: /^Foto 1,/ });
   await expect(tile).toHaveAccessibleName("Foto 1, 1×1, colonna 1, riga 1");
   const pitch = (await tile.boundingBox())!.width + 4;
 
   await mouseDrag(page, editor.getByRole("button", { name: "Ridimensiona foto 1" }), pitch, pitch);
   await expect(editor.getByRole("group", { name: "Foto 1, 2×2, colonna 1, riga 1" })).toBeVisible();
-  await editor.getByRole("button", { name: "Salva disposizione" }).click();
-  await expect(editor.getByText("Disposizione salvata.")).toBeVisible();
+  await saveMemoryPage(page);
   expect(await savedCells()).toEqual([{ column: 0, row: 0, width: 2, height: 2 }]);
 
   await page.goto("/");
@@ -90,8 +89,8 @@ test("unsaved Layout changes survive a video becoming ready and new Media arrivi
     { id: "video", kind: "video", status: "processing", column: 1, row: 0 },
   ]);
   await page.goto("/admin/memories/milano");
-  const editor = page.getByRole("region", { name: "Disposizione" });
-  await expect(editor.getByText("In preparazione")).toBeVisible();
+  const editor = page.getByRole("region", { name: "Galleria" });
+  await expect(editor.getByText("In elaborazione…")).toBeVisible();
   const pitch = (await editor.getByRole("group", { name: /^Foto 1,/ }).boundingBox())!.width + 4;
 
   // Foto 1 goes down a row, not saved yet.
@@ -106,15 +105,14 @@ test("unsaved Layout changes survive a video becoming ready and new Media arrivi
     { id: "new", kind: "photo", status: "ready", column: 0, row: 1 },
   ]);
   await expect(editor.getByRole("group", { name: /^Foto 3,/ })).toBeVisible({ timeout: 10_000 });
-  await expect(editor.getByText("In preparazione")).toHaveCount(0);
+  await expect(editor.getByText("In elaborazione…")).toHaveCount(0);
 
   // The move is still there and unsaved; the new photo went below it instead.
   await expect(editor.getByRole("group", { name: "Foto 1, 1×1, colonna 1, riga 2" })).toBeVisible();
   await expect(editor.getByRole("group", { name: "Foto 3, 1×1, colonna 1, riga 3" })).toBeVisible();
-  await expect(editor.getByText("Modifiche non salvate.")).toBeVisible();
+  await expect(saveBar(page).getByRole("status")).toHaveText("Modifiche non salvate");
 
-  await editor.getByRole("button", { name: "Salva disposizione" }).click();
-  await expect(editor.getByText("Disposizione salvata.")).toBeVisible();
+  await saveMemoryPage(page);
   expect(await savedCells()).toEqual([
     { column: 0, row: 1, width: 1, height: 1 },
     { column: 1, row: 0, width: 1, height: 1 },
@@ -129,10 +127,10 @@ test("the Curator moves a photo by touch, resizes one with the mouse, saves, and
     { id: "milano", title: "Milano", cities: ["Milano"], startDay: "2025-03-14", endDay: "2025-03-14" },
   ]);
   await page.goto("/admin/memories/milano");
-  await page.getByLabel("Aggiungi foto").setInputFiles([PHOTO, PHOTO]);
+  await addMediaInCell(page, [PHOTO, PHOTO], { click: true });
   await expect(page.getByRole("img", { name: "Foto 2" })).toBeVisible();
 
-  const editor = page.getByRole("region", { name: "Disposizione" });
+  const editor = page.getByRole("region", { name: "Galleria" });
   const pitch = (await editor.getByRole("group", { name: /^Foto 1,/ }).boundingBox())!.width + 4;
 
   // Foto 2 goes down a row with a finger, leaving the cell beside Foto 1 empty…
@@ -144,8 +142,7 @@ test("the Curator moves a photo by touch, resizes one with the mouse, saves, and
   await mouseDrag(page, editor.getByRole("button", { name: "Ridimensiona foto 1" }), 0, pitch);
   await expect(editor.getByRole("group", { name: "Foto 1, 2×1, colonna 1, riga 1" })).toBeVisible();
 
-  await editor.getByRole("button", { name: "Salva disposizione" }).click();
-  await expect(editor.getByText("Disposizione salvata.")).toBeVisible();
+  await saveMemoryPage(page);
   expect(await savedCells()).toEqual([
     { column: 0, row: 0, width: 2, height: 1 },
     { column: 1, row: 1, width: 1, height: 1 },
@@ -157,6 +154,7 @@ test("the Curator moves a photo by touch, resizes one with the mouse, saves, and
     "aria-pressed",
     "true",
   );
+  await saveMemoryPage(page);
 
   await page.goto("/memories/milano");
   const first = (await page.getByRole("img", { name: "Foto 1" }).boundingBox())!;

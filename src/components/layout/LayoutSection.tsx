@@ -1,38 +1,35 @@
-import { coverOf, readingOrder, type Memory } from "@/gallery";
+import { isOutsideDateRange, readingOrder, type Memory } from "@/gallery";
 import { mediaPath } from "@/routes";
 import { t } from "@/strings";
-import { adminHeading, emptyText } from "../ui";
+import { RefreshWhileProcessing } from "../admin/RefreshWhileProcessing";
+import { adminCard, adminHeading } from "../ui";
 import { LayoutEditor, type EditorItem } from "./LayoutEditor";
 
 /**
- * The section of a Memory's Admin page where the Curator arranges its Media
- * on the Layout grid and chooses its cover.
+ * The "Galleria" section of a Memory's Admin page: the Layout grid, where
+ * the Curator taps an empty cell to add Media there and deletes an item from
+ * its tile (both at once), and arranges the items and chooses the cover
+ * (saved with the rest of the page). While a video is still converting the
+ * page refreshes until it is done.
  */
 export function LayoutSection({ memory }: { memory: Memory }) {
-  const cover = coverOf(memory);
   const items: EditorItem[] = readingOrder(memory.media).map((item, index) => ({
     id: item.id,
+    kind: item.kind,
+    status: item.status,
     position: index + 1,
     cell: item.cell,
     thumbnail: item.status === "ready" ? mediaPath(memory.id, item.files.thumbnail) : undefined,
+    outsideDateRange: isOutsideDateRange(memory, item),
   }));
 
   return (
-    <section aria-labelledby="layout-heading">
-      <h2 id="layout-heading" className={adminHeading}>{t.layout.heading}</h2>
-      {items.length ? (
-        <LayoutEditor
-          // Never keyed on the Media: the editor keeps its unsaved changes while
-          // the page refreshes and merges in new, changed or deleted items.
-          key={memory.id}
-          memoryId={memory.id}
-          items={items}
-          coverId={cover?.id}
-          coverChosen={memory.coverMediaId !== undefined && cover?.id === memory.coverMediaId}
-        />
-      ) : (
-        <p className={emptyText}>{t.layout.noMedia}</p>
-      )}
+    <section aria-labelledby="layout-heading" className={adminCard}>
+      <h2 id="layout-heading" className={adminHeading}>
+        {t.layout.heading}
+      </h2>
+      <LayoutEditor memoryId={memory.id} items={items} />
+      {memory.media.some((item) => item.status === "processing") ? <RefreshWhileProcessing /> : null}
     </section>
   );
 }

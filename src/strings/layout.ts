@@ -7,18 +7,11 @@ export const layout = {
   coverNotReady: "Questa foto non può essere la copertina.",
 
   // Admin page
-  heading: "Disposizione",
-  hint: "Trascina ✥ per spostare una foto e ◢ per cambiarne la misura.",
+  heading: "Galleria",
+  hint: "Tocca una cella vuota per aggiungere foto e video. Trascina ✥ per spostare una foto e ◢ per cambiarne la misura; ✕ la elimina.",
   move: (position: number) => `Sposta foto ${position}`,
   resize: (position: number) => `Ridimensiona foto ${position}`,
   tile: (position: number, cell: { column: number; row: number; width: number; height: number }) =>
     `Foto ${position}, ${cell.width}×${cell.height}, colonna ${cell.column + 1}, riga ${cell.row + 1}`,
-  save: "Salva disposizione",
-  saving: "Salvataggio…",
-  saved: "Disposizione salvata.",
-  unsaved: "Modifiche non salvate.",
-  notReady: "In preparazione",
   makeCover: (position: number) => `Usa foto ${position} come copertina`,
-  defaultCover: "Copertina automatica",
-  noMedia: "Aggiungi delle foto per disporle.",
 };

@@ -1,29 +1,21 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AdminMediaList } from "@/components/admin/AdminMediaList";
 import { DeleteMemoryButton } from "@/components/admin/DeleteMemoryButton";
+import { MemoryDetails } from "@/components/admin/MemoryDetails";
+import { MemoryDraftProvider } from "@/components/admin/MemoryDraft";
+import { LeaveLink, SaveBar } from "@/components/admin/SaveBar";
 import { LayoutSection } from "@/components/layout/LayoutSection";
-import { MediaUpload } from "@/components/admin/MediaUpload";
-import { MemoryForm } from "@/components/admin/MemoryForm";
-import { MainOccasionSelect } from "@/components/occasions/MainOccasionSelect";
 import { MemoryOccasionsSection } from "@/components/occasions/MemoryOccasionsSection";
-import { adminHeading, adminPage, adminTitle, backLink } from "@/components/ui";
-import {
-  getGallery,
-  getMemory,
-  listOccasions,
-  occasionsOfMemory,
-  suggestCities,
-  suggestDateRange,
-} from "@/gallery";
+import { adminCard, adminPage, adminTitle, backLink } from "@/components/ui";
+import { getGallery, getMemory, listOccasions, suggestCities, suggestDateRange } from "@/gallery";
 import { t } from "@/strings";
-import { updateMemoryAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
 /**
- * The Admin page for one Memory. Its details (and its Main occasion) come first, then its Media,
- * then its Layout (with the cover) and its Occasions.
+ * The Admin page for one Memory: its details (with its Main occasion), its
+ * Occasions, its Galleria (Media, Layout and cover), then the delete. Every
+ * edit but uploading and deleting Media waits for the one Save in the bar at
+ * the bottom.
  */
 export default async function EditMemoryPage({
   params,
@@ -40,39 +32,21 @@ export default async function EditMemoryPage({
   const [citySuggestions, occasions] = await Promise.all([suggestCities(storage), listOccasions(storage)]);
 
   return (
-    <main className={adminPage}>
-      <Link href="/admin" className={backLink}>
-        ← {t.admin.backToAdmin}
-      </Link>
-      <h1 className={adminTitle}>{t.admin.editMemory}</h1>
-      <section>
-        <MemoryForm
-          key={memory.id}
-          memory={memory}
-          action={updateMemoryAction.bind(null, memory.id)}
-          citySuggestions={citySuggestions}
-          saved={salvato === "1"}
-          suggestedRange={suggestDateRange(memory.media)}
-        />
-        {/* Keyed by the Memory's Occasions, so it restarts when they change. */}
-        <MainOccasionSelect
-          key={memory.occasionIds.join()}
-          memory={memory}
-          occasions={occasionsOfMemory(memory, occasions)}
-        />
-      </section>
-      <section className="mt-8">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className={adminHeading}>{t.media.heading}</h2>
-          <MediaUpload memoryId={memory.id} />
-        </div>
-        <AdminMediaList memory={memory} />
-      </section>
-      <LayoutSection memory={memory} />
-      <MemoryOccasionsSection memory={memory} occasions={occasions} />
-      <section className="mt-8 border-t border-cocoa/15 pt-4">
-        <DeleteMemoryButton memoryId={memory.id} />
-      </section>
-    </main>
+    // Keyed by the Memory, so another Memory's page starts with no draft.
+    <MemoryDraftProvider key={memory.id} memory={memory} occasions={occasions} saved={salvato === "1"}>
+      <main className={`${adminPage} pb-32`}>
+        <LeaveLink href="/admin" className={backLink}>
+          ← {t.admin.backToAdmin}
+        </LeaveLink>
+        <h1 className={adminTitle}>{t.admin.editMemory}</h1>
+        <MemoryDetails citySuggestions={citySuggestions} suggestedRange={suggestDateRange(memory.media)} />
+        <MemoryOccasionsSection occasions={occasions} />
+        <LayoutSection memory={memory} />
+        <section className={adminCard}>
+          <DeleteMemoryButton memoryId={memory.id} />
+        </section>
+      </main>
+      <SaveBar />
+    </MemoryDraftProvider>
   );
 }

@@ -1,89 +1,113 @@
 "use client";
 
-import { useRef, useState, useTransition, type CSSProperties } from "react";
-import { chooseCoverAction, saveLayoutAction, type FormState } from "@/app/admin/actions";
-import { cellsBelowLayout, layoutBottom, layoutProblem } from "@/gallery/layout";
-import type { MediaCell } from "@/gallery/types";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { deleteMediaAction } from "@/app/admin/actions";
+import { LAYOUT_COLUMNS, layoutBottom, layoutProblem, readingOrder } from "@/gallery/layout";
+import type { MediaCell, MediaItem } from "@/gallery/types";
 import { t } from "@/strings";
-import { button, errorText, quietText, secondaryButton } from "../ui";
+import { MEDIA_ACCEPT, UploadStatus, useMediaUpload } from "../admin/MediaUpload";
+import { sameCell, useMemoryDraft } from "../admin/MemoryDraft";
+import { MEDIA_KINDS } from "../media-kinds";
+import { dangerButton, secondaryButton } from "../ui";
 import { useCellGesture } from "./useCellGesture";
 
 /** One Media item as the editor needs it. */
 export type EditorItem = {
   id: string;
+  kind: MediaItem["kind"];
+  status: MediaItem["status"];
   /** 1-based place in the saved Layout's reading order, for names. */
   position: number;
   cell: MediaCell;
   /** The thumbnail URL of a ready item; missing while it is processing or if it failed. */
   thumbnail?: string;
-};
-
-type Props = {
-  memoryId: string;
-  items: EditorItem[];
-  /** The Media id the Timeline card shows now. */
-  coverId?: string;
-  /** Whether that cover was chosen by the Curator rather than picked by default. */
-  coverChosen: boolean;
+  /** Captured outside the Memory's Date range. */
+  outsideDateRange: boolean;
 };
 
 const GAP = 4;
 /**
- * The round ✥, ☆ and ◢ handles on a tile. The drag handles also take
- * `touch-none`, so dragging them never scrolls the page; the rest of the tile
- * still scrolls as usual.
+ * The round ✥, ☆, ◢ and ✕ handles in a tile's corners. The drag handles also
+ * take `touch-none`, so dragging them never scrolls the page; the rest of the
+ * tile still scrolls as usual.
  */
 const handle = "absolute size-9 rounded-full border-0 bg-white/85 p-0 text-lg leading-none text-cocoa";
-/** Empty rows kept below the bottom of the Layout, so items can be dragged further down. */
+/** Empty rows kept below the bottom of the Layout: always somewhere to tap to add Media, or to drag items down to. */
 const SPARE_ROWS = 2;
 
 /**
- * The Layout editor: the Memory's 3-column grid of square cells, where each
- * item can be dragged by its ✥ handle and resized by its ◢ handle, with touch
- * or mouse. A change that would leave the grid or overlap another item is
- * simply not taken, and the core checks the whole Layout again on saving.
+ * The Layout editor: the Memory's 3-column grid of square cells.
  *
- * The editor holds only the Curator's unsaved changes, on top of the saved
- * Layout in `items`. So when the page refreshes (a video becomes ready, new
- * Media arrives, an item is deleted) the changes stay and the new items are
- * merged in; an arrived item whose saved cell clashes with a change goes
- * below the Layout instead.
+ * - Tapping or clicking an empty cell opens the file picker; the chosen
+ *   photos and videos are uploaded at once into that cell and the next free
+ *   ones in reading order (see `cellsFrom`).
+ * - Each item can be dragged by its ✥ handle and resized by its ◢ handle,
+ *   with touch or mouse. A change that would leave the grid or overlap
+ *   another item is simply not taken, and the core checks the whole Layout
+ *   again on saving. The ☆ handle chooses the cover. These are saved with
+ *   the rest of the page.
+ * - The ✕ handle deletes the item at once, after a confirmation. Items still
+ *   processing, or whose conversion failed, show their state on the tile.
+ *
+ * The cells come from the page's draft (see `MemoryDraftProvider`), which
+ * keeps the unsaved changes on top of the saved Layout while new Media
+ * arrives or is deleted.
  */
-export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
+export function LayoutEditor({ memoryId, items }: { memoryId: string; items: EditorItem[] }) {
   const gridRef = useRef<HTMLDivElement>(null);
-  const [changes, setChanges] = useState<Record<string, MediaCell>>({});
-  const cells = mergeChanges(items, changes);
-  const dirty = items.some((item) => !sameCell(cells[item.id], item.cell));
-  const [state, setState] = useState<FormState>({});
-  const [pending, startTransition] = useTransition();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const target = useRef<{ column: number; row: number }>(null);
+  const [deleting, setDeleting] = useState<EditorItem | null>(null);
+  const { upload, progress, error, busy } = useMediaUpload(memoryId);
+  const { cells: draftCells, setCells, coverMediaId, setCoverMediaId } = useMemoryDraft();
+  // An item the draft doesn't know yet (the page is refreshing) keeps its saved cell.
+  const cells = Object.fromEntries(items.map((item) => [item.id, draftCells[item.id] ?? item.cell]));
 
   const place = (id: string, cell: MediaCell) => {
     if (sameCell(cells[id], cell)) return;
     const next = { ...cells, [id]: cell };
     if (layoutProblem(Object.values(next))) return;
-    // Every cell that now differs from the saved Layout, items moved aside by the merge included.
-    setChanges(Object.fromEntries(items.filter((item) => !sameCell(next[item.id], item.cell)).map((item) => [item.id, next[item.id]])));
-    setState({});
+    setCells(next);
   };
   const handlers = useCellGesture({ gridRef, gap: GAP, cellOf: (id) => cells[id], place });
 
-  const save = () =>
-    startTransition(async () => {
-      const result = await saveLayoutAction(memoryId, cells);
-      setState(result);
-      if (result.saved) setChanges({});
-    });
-  const chooseCover = (mediaId: string | undefined) =>
-    startTransition(async () => {
-      const result = await chooseCoverAction(memoryId, mediaId);
-      if (result.error) setState(result);
-    });
+  // The cover the Timeline card will show: the chosen one, or else the first ready item in this Layout.
+  const ready = items.filter((item) => item.thumbnail);
+  const chosen = ready.find((item) => item.id === coverMediaId);
+  const coverId = (chosen ?? readingOrder(ready.map((item) => ({ id: item.id, cell: cells[item.id] })))[0])?.id;
 
   const rows = layoutBottom(Object.values(cells)) + SPARE_ROWS;
+  const empty = Array.from({ length: rows * LAYOUT_COLUMNS }, (_, index) => ({
+    column: index % LAYOUT_COLUMNS,
+    row: Math.floor(index / LAYOUT_COLUMNS),
+    width: 1,
+    height: 1,
+  })).filter((cell) => !layoutProblem([cell, ...Object.values(cells)]));
+
+  function pickFilesFor(cell: { column: number; row: number }) {
+    target.current = { column: cell.column, row: cell.row };
+    fileRef.current?.click();
+  }
+
+  const outside = items.filter((item) => item.outsideDateRange);
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-cocoa-soft">{t.layout.hint}</p>
+      <p className="m-0 text-sm text-cocoa-soft">{t.layout.hint}</p>
+      <UploadStatus progress={progress} error={error} />
+      <input
+        ref={fileRef}
+        type="file"
+        multiple
+        hidden
+        accept={MEDIA_ACCEPT}
+        aria-label={t.media.addPhotos}
+        onChange={(event) => {
+          const files = event.target.files;
+          if (files && target.current) upload(files, { ...target.current, taken: Object.values(cells) });
+          event.target.value = "";
+        }}
+      />
       <div className="@container">
         <div
           ref={gridRef}
@@ -91,30 +115,46 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
           className="grid grid-cols-3 gap-(--grid-gap) [--cell:calc((100cqi_-_2_*_var(--grid-gap))_/_3)]"
           style={{ "--grid-gap": `${GAP}px`, gridTemplateRows: `repeat(${rows}, var(--cell))` } as CSSProperties}
         >
-          {Array.from({ length: rows * 3 }, (_, index) => (
-            <div
-              key={index}
-              className="rounded-sm border border-dashed border-cocoa/20"
-              aria-hidden="true"
-              style={cellStyle({ column: index % 3, row: Math.floor(index / 3), width: 1, height: 1 })}
-            />
+          {empty.map((cell) => (
+            <button
+              key={`${cell.column}-${cell.row}`}
+              type="button"
+              className="cursor-pointer rounded-sm border border-dashed border-cocoa/20 bg-transparent p-0 text-2xl leading-none text-cocoa/25 hover:border-honey hover:bg-honey/10 hover:text-amber focus-visible:border-honey focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-honey/40 disabled:cursor-default"
+              aria-label={t.media.addHere(cell.column + 1, cell.row + 1)}
+              disabled={busy}
+              style={cellStyle(cell)}
+              onClick={() => pickFilesFor(cell)}
+            >
+              +
+            </button>
           ))}
           {items.map((item) => {
             const cell = cells[item.id];
             const isCover = item.id === coverId;
+            const kind = MEDIA_KINDS[item.kind];
             return (
               <div
                 key={item.id}
                 role="group"
                 aria-label={t.layout.tile(item.position, cell)}
-                className="relative overflow-hidden rounded-sm bg-butter ring-2 ring-white"
+                className={`relative overflow-hidden rounded-sm bg-butter ring-2 ${item.outsideDateRange ? "ring-amber" : "ring-white"}`}
                 style={cellStyle(cell)}
               >
                 {item.thumbnail ? (
                   // A plain <img>: Media comes from the session-protected Media route, not next/image.
-                  <img src={item.thumbnail} alt="" className="pointer-events-none block size-full object-cover select-none" draggable={false} />
+                  <img
+                    src={item.thumbnail}
+                    alt={kind.alt(item.position)}
+                    className="pointer-events-none block size-full object-cover select-none"
+                    draggable={false}
+                  />
                 ) : (
-                  <span className="absolute inset-0 grid place-items-center text-center text-xs text-cocoa-soft">{t.layout.notReady}</span>
+                  <span
+                    role="status"
+                    className={`absolute inset-0 grid place-items-center px-1 text-center text-xs ${item.status === "failed" ? "text-danger" : "text-cocoa-soft"}`}
+                  >
+                    {item.status === "failed" ? t.media.itemFailed : t.media.itemProcessing}
+                  </span>
                 )}
                 <button
                   type="button"
@@ -130,12 +170,19 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
                     className={`${handle} top-1 right-1 text-amber aria-pressed:bg-honey aria-pressed:text-white`}
                     aria-label={t.layout.makeCover(item.position)}
                     aria-pressed={isCover}
-                    disabled={pending}
-                    onClick={() => chooseCover(item.id)}
+                    onClick={() => setCoverMediaId(item.id)}
                   >
                     {isCover ? "★" : "☆"}
                   </button>
                 ) : null}
+                <button
+                  type="button"
+                  className={`${handle} bottom-1 left-1 text-base text-danger`}
+                  aria-label={kind.deleteLabel(item.position)}
+                  onClick={() => setDeleting(item)}
+                >
+                  ✕
+                </button>
                 <button
                   type="button"
                   className={`${handle} right-1 bottom-1 cursor-nwse-resize touch-none`}
@@ -149,49 +196,56 @@ export function LayoutEditor({ memoryId, items, coverId, coverChosen }: Props) {
           })}
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <button type="button" className={button} onClick={save} disabled={pending || !dirty}>
-          {pending ? t.layout.saving : t.layout.save}
-        </button>
-        {coverChosen ? (
-          <button type="button" className={secondaryButton} onClick={() => chooseCover(undefined)} disabled={pending}>
-            {t.layout.defaultCover}
-          </button>
-        ) : null}
-        <p role="status" className={`text-sm ${state.error ? errorText : quietText}`}>
-          {state.error ?? (state.saved ? t.layout.saved : dirty ? t.layout.unsaved : "")}
-        </p>
-      </div>
+      {outside.length ? (
+        <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm text-amber">
+          {outside.map((item) => (
+            <li key={item.id}>{t.media.outsideDateRange(MEDIA_KINDS[item.kind].alt(item.position))}</li>
+          ))}
+        </ul>
+      ) : null}
+      {deleting ? <ConfirmMediaDelete memoryId={memoryId} item={deleting} onClose={() => setDeleting(null)} /> : null}
     </div>
   );
 }
 
-/**
- * The Layout the editor shows: each item's unsaved change, or else its saved
- * cell. Changes for items no longer there are dropped. An item whose saved
- * cell would overlap a change (it arrived after the change was made) goes
- * in a new row below everything else.
- */
-function mergeChanges(items: readonly EditorItem[], changes: Readonly<Record<string, MediaCell>>): Record<string, MediaCell> {
-  const placed: MediaCell[] = items.flatMap((item) => (changes[item.id] ? [changes[item.id]] : []));
-  const cells: Record<string, MediaCell> = {};
-  const clashing: EditorItem[] = [];
-  for (const item of items) {
-    const changed = changes[item.id];
-    if (changed) cells[item.id] = changed;
-    else if (layoutProblem([...placed, item.cell])) clashing.push(item);
-    else {
-      cells[item.id] = item.cell;
-      placed.push(item.cell);
-    }
-  }
-  const below = cellsBelowLayout(placed, clashing.length);
-  clashing.forEach((item, i) => (cells[item.id] = below[i]));
-  return cells;
-}
+/** Asks, in a dialog over the page, before deleting a Media item; deletes it at once when confirmed. */
+function ConfirmMediaDelete({ memoryId, item, onClose }: { memoryId: string; item: EditorItem; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const kind = MEDIA_KINDS[item.kind];
+  useEffect(() => {
+    dialogRef.current?.showModal();
+  }, []);
 
-function sameCell(a: MediaCell, b: MediaCell): boolean {
-  return a.column === b.column && a.row === b.row && a.width === b.width && a.height === b.height;
+  return (
+    <dialog
+      ref={dialogRef}
+      role="alertdialog"
+      aria-label={kind.deleteLabel(item.position)}
+      className="m-auto w-[min(calc(100vw-2rem),360px)] rounded-card border-0 bg-white p-5 text-cocoa shadow-soft backdrop:bg-cocoa/40"
+      onClose={onClose}
+    >
+      <form
+        className="flex flex-col gap-4"
+        action={async () => {
+          await deleteMediaAction(memoryId, item.id);
+          onClose();
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {item.thumbnail ? <img src={item.thumbnail} alt="" className="size-16 shrink-0 rounded-tile object-cover" /> : null}
+          <p className="m-0">{kind.deleteQuestion}</p>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <button type="button" className={secondaryButton} onClick={() => dialogRef.current?.close()}>
+            {t.admin.deleteNo}
+          </button>
+          <button type="submit" className={dangerButton}>
+            {t.admin.deleteYes}
+          </button>
+        </div>
+      </form>
+    </dialog>
+  );
 }
 
 function cellStyle(cell: MediaCell): CSSProperties {

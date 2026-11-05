@@ -39,11 +39,9 @@ export const occasions = {
   removeLabel: (name: string) => `Togli «${name}»`,
   move: (name: string) => `Sposta «${name}»`,
   orderHint: "Trascina ⠿ per cambiare l'ordine dei badge: il primo conta di più.",
-  orderSaved: "Ordine salvato",
   orderOutdated: "L'ordine delle occasioni è cambiato nel frattempo: ricarica la pagina e riprova.",
   mainOccasionLabel: "Occasione principale",
   mainOccasionHint: "Dà il suo tema al ricordo",
   mainOccasionAutomatic: "Automatica",
-  mainOccasionSaved: "Occasione principale salvata.",
   mainOccasionNeutroRefused: "Un'occasione con tema Neutro non può dare il tema al ricordo.",
 };

@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, memoryTitlePage, seedMemories, test } from "./fixtures";
+import { expect, memoryTitlePage, saveMemoryPage, seedMemories, test } from "./fixtures";
 
 /** The Memory's entry on the Timeline. */
 const timelineEntry = (page: Page, title: string) => page.getByRole("link").filter({ hasText: title });
@@ -58,7 +58,7 @@ test("the Curator picks a Main occasion when a Memory has two or more non-Neutro
   await expect(main.getByRole("option")).toHaveText(["Automatica", "Natale", "Capodanno"]);
 
   await main.selectOption({ label: "Capodanno" });
-  await expect(page.getByText("Occasione principale salvata.")).toBeVisible();
+  await saveMemoryPage(page);
   await page.reload();
   await expect(page.getByLabel("Occasione principale")).toHaveValue("capodanno");
 
@@ -70,11 +70,11 @@ test("the Curator picks a Main occasion when a Memory has two or more non-Neutro
   // Back to automatic.
   await page.goto("/admin/memories/inverno");
   await page.getByLabel("Occasione principale").selectOption({ label: "Automatica" });
-  await expect(page.getByText("Occasione principale salvata.")).toBeVisible();
+  await saveMemoryPage(page);
   await page.goto("/memories/inverno");
   await expect(memoryTitlePage(page)).toHaveAttribute("data-theme", "natale");
 
-  // Adding a second themed Occasion to a Memory brings the selector.
+  // Adding a second themed Occasion to a Memory brings the selector, before it's saved.
   await page.goto("/admin/memories/febbraio");
   await page.getByLabel("Aggiungi un'occasione", { exact: true }).selectOption({ label: "Capodanno" });
   await page.getByRole("button", { name: "Aggiungi", exact: true }).click();

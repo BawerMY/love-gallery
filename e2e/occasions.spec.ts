@@ -1,4 +1,4 @@
-import { expect, seedMemories, test } from "./fixtures";
+import { expect, saveBar, saveMemoryPage, seedMemories, test } from "./fixtures";
 
 test("the Curator manages the list of Occasions in the Admin page", async ({ pageWithSession: page }) => {
   await seedMemories(
@@ -78,6 +78,7 @@ test("the Curator picks Occasions for a Memory and removes one, and the badges f
   }
   // Every Occasion is on the Memory now, so there's nothing left to pick.
   await expect(section.getByText("Questo ricordo ha già tutte le occasioni della lista.")).toBeVisible();
+  await saveMemoryPage(page);
 
   for (const path of ["/", "/memories/estate"]) {
     await page.goto(path);
@@ -91,13 +92,15 @@ test("the Curator picks Occasions for a Memory and removes one, and the badges f
   await page.goto("/admin/memories/estate");
   await page.getByLabel("Primo giorno").fill("2025-07-01");
   await page.getByLabel("Ultimo giorno").fill("2025-07-03");
-  await page.getByRole("button", { name: "Salva", exact: true }).click();
-  await expect(page.getByText("Ricordo salvato.")).toBeVisible();
+  await saveMemoryPage(page);
+  await page.reload();
+  await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Natale", "Primo tuffo", "Cena sul molo"]);
 
   // Removing takes it off this Memory only: it stays in the picker and on other Memories.
   await section.getByRole("button", { name: "Togli «Primo tuffo»" }).click();
   await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Natale", "Cena sul molo"]);
   await expect(picker.getByRole("option", { name: "Primo tuffo" })).toHaveCount(1);
+  await saveMemoryPage(page);
 
   await page.goto("/memories/estate");
   await expect(page.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem")).toHaveText(["Natale", "Cena sul molo"]);
@@ -121,11 +124,15 @@ test("the Curator creates an Occasion from a Memory's Admin page, adding it to t
   await form.getByRole("button", { name: "Crea" }).click();
   await expect(section.getByRole("listitem").locator("strong")).toHaveText(["Natale", "Prima pizza insieme"]);
   await expect(form.getByLabel("Nome")).toHaveValue("");
+  await saveMemoryPage(page);
 
-  // A name already in the list is refused, ignoring case, and nothing is added.
+  // A name already in the list is refused on saving, ignoring case, and nothing is added.
   await form.getByLabel("Nome").fill("natale");
   await form.getByRole("button", { name: "Crea" }).click();
-  await expect(form.getByRole("alert")).toHaveText("C'è già un'occasione chiamata «natale».");
+  await saveBar(page).getByRole("button", { name: "Salva", exact: true }).click();
+  await expect(saveBar(page).getByRole("alert")).toHaveText("C'è già un'occasione chiamata «natale».");
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.reload();
   await expect(section.getByRole("listitem")).toHaveCount(2);
 
   await page.goto("/memories/napoli");

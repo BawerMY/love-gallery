@@ -21,14 +21,16 @@ export function coverOf(memory: Memory): MediaItem | undefined {
  * back to the default cover (the first ready item in the Layout).
  */
 export async function chooseCover(storage: Storage, memoryId: string, mediaId: string | undefined): Promise<void> {
-  await storage.update((db) => {
-    const memory = findMemory(db, memoryId);
-    if (mediaId === undefined) {
-      delete memory.coverMediaId;
-      return;
-    }
-    const item = memory.media.find((candidate) => candidate.id === mediaId);
-    if (item?.status !== "ready") throw new GalleryError(t.layout.coverNotReady);
-    memory.coverMediaId = mediaId;
-  });
+  await storage.update((db) => changeCover(findMemory(db, memoryId), mediaId));
+}
+
+/** Chooses a Memory's cover, or the default one with no id, refusing what `chooseCover` refuses. */
+export function changeCover(memory: Memory, mediaId: string | undefined): void {
+  if (mediaId === undefined) {
+    delete memory.coverMediaId;
+    return;
+  }
+  const item = memory.media.find((candidate) => candidate.id === mediaId);
+  if (item?.status !== "ready") throw new GalleryError(t.layout.coverNotReady);
+  memory.coverMediaId = mediaId;
 }

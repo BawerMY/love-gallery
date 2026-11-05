@@ -1,6 +1,6 @@
 import { readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { dataDir, expect, test } from "./fixtures";
+import { addMediaInCell, dataDir, expect, test } from "./fixtures";
 
 const FIXTURES = path.join(import.meta.dirname, "..", "tests", "fixtures");
 
@@ -31,7 +31,7 @@ test("the Curator uploads a video, which plays on the Memory page with its poste
   await seedMedia([]);
   await page.goto("/admin/memories/milano");
 
-  await page.getByLabel("Aggiungi foto e video").setInputFiles([path.join(FIXTURES, "sample.mov")]);
+  await addMediaInCell(page, [path.join(FIXTURES, "sample.mov")]);
   const poster = page.getByRole("img", { name: "Video 1" });
   await expect(poster).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("In elaborazione")).toHaveCount(0);
@@ -63,6 +63,8 @@ test("a video still processing shows only on the Admin page, which refreshes unt
 
   await page.goto("/admin/memories/milano");
   await expect(page.getByText("In elaborazione")).toBeVisible();
+  // Its tile can be moved and deleted like any other.
+  await expect(page.getByRole("button", { name: "Elimina video 1" })).toBeVisible();
 
   // The background conversion finishes; the page notices without a reload.
   await seedMedia([video("ready")]);
@@ -74,14 +76,14 @@ test("a video that can't be converted shows as failed and can be deleted", async
   await seedMedia([]);
   await page.goto("/admin/memories/milano");
 
-  await page.getByLabel("Aggiungi foto e video").setInputFiles([path.join(FIXTURES, "corrupt.mov")]);
+  await addMediaInCell(page, [path.join(FIXTURES, "corrupt.mov")], { click: true });
   await expect(page.getByText("Conversione non riuscita")).toBeVisible({ timeout: 20_000 });
 
   await page.goto("/memories/milano");
   await expect(page.locator("video")).toHaveCount(0);
 
   await page.goto("/admin/memories/milano");
-  await page.getByRole("button", { name: "Elimina video" }).click();
+  await page.getByRole("button", { name: "Elimina video 1" }).click();
   await page.getByRole("button", { name: "Sì, elimina" }).click();
   await expect(page.getByText("Conversione non riuscita")).toHaveCount(0);
   expect(await readdir(path.join(dataDir, "media", "milano"))).toEqual([]);

@@ -4,9 +4,9 @@
 
 **Blocked by:** none
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Tailwind v4 is the only styling mechanism; no CSS modules remain and the global stylesheet holds only `@import "tailwindcss"`, `@theme` and base rules.
-- [ ] The default palette is cleared; only project tokens are available.
-- [ ] Fonts load via `next/font` with no visible font swap.
-- [ ] The whole existing Vitest and Playwright suites stay green.
+- [x] Tailwind v4 is the only styling mechanism; no CSS modules remain and the global stylesheet holds only `@import "tailwindcss"`, `@theme` and base rules.
+- [x] The default palette is cleared; only project tokens are available.
+- [x] Fonts load via `next/font` with no visible font swap.
+- [x] The whole existing Vitest and Playwright suites stay green.

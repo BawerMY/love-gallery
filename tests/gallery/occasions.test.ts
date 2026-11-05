@@ -12,6 +12,7 @@ import {
   occasionsOfMemory,
   openStorage,
   removeOccasionFromMemory,
+  setOccasionOrder,
   updateMemory,
   updateOccasion,
   type Storage,
@@ -189,5 +190,52 @@ describe("Occasions on a Memory", () => {
 
     expect(moved.occasionIds).toEqual([natale.id]);
     expect(await badges(storage, memory.id)).toEqual([["Natale", "natale"]]);
+  });
+
+  it("are reordered by setting the Memory's whole order, which becomes the badge order", async () => {
+    const dataDir = await makeDataDir();
+    const storage = openStorage(dataDir);
+    const memory = await createMemory(storage, { cities: ["Torino"], startDay: "2025-12-24", endDay: "2026-01-01" });
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    const capodanno = await createOccasion(storage, { name: "Capodanno", theme: "capodanno" });
+    const pranzo = await createOccasion(storage, { name: "Pranzo dai nonni" });
+    for (const occasion of [natale, capodanno, pranzo]) await addOccasionToMemory(storage, memory.id, occasion.id);
+
+    await setOccasionOrder(storage, memory.id, [pranzo.id, capodanno.id, natale.id]);
+
+    expect(await badges(storage, memory.id)).toEqual([
+      ["Pranzo dai nonni", "neutro"],
+      ["Capodanno", "capodanno"],
+      ["Natale", "natale"],
+    ]);
+    expect(await readDatabaseFile(dataDir)).toMatchObject({
+      memories: [{ id: memory.id, occasionIds: [pranzo.id, capodanno.id, natale.id] }],
+    });
+  });
+
+  it("refuse, in Italian, an order that isn't the Memory's own Occasions rearranged", async () => {
+    const storage = openStorage(await makeDataDir());
+    const memory = await createMemory(storage, { cities: ["Torino"], startDay: "2025-12-24", endDay: "2026-01-01" });
+    const natale = await createOccasion(storage, { name: "Natale", theme: "natale" });
+    const capodanno = await createOccasion(storage, { name: "Capodanno", theme: "capodanno" });
+    const gita = await createOccasion(storage, { name: "Gita" });
+    for (const occasion of [natale, capodanno]) await addOccasionToMemory(storage, memory.id, occasion.id);
+
+    const refused = [
+      [capodanno.id],
+      [capodanno.id, natale.id, gita.id],
+      [capodanno.id, gita.id],
+      [capodanno.id, capodanno.id],
+      [natale.id, capodanno.id, natale.id],
+    ];
+    for (const order of refused) {
+      await expect(setOccasionOrder(storage, memory.id, order)).rejects.toThrow(
+        new GalleryError("L'ordine delle occasioni è cambiato nel frattempo: ricarica la pagina e riprova."),
+      );
+    }
+    expect(await badges(storage, memory.id)).toEqual([
+      ["Natale", "natale"],
+      ["Capodanno", "capodanno"],
+    ]);
   });
 });

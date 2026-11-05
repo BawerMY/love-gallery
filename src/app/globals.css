@@ -49,6 +49,20 @@
   --font-body: var(--font-nunito), system-ui, sans-serif;
 }
 
+/* The fade and slide-up of `Reveal` (src/components/motion/Reveal.tsx). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal-ready] [data-reveal] {
+    transition:
+      opacity 0.7s ease-out,
+      transform 0.7s ease-out;
+  }
+
+  [data-reveal-ready] [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
 @layer base {
   :root {
     color-scheme: light;

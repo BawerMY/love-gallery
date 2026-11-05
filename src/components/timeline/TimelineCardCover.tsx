@@ -3,8 +3,8 @@ import { mediaPath } from "@/routes";
 import { t } from "@/strings";
 import { MEDIA_KINDS } from "../media-kinds";
 
-/** The cover's 4:3 box, and the placeholder's. */
-const coverBox = "flex aspect-4/3 items-center justify-center bg-butter text-sm text-cocoa-soft";
+/** The cover's 3:2 box, and the placeholder's. */
+const coverBox = "flex aspect-3/2 items-center justify-center bg-butter text-sm text-cocoa-soft";
 
 /**
  * Where a Timeline card shows the Memory's cover (see `coverOf`). A Memory

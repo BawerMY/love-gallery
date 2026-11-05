@@ -1,11 +1,22 @@
+import { THEMES } from "@/gallery";
 import { t } from "@/strings";
+import { Motif } from "../themes/Motif";
+import { rail } from "./rail";
 
-/** The line between two Timeline cards, with the days apart written on it. */
+/**
+ * The space between two Timeline entries: a honey heart on the rail's dashed
+ * line, pulsing gently (still under reduced motion), with the days apart
+ * handwritten beside it.
+ */
 export function TimelineGap({ days }: { days: number }) {
   return (
-    <div className="relative flex h-18 items-center justify-center">
-      <div className="absolute inset-y-0 left-1/2 border-l-2 border-dashed border-honey" aria-hidden="true" />
-      <span className="relative bg-cream px-2 py-1 font-hand text-xl text-cocoa-soft">{t.timeline.daysApart(days)}</span>
+    <div className={`${rail} items-center py-3`}>
+      <span className="mx-auto grid size-7 place-items-center rounded-full bg-cream" aria-hidden="true">
+        <span className="inline-flex motion-safe:animate-heart-pulse">
+          <Motif kind="heart" size={15} colors={THEMES.neutro.motifColors} />
+        </span>
+      </span>
+      <span className="font-hand text-[1.35rem] leading-none text-amber">{t.timeline.daysApart(days)}</span>
     </div>
   );
 }

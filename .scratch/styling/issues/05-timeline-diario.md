@@ -4,7 +4,7 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Playwright: a Timeline entry exposes the `data-theme` of its Main occasion, and each badge its own Theme.
-- [ ] The existing Timeline e2e tests stay green.
+- [x] Playwright: a Timeline entry exposes the `data-theme` of its Main occasion, and each badge its own Theme.
+- [x] The existing Timeline e2e tests stay green.

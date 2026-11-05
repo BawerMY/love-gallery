@@ -8,3 +8,7 @@
 
 - [x] Playwright: tapping the top bar on the Timeline scrolls to the bottom; tapping it on a Memory page lands on the Timeline at the bottom.
 - [x] The bar is absent on the password screen and the Admin page.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `styling`, reviewed with /code-review, and the review findings fixed.

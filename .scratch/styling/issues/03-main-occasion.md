@@ -9,3 +9,7 @@
 - [x] Vitest: a chosen Main occasion is honoured; Neutro is skipped; the first non-Neutro by day is used when none is chosen, or when the chosen one no longer applies after a Date range edit or an Occasion deletion; no themed Occasion gives the default look.
 - [x] Vitest: a `database.json` without Main occasions loads as "not chosen".
 - [x] Playwright: the selector appears only with two or more Occasions, and changing it changes the Memory's `data-theme` on the Timeline entry and Memory page.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `styling`, reviewed with /code-review, and the review findings fixed.

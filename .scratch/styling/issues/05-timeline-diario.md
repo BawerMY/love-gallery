@@ -8,3 +8,7 @@
 
 - [x] Playwright: a Timeline entry exposes the `data-theme` of its Main occasion, and each badge its own Theme.
 - [x] The existing Timeline e2e tests stay green.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `styling`, reviewed with /code-review, and the review findings fixed.

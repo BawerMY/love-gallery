@@ -1,6 +1,6 @@
 # Spec: Styling, Themes and the Diario look
 
-**Status:** ready-for-agent
+**Status:** done
 
 Vocabulary follows `GLOSSARY.md`, including **Theme** and **Main occasion**. This builds on v1 (`.scratch/love-gallery-v1/spec.md`). The look comes from the winning prototype variant, **C "Diario"**, kept on branch `prototype/styling` (verdict in commit `92ffa0b`).
 

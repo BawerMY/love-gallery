@@ -10,3 +10,7 @@
 - [x] The default palette is cleared; only project tokens are available.
 - [x] Fonts load via `next/font` with no visible font swap.
 - [x] The whole existing Vitest and Playwright suites stay green.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `styling`, reviewed with /code-review, and the review findings fixed.

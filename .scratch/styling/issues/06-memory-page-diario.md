@@ -8,3 +8,7 @@
 
 - [x] Playwright: the title page exposes the `data-theme` of its Main occasion.
 - [x] The existing playback, magnify, media and layout e2e tests stay green.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `styling`, reviewed with /code-review, and the review findings fixed.

@@ -9,3 +9,7 @@
 - [x] Vitest: Themes are stored on Yearly and One-off occasions; Neutro is the default; unknown keys are rejected.
 - [x] Vitest: a `database.json` from before this change loads with every Occasion treated as Neutro.
 - [x] Playwright: setting a Theme on an Occasion in the Admin page shows the badge with that `data-theme`.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `styling`, reviewed with /code-review, and the review findings fixed.

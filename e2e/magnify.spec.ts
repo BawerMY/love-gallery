@@ -44,11 +44,11 @@ async function seedPhotoAndVideo() {
   );
 }
 
-/** Drives a raw touch through the DevTools protocol: down at `from`, through `moves`, held for `holdMs`, then up. */
+/** Drives a raw touch through the DevTools protocol: down at `from`, through `moves`, then up. */
 async function touch(
   page: Page,
   from: { x: number; y: number },
-  { moves = [], holdMs = 0 }: { moves?: { x: number; y: number }[]; holdMs?: number } = {},
+  { moves = [] }: { moves?: { x: number; y: number }[] } = {},
 ) {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [from] });
@@ -58,7 +58,6 @@ async function touch(
     last = point;
     await page.waitForTimeout(16);
   }
-  if (holdMs) await page.waitForTimeout(holdMs);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await cdp.detach();
   return last;
@@ -69,12 +68,12 @@ async function centreOf(locator: Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
-const longPress = async (page: Page, locator: Locator) => touch(page, await centreOf(locator), { holdMs: 700 });
+const tap = async (page: Page, locator: Locator) => touch(page, await centreOf(locator));
 
 const state = (video: Locator) =>
   video.evaluate((v: HTMLVideoElement) => ({ paused: v.paused, muted: v.muted, time: v.currentTime }));
 
-test("a quick tap opens nothing; a long press or a mouse click magnifies; Esc, the backdrop and ✕ close it", async ({
+test("a tap or a mouse click magnifies, a touch that scrolls doesn't; Esc, the backdrop and ✕ close it", async ({
   pageWithSession: page,
 }) => {
   await seedPhotoAndVideo();
@@ -82,22 +81,19 @@ test("a quick tap opens nothing; a long press or a mouse click magnifies; Esc, t
   const photo = page.getByRole("img", { name: "Foto 1", exact: true });
   const modal = page.getByRole("dialog");
 
-  await photo.tap();
-  await page.waitForTimeout(800);
-  await expect(modal).toHaveCount(0);
-
-  // A touch that moves is not a press, even if held.
+  // A touch that moves scrolls the page and opens nothing.
   const start = await centreOf(photo);
-  await touch(page, start, { moves: [{ x: start.x, y: start.y + 30 }], holdMs: 700 });
+  await touch(page, start, { moves: [1, 2, 3].map((step) => ({ x: start.x, y: start.y - step * 20 })) });
+  await page.waitForTimeout(500);
   await expect(modal).toHaveCount(0);
 
-  await longPress(page, photo);
+  await photo.tap();
   await expect(modal).toBeVisible();
   await expect(modal.getByRole("img", { name: "Foto 1", exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(modal).toHaveCount(0);
 
-  await longPress(page, photo);
+  await tap(page, photo);
   await expect(modal).toBeVisible();
   const viewport = page.viewportSize()!;
   await page.touchscreen.tap(10, viewport.height - 10);
@@ -108,7 +104,7 @@ test("a quick tap opens nothing; a long press or a mouse click magnifies; Esc, t
   await modal.getByRole("button", { name: "Chiudi" }).click();
   await expect(modal).toHaveCount(0);
 
-  // A long press doesn't select text or start a drag.
+  // Touching a tile doesn't select text or start a drag.
   expect(await page.evaluate(() => getSelection()?.toString() ?? "")).toBe("");
 });
 
@@ -122,7 +118,7 @@ test("a magnified video goes on from the grid's moment with its mute state, seek
   await page.getByRole("button", { name: "Attiva l'audio del video 2" }).click();
 
   const before = (await state(grid)).time;
-  await longPress(page, grid);
+  await tap(page, grid);
   const modal = page.getByRole("dialog");
   await expect(modal).toBeVisible();
   const big = modal.getByLabel("Video 2", { exact: true });
@@ -181,7 +177,7 @@ test("unmuting a magnified video holds even when its grid tile is mostly off scr
 test("a swipe down closes the modal", async ({ pageWithSession: page }) => {
   await seedPhotoAndVideo();
   await page.goto("/memories/milano");
-  await longPress(page, page.getByRole("img", { name: "Foto 1", exact: true }));
+  await page.getByRole("img", { name: "Foto 1", exact: true }).tap();
   const modal = page.getByRole("dialog");
   await expect(modal).toBeVisible();
 

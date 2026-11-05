@@ -8,7 +8,7 @@ import { MediaTile } from "./MediaTile";
  * A Memory's Media in its Layout: a 3-column grid of square cells where each
  * item covers the cells of its Layout cell. Empty cells stay empty.
  * Items are rendered in reading order, so screen readers follow the Layout.
- * A long press or a mouse click on an item magnifies it. Each tile fades in
+ * A tap or a click on an item magnifies it. Each tile fades in
  * the first time it scrolls into view.
  */
 export function MemoryGrid({ memory }: { memory: Memory }) {

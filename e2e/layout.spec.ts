@@ -1,37 +1,9 @@
 import path from "node:path";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
-import type { Locator, Page } from "@playwright/test";
 import { dataDir, expect, seedMemories, test } from "./fixtures";
+import { mouseDrag, touchDrag } from "./gestures";
 
 const PHOTO = path.join(import.meta.dirname, "..", "tests", "fixtures", "gps-rotated.jpg");
-
-async function centre(locator: Locator) {
-  await locator.scrollIntoViewIfNeeded();
-  const box = (await locator.boundingBox())!;
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-}
-
-/** Drags with the mouse, in small steps like a hand would. */
-async function mouseDrag(page: Page, handle: Locator, dx: number, dy: number) {
-  const start = await centre(handle);
-  await page.mouse.move(start.x, start.y);
-  await page.mouse.down();
-  await page.mouse.move(start.x + dx, start.y + dy, { steps: 8 });
-  await page.mouse.up();
-}
-
-/** Drags with a finger: real touch events, which the browser turns into touch pointer events. */
-async function touchDrag(page: Page, handle: Locator, dx: number, dy: number) {
-  const start = await centre(handle);
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [start] });
-  for (let step = 1; step <= 8; step++) {
-    const point = { x: start.x + (dx * step) / 8, y: start.y + (dy * step) / 8 };
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [point] });
-  }
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-  await cdp.detach();
-}
 
 async function savedCells() {
   const db = JSON.parse(await readFile(path.join(dataDir, "database.json"), "utf8"));

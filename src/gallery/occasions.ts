@@ -99,6 +99,24 @@ export async function removeOccasionFromMemory(storage: Storage, memoryId: strin
 }
 
 /**
+ * Sets a Memory's whole badge order. Refused unless it holds exactly the
+ * Memory's current Occasions, each once: an order made from a stale page
+ * never adds, drops or repeats one.
+ */
+export async function setOccasionOrder(storage: Storage, memoryId: string, occasionIds: string[]): Promise<void> {
+  await storage.update((db) => {
+    const memory = findMemory(db, memoryId);
+    const current = new Set(memory.occasionIds);
+    const isPermutation =
+      occasionIds.length === current.size &&
+      new Set(occasionIds).size === occasionIds.length &&
+      occasionIds.every((id) => current.has(id));
+    if (!isPermutation) throw new GalleryError(t.occasions.orderOutdated);
+    memory.occasionIds = [...occasionIds];
+  });
+}
+
+/**
  * A Memory's Occasions as its badges show them, in badge order, each with its
  * Theme. An id no longer in the list is skipped.
  */

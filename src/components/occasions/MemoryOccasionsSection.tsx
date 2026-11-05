@@ -1,7 +1,7 @@
-import { occasionsOfMemory, type Memory, type Occasion } from "@/gallery";
+import { occasionsNotOnMemory, occasionsOfMemory, type Memory, type Occasion } from "@/gallery";
 import { t } from "@/strings";
 import { adminHeading, emptyText, quietText } from "../ui";
-import { NewMemoryOccasionForm } from "./NewMemoryOccasionForm";
+import { OccasionForm } from "./OccasionForm";
 import { OccasionPicker } from "./OccasionPicker";
 import { SortableOccasionList } from "./SortableOccasionList";
 
@@ -18,16 +18,16 @@ type Props = {
  * a new one on the spot.
  */
 export function MemoryOccasionsSection({ memory, occasions }: Props) {
-  const own = occasionsOfMemory(memory, occasions);
-  const available = occasions.filter((occasion) => !memory.occasionIds.includes(occasion.id));
+  const memoryOccasions = occasionsOfMemory(memory, occasions);
+  const available = occasionsNotOnMemory(memory, occasions);
 
   return (
     <section aria-labelledby="memory-occasions-heading">
       <h2 id="memory-occasions-heading" className={adminHeading}>
         {t.occasions.memoryHeading}
       </h2>
-      {own.length ? (
-        <SortableOccasionList memoryId={memory.id} occasions={own} />
+      {memoryOccasions.length ? (
+        <SortableOccasionList memoryId={memory.id} occasions={memoryOccasions} />
       ) : (
         <p className={emptyText}>{t.occasions.memoryNone}</p>
       )}
@@ -36,7 +36,7 @@ export function MemoryOccasionsSection({ memory, occasions }: Props) {
       ) : (
         <p className={`${quietText} mt-3`}>{occasions.length ? t.occasions.pickNoneLeft : t.occasions.pickListEmpty}</p>
       )}
-      <NewMemoryOccasionForm memoryId={memory.id} />
+      <OccasionForm memoryId={memory.id} />
     </section>
   );
 }

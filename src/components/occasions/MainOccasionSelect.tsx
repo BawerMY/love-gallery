@@ -27,7 +27,7 @@ export function MainOccasionSelect({ memory, occasions }: Props) {
 
   if (options.length < 2) return null;
   // A choice that no longer applies (taken off the Memory, or now Neutro) counts as automatic, as in `themeOfMemory`.
-  const shown = options.some((occasion) => occasion.id === value) ? value : "";
+  const selected = options.some((occasion) => occasion.id === value) ? value : "";
 
   function change(next: string) {
     setValue(next);
@@ -43,7 +43,7 @@ export function MainOccasionSelect({ memory, occasions }: Props) {
       <select
         className={field}
         id="main-occasion"
-        value={shown}
+        value={selected}
         disabled={pending}
         onChange={(event) => change(event.target.value)}
       >

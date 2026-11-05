@@ -22,12 +22,7 @@ export async function listOccasions(storage: Storage): Promise<Occasion[]> {
 
 export async function createOccasion(storage: Storage, input: OccasionInput): Promise<Occasion> {
   const fields = cleanOccasionInput(input);
-  return storage.update((db) => {
-    refuseTakenName(db, fields.name);
-    const occasion: Occasion = { id: randomUUID(), ...fields };
-    db.occasions.push(occasion);
-    return occasion;
-  });
+  return storage.update((db) => ({ ...addNewOccasion(db, fields) }));
 }
 
 /**
@@ -55,12 +50,12 @@ export async function updateOccasion(storage: Storage, id: string, input: Occasi
 export async function deleteOccasion(storage: Storage, id: string): Promise<number> {
   return storage.update((db) => {
     db.occasions.splice(db.occasions.indexOf(findOccasion(db, id)), 1);
-    const uses = countOccasionUses(db.memories, id);
+    const memoryCount = countOccasionUses(db.memories, id);
     for (const memory of db.memories) {
       memory.occasionIds = memory.occasionIds.filter((occasionId) => occasionId !== id);
       forgetMainOccasion(memory, id);
     }
-    return uses;
+    return memoryCount;
   });
 }
 
@@ -87,11 +82,9 @@ export async function createOccasionOnMemory(storage: Storage, memoryId: string,
   const fields = cleanOccasionInput(input);
   return storage.update((db) => {
     const memory = findMemory(db, memoryId);
-    refuseTakenName(db, fields.name);
-    const occasion: Occasion = { id: randomUUID(), ...fields };
-    db.occasions.push(occasion);
+    const occasion = addNewOccasion(db, fields);
     memory.occasionIds.push(occasion.id);
-    return occasion;
+    return { ...occasion };
   });
 }
 
@@ -134,6 +127,19 @@ export async function setOccasionOrder(storage: Storage, memoryId: string, occas
 export function occasionsOfMemory(memory: Memory, occasions: Occasion[]): Occasion[] {
   const byId = new Map(occasions.map((occasion) => [occasion.id, occasion]));
   return memory.occasionIds.flatMap((id) => byId.get(id) ?? []);
+}
+
+/** The Occasions of the list a Memory doesn't have yet, in the list's order: what its picker offers. */
+export function occasionsNotOnMemory(memory: Memory, occasions: Occasion[]): Occasion[] {
+  return occasions.filter((occasion) => !memory.occasionIds.includes(occasion.id));
+}
+
+/** Adds a new Occasion to the list, refusing a name the list already has. */
+function addNewOccasion(db: Database, fields: Omit<Occasion, "id">): Occasion {
+  refuseTakenName(db, fields.name);
+  const occasion: Occasion = { id: randomUUID(), ...fields };
+  db.occasions.push(occasion);
+  return occasion;
 }
 
 /** Goes back to choosing the Memory's Main occasion automatically if it had chosen this Occasion. */

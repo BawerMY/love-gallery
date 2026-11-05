@@ -21,7 +21,7 @@ export function OccasionsSection({ occasions, memories }: Props) {
       {occasions.length ? (
         <ul className={list}>
           {occasions.map((occasion) => (
-            <OccasionItem key={occasion.id} occasion={occasion} uses={countOccasionUses(memories, occasion.id)} />
+            <OccasionItem key={occasion.id} occasion={occasion} memoryCount={countOccasionUses(memories, occasion.id)} />
           ))}
         </ul>
       ) : (

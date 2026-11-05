@@ -1,4 +1,5 @@
 import { Timeline } from "@/components/timeline/Timeline";
+import { TopBar } from "@/components/TopBar";
 import { getGallery, listTimeline, listYearlyOccasions } from "@/gallery";
 import { page } from "@/components/ui";
 import { t } from "@/strings";
@@ -14,12 +15,15 @@ export default async function TimelinePage() {
   ]);
 
   return (
-    <main className={page}>
-      {memories.length === 0 ? (
-        <p className="mt-[40vh] text-center text-cocoa-soft">{t.timeline.empty}</p>
-      ) : (
-        <Timeline memories={memories} yearlyOccasions={yearlyOccasions} />
-      )}
-    </main>
+    <>
+      <TopBar />
+      <main className={page}>
+        {memories.length === 0 ? (
+          <p className="mt-[40vh] text-center text-cocoa-soft">{t.timeline.empty}</p>
+        ) : (
+          <Timeline memories={memories} yearlyOccasions={yearlyOccasions} />
+        )}
+      </main>
+    </>
   );
 }

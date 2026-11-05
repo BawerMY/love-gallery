@@ -1,6 +1,6 @@
 # Spec: Occasions added by hand
 
-**Status:** ready-for-agent
+**Status:** done
 
 Vocabulary follows `GLOSSARY.md`, which already describes the new model: one list of **Occasions**, added to Memories by hand, each carrying a **Theme**. This builds on the styling work (`.scratch/styling/spec.md`, branch `styling`), where Themes and the **Main occasion** were introduced.
 

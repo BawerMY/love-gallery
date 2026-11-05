@@ -4,7 +4,11 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest: create-and-add puts the new Occasion in the list and at the end of the Memory's Occasions; a duplicate name is refused and nothing is added.
-- [ ] Playwright: creating an Occasion from a Memory's Admin page shows its badge on the Memory and the Occasion in the Admin list.
+- [x] Vitest: create-and-add puts the new Occasion in the list and at the end of the Memory's Occasions; a duplicate name is refused and nothing is added.
+- [x] Playwright: creating an Occasion from a Memory's Admin page shows its badge on the Memory and the Occasion in the Admin list.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `occasions-by-hand`, reviewed with /code-review, and the review findings fixed.

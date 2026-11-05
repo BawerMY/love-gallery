@@ -4,8 +4,12 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest: the three new Theme keys are accepted when saving an Occasion; an unknown key is still refused.
-- [ ] Playwright: an Occasion given each new Theme shows a badge with that `data-theme`, and a Memory whose Main occasion has it shows that `data-theme` on its Timeline entry and title page.
-- [ ] The new motifs are drawn and checked by eye.
+- [x] Vitest: the three new Theme keys are accepted when saving an Occasion; an unknown key is still refused.
+- [x] Playwright: an Occasion given each new Theme shows a badge with that `data-theme`, and a Memory whose Main occasion has it shows that `data-theme` on its Timeline entry and title page.
+- [x] The new motifs are drawn and checked by eye.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `occasions-by-hand`, reviewed with /code-review, and the review findings fixed.

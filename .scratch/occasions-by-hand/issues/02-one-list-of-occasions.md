@@ -4,11 +4,15 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest: create, rename, re-theme and delete Occasions; duplicate names (ignoring case) and unknown Themes refused; delete removes the Occasion from every Memory and reports the count.
-- [ ] Vitest: add to and remove from a Memory; a Date range edit leaves Occasions alone.
-- [ ] Vitest: Main occasion: chosen one honoured; Neutro refused when choosing; first non-Neutro in badge order as fallback, including after the chosen one is removed, deleted or turned Neutro; default look with no non-Neutro Occasion.
-- [ ] Vitest: converting an old `database.json` (Yearly with and without first year, One-offs, name clashes, Main occasion references, badge order by day).
-- [ ] Playwright: manage the list (create, rename, change Theme, delete with the usage count); pick and remove on a Memory; the selector appears only with two or more non-Neutro Occasions and changing it changes the Memory's `data-theme`.
-- [ ] The existing Vitest and Playwright suites are green, rewritten where they relied on Yearly or One-off occasions.
+- [x] Vitest: create, rename, re-theme and delete Occasions; duplicate names (ignoring case) and unknown Themes refused; delete removes the Occasion from every Memory and reports the count.
+- [x] Vitest: add to and remove from a Memory; a Date range edit leaves Occasions alone.
+- [x] Vitest: Main occasion: chosen one honoured; Neutro refused when choosing; first non-Neutro in badge order as fallback, including after the chosen one is removed, deleted or turned Neutro; default look with no non-Neutro Occasion.
+- [x] Vitest: converting an old `database.json` (Yearly with and without first year, One-offs, name clashes, Main occasion references, badge order by day).
+- [x] Playwright: manage the list (create, rename, change Theme, delete with the usage count); pick and remove on a Memory; the selector appears only with two or more non-Neutro Occasions and changing it changes the Memory's `data-theme`.
+- [x] The existing Vitest and Playwright suites are green, rewritten where they relied on Yearly or One-off occasions.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `occasions-by-hand`, reviewed with /code-review, and the review findings fixed.

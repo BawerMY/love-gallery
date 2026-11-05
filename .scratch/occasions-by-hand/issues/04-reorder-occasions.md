@@ -4,8 +4,12 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Vitest: setting a Memory's order is saved; an order that isn't a permutation of the Memory's current Occasions is refused.
-- [ ] Playwright: drag and drop with mouse and with touch reorders the Occasions, survives a reload, and changes the badge order on the Timeline entry and the Memory page.
-- [ ] Playwright: with "Automatica", moving a different non-Neutro Occasion first changes the Memory's `data-theme`.
+- [x] Vitest: setting a Memory's order is saved; an order that isn't a permutation of the Memory's current Occasions is refused.
+- [x] Playwright: drag and drop with mouse and with touch reorders the Occasions, survives a reload, and changes the badge order on the Timeline entry and the Memory page.
+- [x] Playwright: with "Automatica", moving a different non-Neutro Occasion first changes the Memory's `data-theme`.
+
+## Comments
+
+- 2026-11-05: implemented on the integration branch `occasions-by-hand`, reviewed with /code-review, and the review findings fixed.

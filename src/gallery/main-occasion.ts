@@ -24,7 +24,8 @@ export function themeOfMemory(memory: Memory, yearlyOccasions: YearlyOccasion[])
 
 /**
  * Chooses the Main occasion of a Memory, or with nothing goes back to
- * choosing it automatically. It must be one of the Memory's Occasions.
+ * choosing it automatically. It must be one of the Memory's Occasions, and
+ * not a Neutro one: a Neutro Occasion has no Theme to give.
  */
 export async function chooseMainOccasion(
   storage: Storage,
@@ -37,8 +38,9 @@ export async function chooseMainOccasion(
       delete memory.mainOccasion;
       return;
     }
-    const occasions = occasionsOfMemory(memory, db.yearlyOccasions);
-    if (!occasions.some((occasion) => refersTo(ref, occasion))) throw new GalleryError(t.occasions.notFound);
+    const occasion = occasionsOfMemory(memory, db.yearlyOccasions).find((candidate) => refersTo(ref, candidate));
+    if (!occasion) throw new GalleryError(t.occasions.notFound);
+    if (occasion.theme === DEFAULT_THEME) throw new GalleryError(t.occasions.mainOccasionNeutroRefused);
     memory.mainOccasion = { kind: ref.kind, id: ref.id };
   });
 }

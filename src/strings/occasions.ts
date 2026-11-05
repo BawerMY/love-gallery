@@ -39,6 +39,9 @@ export const occasions = {
   mainOccasionHint: "Dà il suo tema al ricordo",
   mainOccasionAutomatic: "Automatica",
   mainOccasionSaved: "Occasione principale salvata.",
+  /** Beside a Neutro Occasion in the selector, which can't be chosen. */
+  mainOccasionNeutro: (name: string) => `${name} (tema Neutro)`,
+  mainOccasionNeutroRefused: "Una ricorrenza con tema Neutro non può dare il tema al ricordo.",
   noOneOff: "Questo ricordo non ha ricorrenze proprie.",
   newOneOff: "Nuova ricorrenza del ricordo",
   oneOffDayLabel: "Data",

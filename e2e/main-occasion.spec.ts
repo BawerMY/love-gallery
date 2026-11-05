@@ -45,7 +45,15 @@ test("the Curator picks a Main occasion when a Memory has two or more, and it se
   await page.goto("/admin/memories/inverno");
   const main = page.getByLabel("Occasione principale");
   await expect(main).toHaveValue("");
-  await expect(main.getByRole("option")).toHaveText(["Automatica", "Natale", "Pranzo dai nonni", "Capodanno"]);
+  // A Neutro Occasion is listed, but has no Theme to give, so it can't be chosen.
+  await expect(main.getByRole("option")).toHaveText([
+    "Automatica",
+    "Natale",
+    "Pranzo dai nonni (tema Neutro)",
+    "Capodanno",
+  ]);
+  await expect(main.getByRole("option", { name: "Pranzo dai nonni (tema Neutro)" })).toBeDisabled();
+  await expect(main.getByRole("option", { name: "Capodanno" })).toBeEnabled();
 
   await main.selectOption({ label: "Capodanno" });
   await expect(page.getByText("Occasione principale salvata.")).toBeVisible();

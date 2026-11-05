@@ -14,6 +14,7 @@ import {
   openStorage,
   themeOfMemory,
   updateMemory,
+  updateYearlyOccasion,
   type Storage,
 } from "@/gallery";
 import { makeDataDir, readDatabaseFile } from "./helpers";
@@ -50,11 +51,25 @@ describe("a Memory's Main occasion and Theme", () => {
     expect(await effective(storage, memory.id)).toEqual({ main: "Natale", theme: "natale" });
   });
 
-  it("skips a chosen Main occasion that is Neutro", async () => {
-    const { storage, memory } = await nataleECapodanno();
+  it("refuses a Neutro Occasion as Main occasion, keeping the previous choice", async () => {
+    const { storage, memory, capodanno } = await nataleECapodanno();
     const pranzo = await addOneOffOccasion(storage, memory.id, { name: "Pranzo", day: "2025-12-24" });
+    const festa = await createYearlyOccasion(storage, { name: "Festa", month: 12, day: 26 });
+    await chooseMainOccasion(storage, memory.id, { kind: "yearly", id: capodanno.id });
 
-    await chooseMainOccasion(storage, memory.id, { kind: "one-off", id: pranzo.id });
+    await expect(chooseMainOccasion(storage, memory.id, { kind: "one-off", id: pranzo.id })).rejects.toThrow(
+      new GalleryError("Una ricorrenza con tema Neutro non può dare il tema al ricordo."),
+    );
+    await expect(chooseMainOccasion(storage, memory.id, { kind: "yearly", id: festa.id })).rejects.toThrow(GalleryError);
+
+    expect(await effective(storage, memory.id)).toEqual({ main: "Capodanno", theme: "capodanno" });
+  });
+
+  it("skips a chosen Main occasion whose Theme later became Neutro", async () => {
+    const { storage, memory, capodanno } = await nataleECapodanno();
+    await chooseMainOccasion(storage, memory.id, { kind: "yearly", id: capodanno.id });
+
+    await updateYearlyOccasion(storage, capodanno.id, { name: "Capodanno", month: 1, day: 1, theme: "neutro" });
 
     expect(await effective(storage, memory.id)).toEqual({ main: "Natale", theme: "natale" });
   });
@@ -96,9 +111,8 @@ describe("a Memory's Main occasion and Theme", () => {
     const memory = await createMemory(storage, { cities: ["Roma"], startDay: "2025-05-01", endDay: "2025-05-03" });
     expect(await effective(storage, memory.id)).toEqual({ main: undefined, theme: "neutro" });
 
-    const gita = await addOneOffOccasion(storage, memory.id, { name: "Gita", day: "2025-05-02" });
+    await addOneOffOccasion(storage, memory.id, { name: "Gita", day: "2025-05-02" });
     await createYearlyOccasion(storage, { name: "Festa", month: 5, day: 1 });
-    await chooseMainOccasion(storage, memory.id, { kind: "one-off", id: gita.id });
     expect(await effective(storage, memory.id)).toEqual({ main: undefined, theme: "neutro" });
   });
 

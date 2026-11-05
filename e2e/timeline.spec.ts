@@ -42,7 +42,7 @@ test("the Timeline reads like a journal: month markers, themed entries and their
   // The entry wears its Main occasion's Theme; each badge its own.
   const winter = page.getByRole("link").filter({ hasText: "Inverno a Torino" });
   await expect(winter).toHaveAttribute("data-theme", "natale");
-  const badges = winter.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem");
+  const badges = winter.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem");
   await expect(badges).toHaveText(["Cena coi nonni", "Natale"]);
   await expect(badges.nth(0)).toHaveAttribute("data-theme", "neutro");
   await expect(badges.nth(1)).toHaveAttribute("data-theme", "natale");

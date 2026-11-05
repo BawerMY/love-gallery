@@ -4,7 +4,7 @@ import { centre, mouseDrag, touchDrag } from "./gestures";
 
 /** The Memory's entry on the Timeline. */
 const timelineEntry = (page: Page, title: string) => page.getByRole("link").filter({ hasText: title });
-const badgesIn = (scope: Page | Locator) => scope.getByRole("list", { name: "Ricorrenze" }).getByRole("listitem");
+const badgesIn = (scope: Page | Locator) => scope.getByRole("list", { name: "Occasioni", exact: true }).getByRole("listitem");
 
 /** How far to drag `handle` up or down so it lands on the middle of `target`. */
 async function toward(handle: Locator, target: Locator) {
